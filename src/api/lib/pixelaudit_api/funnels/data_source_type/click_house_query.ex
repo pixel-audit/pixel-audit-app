@@ -9,7 +9,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.ClickHouseQuery do
 
   import PixelAudit.Api.FieldSpec, only: [field: 2]
 
-  alias PixelAudit.Api.Connections.Connector.ClickHouse
+  alias PixelAudit.Api.Settings.Connector.ClickHouse
   alias PixelAudit.Api.Funnels.DataSourceType
 
   @impl true

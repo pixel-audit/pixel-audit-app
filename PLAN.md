@@ -67,7 +67,7 @@ Generated with `mix phx.new pixelaudit_api --app pixelaudit_api --module PixelAu
 
 | Role | Script | Runs |
 |---|---|---|
-| `boot` | `rel/overlays/bin/boot` → `PixelAudit.Api.Release.boot/0` | `create` (idempotent) → `migrate` → `PixelAudit.Api.Connections.EnvSync.run/0` (§2.6). Exits 0 on success, non-zero on a malformed `CONNECTION_*` set. Oban started with `queues: false, plugins: false` like memoria's `seed`. |
+| `boot` | `rel/overlays/bin/boot` → `PixelAudit.Api.Release.boot/0` | `create` (idempotent) → `migrate` → `PixelAudit.Api.Settings.EnvSync.run/0` (§2.6). Exits 0 on success, non-zero on a malformed `CONNECTION_*` set. Oban started with `queues: false, plugins: false` like memoria's `seed`. |
 | `web` | `rel/overlays/bin/server` | `PHX_SERVER=true` + Oban queues and cron (§2.7). |
 
 Dev equivalents: `mix boot` alias (`ecto.create`, `ecto.migrate`, `run priv/repo/boot.exs`) wired into `make setup` and `make boot`; `mix phx.server` is `web`. The web role does **not** run migrations or env sync — `boot` is the only writer of connection rows from the environment, so a deploy is `boot` (init container / one-off) then `web`.
@@ -77,7 +77,7 @@ Dev equivalents: `mix boot` alias (`ecto.create`, `ecto.migrate`, `run priv/repo
 ```
 lib/pixelaudit_api/
 ├── application.ex, repo.ex, release.ex, vault.ex (Cloak)
-├── connections/                       context PixelAudit.Api.Connections
+├── connections/                       context PixelAudit.Api.Settings
 │   ├── connection.ex                  schema `connections`
 │   ├── connector.ex                   behaviour (§2.5)
 │   ├── connector/meta_api.ex
@@ -134,7 +134,7 @@ Deletes cascade down (funnel → steps, data sources → parameters, counts). De
 
 ### 2.5 Connectors
 
-`PixelAudit.Api.Connections.Connector` behaviour, one module per connection type:
+`PixelAudit.Api.Settings.Connector` behaviour, one module per connection type:
 
 ```elixir
 @callback type() :: atom()
@@ -174,7 +174,7 @@ Dates are **bound as parameters, never interpolated** into SQL, in all three SQL
 
 ### 2.6 Env sync (`boot`)
 
-`PixelAudit.Api.Connections.EnvSync.run/0`:
+`PixelAudit.Api.Settings.EnvSync.run/0`:
 
 1. Scan `System.get_env/0` for `^CONNECTION_([a-z0-9]+)_TYPE$` (the id is lowercase so a shell/compose file can set it; `_` is not allowed in an id, so the split is unambiguous).
 2. For each id: map `TYPE` (`meta-api` → `meta_api`, …), collect `CONNECTION_<id>_<PARAM>` for the type's `credential_params()`, unknown params are logged as warnings; a missing required param or unknown type aborts boot with a non-zero exit naming the variable.

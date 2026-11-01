@@ -13,19 +13,20 @@ describe("the navigation tree", () => {
   it("places a page in its group", () => {
     expect(groupOf("/funnels")?.url).toBe("/funnels");
     expect(groupOf("/funnels/checkout/setup")?.url).toBe("/funnels");
-    expect(groupOf("/connections/abc")?.url).toBe("/connections");
+    expect(groupOf("/settings/connections/abc")?.url).toBe("/settings");
     expect(groupOf("/")).toBeUndefined();
     expect(groupOf("/funnelsx")).toBeUndefined();
   });
 
   it("leads a group to its first screen", () => {
-    for (const group of NAV_GROUPS) expect(firstScreen(group)).toBe(group.url);
+    expect(firstScreen(NAV_GROUPS[0]!)).toBe("/funnels");
+    expect(firstScreen(NAV_GROUPS[2]!)).toBe("/settings/connections");
   });
 
   it("keeps a screen open on its item pages", () => {
     const funnels = NAV_GROUPS[0]!.categories[0]!.items[0]!;
     expect(isAtScreen("/funnels/checkout", funnels)).toBe(true);
-    expect(isAtScreen("/connections", funnels)).toBe(false);
+    expect(isAtScreen("/settings/connections", funnels)).toBe(false);
   });
 });
 
@@ -33,6 +34,13 @@ describe("navTrail — the trail the tree knows", () => {
   it("collapses a screen named like its group into one crumb", () => {
     expect(navTrail("/funnels/checkout/setup").map((c) => [c.label.id, c.to])).toEqual([
       ["nav.funnels", "/funnels"],
+    ]);
+  });
+
+  it("names the screen under its group", () => {
+    expect(navTrail("/settings/variables/abc").map((c) => [c.label.id, c.to])).toEqual([
+      ["nav.settings", "/settings/connections"],
+      ["nav.variables", "/settings/variables"],
     ]);
   });
 

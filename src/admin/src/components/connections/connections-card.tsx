@@ -44,7 +44,10 @@ export function ConnectionsCard() {
                 key={connection.id}
                 icon={Plug}
                 title={connection.name}
-                link={linkOptions({ to: "/connections/$id", params: { id: connection.id } })}
+                link={linkOptions({
+                  to: "/settings/connections/$id",
+                  params: { id: connection.id },
+                })}
                 badges={
                   <>
                     <Badge variant="secondary">{connectionTypeLabel(types, connection.type)}</Badge>

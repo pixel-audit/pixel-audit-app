@@ -11,7 +11,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType do
   query sees them as bound parameters.
   """
 
-  alias PixelAudit.Api.Connections.Connection
+  alias PixelAudit.Api.Settings.Connection
   alias PixelAudit.Api.FieldSpec
 
   @callback type() :: atom()

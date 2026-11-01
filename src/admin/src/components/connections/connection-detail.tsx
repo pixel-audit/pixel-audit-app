@@ -182,7 +182,7 @@ export function ConnectionDetail({ connection }: { connection: Connection }) {
           // twice; destroy() is wired to the same mutation above, so route
           // the outcome through it only on success.
           if (result.status === 204 && (await destroy(connection))) {
-            void navigate({ to: "/connections" });
+            void navigate({ to: "/settings/connections" });
           }
         }}
       />

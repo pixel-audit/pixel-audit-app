@@ -419,6 +419,12 @@
   "nav.refreshes": {
     "defaultMessage": "Refreshes"
   },
+  "nav.settings": {
+    "defaultMessage": "Settings"
+  },
+  "nav.variables": {
+    "defaultMessage": "Variables"
+  },
   "parameters.card.cellLabel": {
     "defaultMessage": "{source}: {step}"
   },
@@ -600,7 +606,7 @@
     "defaultMessage": "item"
   },
   "refusal.managedByEnv": {
-    "defaultMessage": "This connection's type and credentials come from the environment (CONNECTION_* variables) and cannot be changed here."
+    "defaultMessage": "This {subject} is defined by the environment (CONNECTION_* or VARIABLE_* variables); what it defines cannot be changed here."
   },
   "refusal.notAMetaConnection": {
     "defaultMessage": "Only a Meta connection has pixel stats to pull."
@@ -646,6 +652,9 @@
   },
   "routes.back.refreshes": {
     "defaultMessage": "Back to refreshes"
+  },
+  "routes.back.variables": {
+    "defaultMessage": "Back to variables"
   },
   "sankey.chartLabel": {
     "defaultMessage": "The funnel: each data source's count per step, over one another"
@@ -742,5 +751,68 @@
   },
   "steps.dialog.saved": {
     "defaultMessage": "Step \"{name}\" saved."
+  },
+  "variables.detail.deleteDescription": {
+    "defaultMessage": "The variable is removed. One defined by the environment comes back at the next boot."
+  },
+  "variables.detail.deleteFailed": {
+    "defaultMessage": "The variable could not be deleted."
+  },
+  "variables.detail.deleteTitle": {
+    "defaultMessage": "Delete variable \"{key}\"?"
+  },
+  "variables.detail.deleted": {
+    "defaultMessage": "Variable \"{key}\" deleted."
+  },
+  "variables.detail.managed": {
+    "defaultMessage": "From environment"
+  },
+  "variables.detail.managedDetail": {
+    "defaultMessage": "VARIABLE_{key}_VALUE in the environment, applied by the boot role."
+  },
+  "variables.detail.source": {
+    "defaultMessage": "Defined by"
+  },
+  "variables.detail.value": {
+    "defaultMessage": "Value"
+  },
+  "variables.dialog.addTitle": {
+    "defaultMessage": "Add a variable"
+  },
+  "variables.dialog.description": {
+    "defaultMessage": "Description"
+  },
+  "variables.dialog.editTitle": {
+    "defaultMessage": "Edit the variable"
+  },
+  "variables.dialog.failed": {
+    "defaultMessage": "The variable could not be saved."
+  },
+  "variables.dialog.key": {
+    "defaultMessage": "Key"
+  },
+  "variables.dialog.keyHint": {
+    "defaultMessage": "Letters and digits; the key in the VARIABLE_key_* variables. Cannot be changed later."
+  },
+  "variables.dialog.managed": {
+    "defaultMessage": "This variable is defined by the environment: its value is set at boot and cannot be edited here."
+  },
+  "variables.dialog.saved": {
+    "defaultMessage": "Variable \"{key}\" saved."
+  },
+  "variables.dialog.value": {
+    "defaultMessage": "Value"
+  },
+  "variables.list.add": {
+    "defaultMessage": "Add variable"
+  },
+  "variables.list.empty": {
+    "defaultMessage": "No variables yet. Add one here, or define it with VARIABLE_* variables and run the boot role."
+  },
+  "variables.list.managed": {
+    "defaultMessage": "From environment"
+  },
+  "variables.list.title": {
+    "defaultMessage": "Variables"
   }
 }

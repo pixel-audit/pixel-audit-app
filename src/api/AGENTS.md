@@ -3,7 +3,7 @@ This is a web application written using the Phoenix web framework.
 ## Project guidelines
 
 - API structure and OpenAPI rules live in `specs/api.md` at the repository root — follow them for any new endpoint
-- The domain lives in `specs/connections.md`, `specs/funnels.md` and `specs/caching.md`; `CLAUDE.md` beside this file says where code goes
+- The domain lives in `specs/connections.md`, `specs/variables.md`, `specs/funnels.md` and `specs/caching.md`; `CLAUDE.md` beside this file says where code goes
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
 - Tests stub Meta and BigQuery with `Req.Test` (config/test.exs names the stub); the Postgres connector is tested against the test database itself (`PixelAudit.Api.Fixtures.test_database_url/0`)

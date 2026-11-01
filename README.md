@@ -146,11 +146,26 @@ case-sensitive) and `<PARAM>` one of the type's credentials, in upper case:
   `URL=http://user:password@host:8123/database` (user and database
   default to `default`).
 
-`GET /api/admin/v1/connections/types` lists the same. An existing
+`GET /api/admin/v1/settings/connections/types` lists the same. An existing
 connection with the same code is updated (its name and description kept),
 a new one is created named after its code; both are marked as managed by
 the environment, which makes their type and credentials read-only in the
 panel. The panel shows a URL with its password hidden.
+
+### Variables from the environment
+
+A variable is one string value under a key — a key/value store kept under
+**Settings → Variables** in the panel. The same boot role seeds them:
+
+```sh
+VARIABLE_<key>_VALUE=...
+VARIABLE_<key>_DESCRIPTION=...   # optional
+```
+
+`<key>` is letters and digits, case-sensitive. An existing variable with
+the same key gets the value (and the description, when given); a new one
+is created. Both are marked as managed by the environment, which makes
+their value read-only in the panel.
 
 ## A first funnel
 

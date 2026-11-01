@@ -4,7 +4,7 @@ defmodule PixelAudit.Api.Fixtures do
   sources, and the stubbed Meta answers.
   """
 
-  alias PixelAudit.Api.{Connections, Funnels}
+  alias PixelAudit.Api.{Funnels, Settings}
 
   @doc "The test database as a `postgres://` URL — a real Postgres the Postgres connector can hit."
   def test_database_url do
@@ -36,7 +36,7 @@ defmodule PixelAudit.Api.Fixtures do
     code = attrs[:code] || "c#{System.unique_integer([:positive])}"
 
     {:ok, connection} =
-      Connections.create_connection(
+      Settings.create_connection(
         Map.merge(
           %{
             "code" => code,
@@ -51,6 +51,19 @@ defmodule PixelAudit.Api.Fixtures do
       )
 
     connection
+  end
+
+  def variable_fixture(attrs \\ %{}) do
+    key = attrs[:key] || "v#{System.unique_integer([:positive])}"
+
+    {:ok, variable} =
+      Settings.create_variable(%{
+        "key" => key,
+        "value" => Map.get(attrs, :value, "value of #{key}"),
+        "description" => attrs[:description]
+      })
+
+    variable
   end
 
   def funnel_fixture(attrs \\ %{}) do

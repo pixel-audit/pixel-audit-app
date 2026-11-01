@@ -1,9 +1,9 @@
-defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionControllerTest do
+defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionControllerTest do
   use PixelAudit.ApiWeb.ConnCase, async: true
 
   import PixelAudit.Api.Fixtures
 
-  @base "/api/admin/v1/connections"
+  @base "/api/admin/v1/settings/connections"
 
   test "lists the connection types with their credential fields", %{conn: conn} do
     %{"data" => types} = conn |> get("#{@base}/types") |> json_response(200)
@@ -95,12 +95,12 @@ defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionControllerTest do
 
   test "refuses type and credential changes on an env-managed connection", %{conn: conn} do
     {:ok, _} =
-      PixelAudit.Api.Connections.EnvSync.run(%{
+      PixelAudit.Api.Settings.EnvSync.run(%{
         "CONNECTION_shop_TYPE" => "postgres",
         "CONNECTION_shop_URL" => test_database_url()
       })
 
-    connection = PixelAudit.Api.Connections.get_connection_by_code("shop")
+    connection = PixelAudit.Api.Settings.get_connection_by_code("shop")
 
     assert %{"errors" => %{"detail" => "managed_by_env"}} =
              conn

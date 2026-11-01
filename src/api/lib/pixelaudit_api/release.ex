@@ -6,7 +6,7 @@ defmodule PixelAudit.Api.Release do
   (`rel/overlays/bin`) runs through `bin/pixelaudit_api eval`; the Docker
   image exposes them as the roles `migrate` and `boot` (see the Dockerfile
   and `docker/entrypoint.sh`). `boot` mirrors the `mix boot` alias:
-  create + migrate + map the `CONNECTION_*` environment onto connections.
+  create + migrate + map the `CONNECTION_*` and `VARIABLE_*` environment onto settings rows.
   """
 
   @app :pixelaudit_api
@@ -50,12 +50,12 @@ defmodule PixelAudit.Api.Release do
   end
 
   @doc """
-  The `boot` role: create + migrate + `PixelAudit.Api.Connections.EnvSync`.
+  The `boot` role: create + migrate + `PixelAudit.Api.Settings.EnvSync`.
 
   The env sync runs under the started application — the vault encrypts the
   credentials it writes — with Oban's queues and plugins off: nothing is to
   run in a one-off container that exits as soon as the sync is through.
-  A malformed `CONNECTION_*` set stops the container with a non-zero exit
+  A malformed `CONNECTION_*` or `VARIABLE_*` set stops the container with a non-zero exit
   and the problems on stderr, so a deploy fails loudly instead of with a
   connection silently missing.
   """
@@ -67,14 +67,14 @@ defmodule PixelAudit.Api.Release do
     Application.put_env(@app, Oban, oban)
     {:ok, _started} = Application.ensure_all_started(@app)
 
-    case PixelAudit.Api.Connections.EnvSync.run() do
+    case PixelAudit.Api.Settings.EnvSync.run() do
       {:ok, _results} ->
         :ok
 
       {:error, problems} ->
         IO.puts(
           :stderr,
-          "The CONNECTION_* environment is invalid:\n" <> Enum.join(problems, "\n")
+          "The CONNECTION_*/VARIABLE_* environment is invalid:\n" <> Enum.join(problems, "\n")
         )
 
         System.halt(1)

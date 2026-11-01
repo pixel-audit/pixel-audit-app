@@ -37,18 +37,24 @@ defmodule PixelAudit.ApiWeb.Router do
   scope "/api/admin/v1", PixelAudit.ApiWeb.Admin do
     pipe_through :admin_api
 
-    scope "/connections", Connections do
+    scope "/settings", Settings do
       # Before the resource routes, or "types" would be taken for an id.
-      get "/types", ConnectionController, :types
+      get "/connections/types", ConnectionController, :types
       # Spelled out rather than `resources`, which would add a PATCH twin of
       # every update and a second operation in the OpenAPI document.
-      get "/", ConnectionController, :index
-      post "/", ConnectionController, :create
-      get "/:id", ConnectionController, :show
-      put "/:id", ConnectionController, :update
-      delete "/:id", ConnectionController, :delete
-      post "/:id/check", ConnectionController, :check
-      post "/:id/refresh", ConnectionController, :refresh
+      get "/connections", ConnectionController, :index
+      post "/connections", ConnectionController, :create
+      get "/connections/:id", ConnectionController, :show
+      put "/connections/:id", ConnectionController, :update
+      delete "/connections/:id", ConnectionController, :delete
+      post "/connections/:id/check", ConnectionController, :check
+      post "/connections/:id/refresh", ConnectionController, :refresh
+
+      get "/variables", VariableController, :index
+      post "/variables", VariableController, :create
+      get "/variables/:id", VariableController, :show
+      put "/variables/:id", VariableController, :update
+      delete "/variables/:id", VariableController, :delete
     end
 
     scope "/funnels", Funnels do

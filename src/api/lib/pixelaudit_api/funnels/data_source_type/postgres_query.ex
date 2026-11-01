@@ -19,7 +19,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.PostgresQuery do
 
   import PixelAudit.Api.FieldSpec, only: [field: 2]
 
-  alias PixelAudit.Api.Connections.Connector.Postgres
+  alias PixelAudit.Api.Settings.Connector.Postgres
   alias PixelAudit.Api.Funnels.DataSourceType
 
   @impl true

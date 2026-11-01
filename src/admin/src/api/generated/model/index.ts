@@ -71,3 +71,7 @@ export * from "./stepResponse.ts";
 export * from "./stepsResponse.ts";
 export * from "./validationErrors.ts";
 export * from "./validationErrorsErrors.ts";
+export * from "./variable.ts";
+export * from "./variableParams.ts";
+export * from "./variableResponse.ts";
+export * from "./variablesResponse.ts";

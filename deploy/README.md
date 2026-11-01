@@ -23,7 +23,7 @@ The chart never takes a secret as a value. Everything secret is a Secret you cre
 | `secrets.secretName` (**required**) | `WEB_SECRET_KEY_BASE`, `CREDENTIALS_ENCRYPTION_KEY` | Phoenix's signing secret (64+ characters; what the framework signs its tokens and cookies with), and the 256-bit key the connection credentials are encrypted with at rest, as 64 hex characters. |
 | `database.external.secretName` | `DATABASE_URL` | Your managed Postgres: `postgres://user:password@host:5432/db?sslmode=require`. |
 | `database.internal.passwordSecret.name` | `POSTGRES_PASSWORD` | The chart's own Postgres, when you want to choose its password; left empty, the chart generates one once and keeps it. |
-| `app.extraEnvFrom` (a `secretRef`) | `CONNECTION_*` | Connections defined by the environment — see below. |
+| `app.extraEnvFrom` (a `secretRef`) | `CONNECTION_*`, `VARIABLE_*` | Connections and variables defined by the environment — see below. |
 | `ingress.tlsSecretName` / `gateway.tlsSecretName` | `tls.crt`, `tls.key` | The certificate for the hostname, unless cert-manager issues it. |
 
 The key names inside the first two can be changed with `secrets.keys.*` and `database.external.secretKey`.
@@ -92,7 +92,7 @@ kubectl -n pixelaudit rollout restart deployment/pixelaudit
 
 `image.trackLatest` overrides `image.tag` and `image.pullPolicy` in one switch; the boot Job and the Deployment always run the same tag.
 
-## Connections from the environment
+## Connections and variables from the environment
 
 Connections (a Meta pixel, a BigQuery project, a Postgres or ClickHouse database) can be added in the panel, or defined by `CONNECTION_*` variables that the boot Job maps onto connection rows on every install and upgrade:
 
@@ -120,7 +120,18 @@ app:
         name: pixelaudit-connections
 ```
 
-A connection defined this way is marked *managed by the environment* in the panel: its type and credentials are read-only there, its name and description editable. An existing connection with the same code is updated, a new one created with its name set to its code. After changing the Secret, `helm upgrade` re-runs the boot Job so the rows follow, and restart the pods (`kubectl rollout restart deployment/<release>`) since the Secret's values are their environment.
+A connection defined this way is marked *managed by the environment* in the panel: its type and credentials are read-only there, its name and description editable. An existing connection with the same code is updated, a new one created with its name set to its code.
+
+Variables — the key/value store under **Settings → Variables** — are seeded the same way, from the same Secret or another one handed over through `app.extraEnvFrom`:
+
+```
+VARIABLE_<key>_VALUE = ...
+VARIABLE_<key>_DESCRIPTION = ...   (optional)
+```
+
+`<key>` is letters and digits, case-sensitive. A variable defined this way has its value read-only in the panel.
+
+After changing the Secret, `helm upgrade` re-runs the boot Job so the rows follow, and restart the pods (`kubectl rollout restart deployment/<release>`) since the Secret's values are their environment.
 
 ## Resources
 

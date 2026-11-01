@@ -12,7 +12,10 @@ Rules for the REST API served by the `src/api` Phoenix application.
   URL nesting: `/api/admin/v1/funnels/:funnel_id/data-sources` is
   `PixelAudit.ApiWeb.Admin.Funnels.DataSourceController`, the context is
   `PixelAudit.Api.Funnels` with `PixelAudit.Api.Funnels.DataSource`, the
-  table `funnel_data_sources`.
+  table `funnel_data_sources`. Likewise `/api/admin/v1/settings/connections`
+  and `/settings/variables` are `PixelAudit.ApiWeb.Admin.Settings.*`, the
+  context `PixelAudit.Api.Settings`, the tables `settings_connections` and
+  `settings_variables`.
 - Ids are UUIDs; the human-facing identifier is a separate `code`
   (`[a-z0-9]+`, case-sensitive, unique within its parent) that the
   environment and people use. A funnel is addressed by either
@@ -56,7 +59,7 @@ response body is a named schema module under
 - Creating a Meta connection enqueues a pull of its pixel stats.
 - Changing a data source's parameters, or a data source that already has
   parameters, enqueues a recomputation of its last seven days.
-- `POST /funnels/:id/refresh` and `POST /connections/:id/refresh` answer
+- `POST /funnels/:id/refresh` and `POST /settings/connections/:id/refresh` answer
   `202` with the refresh runs they enqueued; the work is done by Oban.
 
 ## The panel, from the same origin

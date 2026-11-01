@@ -9,7 +9,7 @@ defmodule PixelAudit.Api.Reporting do
 
   import Ecto.Query, warn: false
 
-  alias PixelAudit.Api.Connections.Connection
+  alias PixelAudit.Api.Settings.Connection
   alias PixelAudit.Api.Funnels.{DataSource, Funnel, Step}
   alias PixelAudit.Api.Repo
   alias PixelAudit.Api.Reporting.{DailyCount, MetaPixelRefreshJob, RefreshJob, RefreshRun, Report}

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, Filter, Globe, Plug, RefreshCw } from "lucide-react";
+import { ChevronRight, Filter, Globe, Plug, RefreshCw, Variable } from "lucide-react";
 import { useState } from "react";
 import { type MessageDescriptor, useIntl } from "react-intl";
 
@@ -24,8 +24,9 @@ type Icon = typeof Globe;
 /** The sidebar's own contribution to the navigation tree: an icon per screen. */
 const ICONS: Record<string, Icon> = {
   "/funnels": Filter,
-  "/connections": Plug,
   "/refreshes": RefreshCw,
+  "/settings/connections": Plug,
+  "/settings/variables": Variable,
 };
 
 /**

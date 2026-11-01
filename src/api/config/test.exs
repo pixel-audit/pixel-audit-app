@@ -34,7 +34,7 @@ config :pixelaudit_api, Oban, testing: :manual
 
 # The Meta and BigQuery clients go through Req.Test stubs, by the name of
 # the connector; a test that does not stub them gets a 500 from the stub.
-config :pixelaudit_api, :req_options, plug: {Req.Test, PixelAudit.Api.Connections.Connector}
+config :pixelaudit_api, :req_options, plug: {Req.Test, PixelAudit.Api.Settings.Connector}
 
 # BigQuery's bearer token comes from here instead of Google, so no
 # service-account exchange happens in tests.

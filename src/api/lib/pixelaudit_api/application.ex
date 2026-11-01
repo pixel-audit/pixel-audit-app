@@ -19,7 +19,7 @@ defmodule PixelAudit.Api.Application do
       # Connector calls to SQL databases run under here, unlinked from the
       # caller: a driver process that gives up on a refused connection must
       # not take an Oban job or a request down with it.
-      {Task.Supervisor, name: PixelAudit.Api.Connections.Connector.TaskSupervisor},
+      {Task.Supervisor, name: PixelAudit.Api.Settings.Connector.TaskSupervisor},
       # Start to serve requests, typically the last entry
       PixelAudit.ApiWeb.Endpoint
     ]

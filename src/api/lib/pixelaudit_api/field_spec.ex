@@ -6,7 +6,7 @@ defmodule PixelAudit.Api.FieldSpec do
 
   The same declaration drives three things: the validation of what the API
   receives, the mapping of `CONNECTION_<id>_<KEY>` environment variables
-  (`PixelAudit.Api.Connections.EnvSync`), and the form the panel renders
+  (`PixelAudit.Api.Settings.EnvSync`), and the form the panel renders
   (the specs are part of the OpenAPI document, see
   `PixelAudit.ApiWeb.OpenApi.Schemas.FieldSpec`).
   """

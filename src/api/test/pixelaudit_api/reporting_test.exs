@@ -4,7 +4,7 @@ defmodule PixelAudit.Api.ReportingTest do
 
   import PixelAudit.Api.Fixtures
 
-  alias PixelAudit.Api.{Connections, Funnels, Reporting}
+  alias PixelAudit.Api.{Funnels, Reporting, Settings}
   alias PixelAudit.Api.Reporting.{MetaPixelRefreshJob, RefreshJob, Schedule}
 
   describe "parse_range/2" do
@@ -150,7 +150,7 @@ defmodule PixelAudit.Api.ReportingTest do
 
       assert {:snooze, 60} = perform_job(RefreshJob, %{refresh_run_id: run.id})
 
-      Req.Test.stub(PixelAudit.Api.Connections.Connector, fn conn ->
+      Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
         Req.Test.json(
           conn,
           meta_stats_page([{"2026-10-30T10:00:00+0000", [{"Purchase", 5}, {"PageView", 50}]}])
@@ -171,7 +171,7 @@ defmodule PixelAudit.Api.ReportingTest do
       meta = connection_fixture(:meta)
       {:ok, run} = Reporting.refresh_meta_connection(meta, ~D[2026-10-30], ~D[2026-10-30], :cron)
 
-      Req.Test.stub(PixelAudit.Api.Connections.Connector, fn conn ->
+      Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
         conn |> Plug.Conn.put_status(500) |> Req.Test.json(%{"error" => %{"message" => "boom"}})
       end)
 
@@ -218,6 +218,6 @@ defmodule PixelAudit.Api.ReportingTest do
     {:ok, run} = Reporting.refresh_after_change(data_source)
     assert run.kind == :data_source
     assert run.trigger == :change
-    assert Connections.list_connections() != []
+    assert Settings.list_connections() != []
   end
 end

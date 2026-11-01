@@ -48,6 +48,9 @@ import type {
   StepResponse,
   StepsResponse,
   ValidationErrors,
+  VariableParams,
+  VariableResponse,
+  VariablesResponse,
 } from "./model";
 
 import { customFetch } from "../http.ts";
@@ -66,1046 +69,6 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
     });
   }
   return result;
-};
-
-export type adminListConnectionsResponse200 = {
-  data: ConnectionsResponse;
-  status: 200;
-};
-
-export type adminListConnectionsResponseSuccess = adminListConnectionsResponse200 & {
-  headers: Headers;
-};
-export type adminListConnectionsResponse = adminListConnectionsResponseSuccess;
-
-export const getAdminListConnectionsUrl = () => {
-  return `/api/admin/v1/connections`;
-};
-
-/**
- * @summary List connections
- */
-export const adminListConnections = async (
-  options?: Parameters<typeof customFetch>[1],
-): Promise<adminListConnectionsResponse> => {
-  return customFetch<adminListConnectionsResponse>(getAdminListConnectionsUrl(), {
-    ...options,
-    method: "GET",
-  });
-};
-
-export const getAdminListConnectionsQueryKey = () => {
-  return [`/api/admin/v1/connections`] as const;
-};
-
-export const getAdminListConnectionsQueryOptions = <
-  TData = Awaited<ReturnType<typeof adminListConnections>>,
-  TError = unknown,
->(options?: {
-  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>>;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey = queryOptions?.queryKey ?? getAdminListConnectionsQueryKey();
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListConnections>>> = ({ signal }) =>
-    adminListConnections({ signal, ...requestOptions });
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof adminListConnections>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type AdminListConnectionsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminListConnections>>
->;
-export type AdminListConnectionsQueryError = unknown;
-
-export function useAdminListConnections<
-  TData = Awaited<ReturnType<typeof adminListConnections>>,
-  TError = unknown,
->(
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof adminListConnections>>,
-          TError,
-          Awaited<ReturnType<typeof adminListConnections>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useAdminListConnections<
-  TData = Awaited<ReturnType<typeof adminListConnections>>,
-  TError = unknown,
->(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof adminListConnections>>,
-          TError,
-          Awaited<ReturnType<typeof adminListConnections>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useAdminListConnections<
-  TData = Awaited<ReturnType<typeof adminListConnections>>,
-  TError = unknown,
->(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-/**
- * @summary List connections
- */
-
-export function useAdminListConnections<
-  TData = Awaited<ReturnType<typeof adminListConnections>>,
-  TError = unknown,
->(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdminListConnectionsQueryOptions(options);
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>;
-  };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-export type adminCreateConnectionResponse201 = {
-  data: ConnectionResponse;
-  status: 201;
-};
-
-export type adminCreateConnectionResponse422 = {
-  data: ValidationErrors;
-  status: 422;
-};
-
-export type adminCreateConnectionResponseSuccess = adminCreateConnectionResponse201 & {
-  headers: Headers;
-};
-export type adminCreateConnectionResponseError = adminCreateConnectionResponse422 & {
-  headers: Headers;
-};
-
-export type adminCreateConnectionResponse =
-  adminCreateConnectionResponseSuccess | adminCreateConnectionResponseError;
-
-export const getAdminCreateConnectionUrl = () => {
-  return `/api/admin/v1/connections`;
-};
-
-/**
- * A Meta connection's pixel stats are pulled right away for the last days.
- * @summary Create a connection
- */
-export const adminCreateConnection = async (
-  connectionParams?: ConnectionParams,
-  options?: Parameters<typeof customFetch>[1],
-): Promise<adminCreateConnectionResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-  return customFetch<adminCreateConnectionResponse>(getAdminCreateConnectionUrl(), {
-    ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(connectionParams),
-  });
-};
-
-export const getAdminCreateConnectionMutationKey = () => ["adminCreateConnection"] as const;
-
-export const getAdminCreateConnectionMutationOptions = <
-  TError = ValidationErrors,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof adminCreateConnection>>,
-    TError,
-    AdminCreateConnectionMutationVariables,
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof adminCreateConnection>>,
-  TError,
-  AdminCreateConnectionMutationVariables,
-  TContext
-> => {
-  const mutationKey = getAdminCreateConnectionMutationKey();
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof adminCreateConnection>>,
-    AdminCreateConnectionMutationVariables
-  > = (props) => {
-    const { data } = props ?? {};
-
-    return adminCreateConnection(data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type AdminCreateConnectionMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminCreateConnection>>
->;
-export type AdminCreateConnectionMutationBody = ConnectionParams | undefined;
-export type AdminCreateConnectionMutationError = ValidationErrors;
-export type AdminCreateConnectionMutationVariables = { data?: ConnectionParams };
-
-/**
- * @summary Create a connection
- */
-export const useAdminCreateConnection = <TError = ValidationErrors, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof adminCreateConnection>>,
-      TError,
-      AdminCreateConnectionMutationVariables,
-      TContext
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof adminCreateConnection>>,
-  TError,
-  AdminCreateConnectionMutationVariables,
-  TContext
-> => {
-  return useMutation(getAdminCreateConnectionMutationOptions(options), queryClient);
-};
-
-export type adminListConnectionTypesResponse200 = {
-  data: ConnectionTypesResponse;
-  status: 200;
-};
-
-export type adminListConnectionTypesResponseSuccess = adminListConnectionTypesResponse200 & {
-  headers: Headers;
-};
-export type adminListConnectionTypesResponse = adminListConnectionTypesResponseSuccess;
-
-export const getAdminListConnectionTypesUrl = () => {
-  return `/api/admin/v1/connections/types`;
-};
-
-/**
- * @summary List the connection types and their credential fields
- */
-export const adminListConnectionTypes = async (
-  options?: Parameters<typeof customFetch>[1],
-): Promise<adminListConnectionTypesResponse> => {
-  return customFetch<adminListConnectionTypesResponse>(getAdminListConnectionTypesUrl(), {
-    ...options,
-    method: "GET",
-  });
-};
-
-export const getAdminListConnectionTypesQueryKey = () => {
-  return [`/api/admin/v1/connections/types`] as const;
-};
-
-export const getAdminListConnectionTypesQueryOptions = <
-  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
-  TError = unknown,
->(options?: {
-  query?: Partial<
-    UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey = queryOptions?.queryKey ?? getAdminListConnectionTypesQueryKey();
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListConnectionTypes>>> = ({
-    signal,
-  }) => adminListConnectionTypes({ signal, ...requestOptions });
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof adminListConnectionTypes>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
-};
-
-export type AdminListConnectionTypesQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminListConnectionTypes>>
->;
-export type AdminListConnectionTypesQueryError = unknown;
-
-export function useAdminListConnectionTypes<
-  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
-  TError = unknown,
->(
-  options: {
-    query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
-    > &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof adminListConnectionTypes>>,
-          TError,
-          Awaited<ReturnType<typeof adminListConnectionTypes>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useAdminListConnectionTypes<
-  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
-  TError = unknown,
->(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof adminListConnectionTypes>>,
-          TError,
-          Awaited<ReturnType<typeof adminListConnectionTypes>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useAdminListConnectionTypes<
-  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
-  TError = unknown,
->(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-/**
- * @summary List the connection types and their credential fields
- */
-
-export function useAdminListConnectionTypes<
-  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
-  TError = unknown,
->(
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdminListConnectionTypesQueryOptions(options);
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>;
-  };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-export type adminDeleteConnectionResponse204 = {
-  data: void;
-  status: 204;
-};
-
-export type adminDeleteConnectionResponse404 = {
-  data: Error;
-  status: 404;
-};
-
-export type adminDeleteConnectionResponse409 = {
-  data: Error;
-  status: 409;
-};
-
-export type adminDeleteConnectionResponseSuccess = adminDeleteConnectionResponse204 & {
-  headers: Headers;
-};
-export type adminDeleteConnectionResponseError = (
-  adminDeleteConnectionResponse404 | adminDeleteConnectionResponse409
-) & {
-  headers: Headers;
-};
-
-export type adminDeleteConnectionResponse =
-  adminDeleteConnectionResponseSuccess | adminDeleteConnectionResponseError;
-
-export const getAdminDeleteConnectionUrl = (id: string) => {
-  return `/api/admin/v1/connections/${id}`;
-};
-
-/**
- * Refused (409 connection_in_use) while a data source reads through it.
- * @summary Delete a connection
- */
-export const adminDeleteConnection = async (
-  id: string,
-  options?: Parameters<typeof customFetch>[1],
-): Promise<adminDeleteConnectionResponse> => {
-  return customFetch<adminDeleteConnectionResponse>(getAdminDeleteConnectionUrl(id), {
-    ...options,
-    method: "DELETE",
-  });
-};
-
-export const getAdminDeleteConnectionMutationKey = () => ["adminDeleteConnection"] as const;
-
-export const getAdminDeleteConnectionMutationOptions = <
-  TError = Error,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof adminDeleteConnection>>,
-    TError,
-    AdminDeleteConnectionMutationVariables,
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof adminDeleteConnection>>,
-  TError,
-  AdminDeleteConnectionMutationVariables,
-  TContext
-> => {
-  const mutationKey = getAdminDeleteConnectionMutationKey();
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof adminDeleteConnection>>,
-    AdminDeleteConnectionMutationVariables
-  > = (props) => {
-    const { id } = props ?? {};
-
-    return adminDeleteConnection(id, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type AdminDeleteConnectionMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminDeleteConnection>>
->;
-
-export type AdminDeleteConnectionMutationError = Error;
-export type AdminDeleteConnectionMutationVariables = { id: string };
-
-/**
- * @summary Delete a connection
- */
-export const useAdminDeleteConnection = <TError = Error, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof adminDeleteConnection>>,
-      TError,
-      AdminDeleteConnectionMutationVariables,
-      TContext
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof adminDeleteConnection>>,
-  TError,
-  AdminDeleteConnectionMutationVariables,
-  TContext
-> => {
-  return useMutation(getAdminDeleteConnectionMutationOptions(options), queryClient);
-};
-
-export type adminGetConnectionResponse200 = {
-  data: ConnectionResponse;
-  status: 200;
-};
-
-export type adminGetConnectionResponse404 = {
-  data: Error;
-  status: 404;
-};
-
-export type adminGetConnectionResponseSuccess = adminGetConnectionResponse200 & {
-  headers: Headers;
-};
-export type adminGetConnectionResponseError = adminGetConnectionResponse404 & {
-  headers: Headers;
-};
-
-export type adminGetConnectionResponse =
-  adminGetConnectionResponseSuccess | adminGetConnectionResponseError;
-
-export const getAdminGetConnectionUrl = (id: string) => {
-  return `/api/admin/v1/connections/${id}`;
-};
-
-/**
- * @summary Get a connection
- */
-export const adminGetConnection = async (
-  id: string,
-  options?: Parameters<typeof customFetch>[1],
-): Promise<adminGetConnectionResponse> => {
-  return customFetch<adminGetConnectionResponse>(getAdminGetConnectionUrl(id), {
-    ...options,
-    method: "GET",
-  });
-};
-
-export const getAdminGetConnectionQueryKey = (id: string) => {
-  return [`/api/admin/v1/connections/${id}`] as const;
-};
-
-export const getAdminGetConnectionQueryOptions = <
-  TData = Awaited<ReturnType<typeof adminGetConnection>>,
-  TError = Error,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>>;
-    request?: SecondParameter<typeof customFetch>;
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey = queryOptions?.queryKey ?? getAdminGetConnectionQueryKey(id);
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetConnection>>> = ({ signal }) =>
-    adminGetConnection(id, { signal, ...requestOptions });
-
-  return {
-    queryKey,
-    queryFn,
-    enabled: id !== null && id !== undefined,
-    ...queryOptions,
-  } as UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData> & {
-    queryKey: DataTag<QueryKey, TData, TError>;
-  };
-};
-
-export type AdminGetConnectionQueryResult = NonNullable<
-  Awaited<ReturnType<typeof adminGetConnection>>
->;
-export type AdminGetConnectionQueryError = Error;
-
-export function useAdminGetConnection<
-  TData = Awaited<ReturnType<typeof adminGetConnection>>,
-  TError = Error,
->(
-  id: string,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof adminGetConnection>>,
-          TError,
-          Awaited<ReturnType<typeof adminGetConnection>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useAdminGetConnection<
-  TData = Awaited<ReturnType<typeof adminGetConnection>>,
-  TError = Error,
->(
-  id: string,
-  options?: {
-    query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>
-    > &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof adminGetConnection>>,
-          TError,
-          Awaited<ReturnType<typeof adminGetConnection>>
-        >,
-        "initialData"
-      >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useAdminGetConnection<
-  TData = Awaited<ReturnType<typeof adminGetConnection>>,
-  TError = Error,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>>;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-/**
- * @summary Get a connection
- */
-
-export function useAdminGetConnection<
-  TData = Awaited<ReturnType<typeof adminGetConnection>>,
-  TError = Error,
->(
-  id: string,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>>;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getAdminGetConnectionQueryOptions(id, options);
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>;
-  };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-export type adminUpdateConnectionResponse200 = {
-  data: ConnectionResponse;
-  status: 200;
-};
-
-export type adminUpdateConnectionResponse404 = {
-  data: Error;
-  status: 404;
-};
-
-export type adminUpdateConnectionResponse409 = {
-  data: Error;
-  status: 409;
-};
-
-export type adminUpdateConnectionResponse422 = {
-  data: ValidationErrors;
-  status: 422;
-};
-
-export type adminUpdateConnectionResponseSuccess = adminUpdateConnectionResponse200 & {
-  headers: Headers;
-};
-export type adminUpdateConnectionResponseError = (
-  | adminUpdateConnectionResponse404
-  | adminUpdateConnectionResponse409
-  | adminUpdateConnectionResponse422
-) & {
-  headers: Headers;
-};
-
-export type adminUpdateConnectionResponse =
-  adminUpdateConnectionResponseSuccess | adminUpdateConnectionResponseError;
-
-export const getAdminUpdateConnectionUrl = (id: string) => {
-  return `/api/admin/v1/connections/${id}`;
-};
-
-/**
- * Only the credential keys sent change; `null` clears one. A connection managed by the environment refuses a change of type or credentials (409 managed_by_env).
- * @summary Update a connection
- */
-export const adminUpdateConnection = async (
-  id: string,
-  connectionParams?: ConnectionParams,
-  options?: Parameters<typeof customFetch>[1],
-): Promise<adminUpdateConnectionResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-  return customFetch<adminUpdateConnectionResponse>(getAdminUpdateConnectionUrl(id), {
-    ...options,
-    method: "PUT",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(connectionParams),
-  });
-};
-
-export const getAdminUpdateConnectionMutationKey = () => ["adminUpdateConnection"] as const;
-
-export const getAdminUpdateConnectionMutationOptions = <
-  TError = Error | ValidationErrors,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof adminUpdateConnection>>,
-    TError,
-    AdminUpdateConnectionMutationVariables,
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof adminUpdateConnection>>,
-  TError,
-  AdminUpdateConnectionMutationVariables,
-  TContext
-> => {
-  const mutationKey = getAdminUpdateConnectionMutationKey();
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof adminUpdateConnection>>,
-    AdminUpdateConnectionMutationVariables
-  > = (props) => {
-    const { id, data } = props ?? {};
-
-    return adminUpdateConnection(id, data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type AdminUpdateConnectionMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminUpdateConnection>>
->;
-export type AdminUpdateConnectionMutationBody = ConnectionParams | undefined;
-export type AdminUpdateConnectionMutationError = Error | ValidationErrors;
-export type AdminUpdateConnectionMutationVariables = { id: string; data?: ConnectionParams };
-
-/**
- * @summary Update a connection
- */
-export const useAdminUpdateConnection = <TError = Error | ValidationErrors, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof adminUpdateConnection>>,
-      TError,
-      AdminUpdateConnectionMutationVariables,
-      TContext
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof adminUpdateConnection>>,
-  TError,
-  AdminUpdateConnectionMutationVariables,
-  TContext
-> => {
-  return useMutation(getAdminUpdateConnectionMutationOptions(options), queryClient);
-};
-
-export type adminCheckConnectionResponse200 = {
-  data: ConnectionResponse;
-  status: 200;
-};
-
-export type adminCheckConnectionResponse404 = {
-  data: Error;
-  status: 404;
-};
-
-export type adminCheckConnectionResponseSuccess = adminCheckConnectionResponse200 & {
-  headers: Headers;
-};
-export type adminCheckConnectionResponseError = adminCheckConnectionResponse404 & {
-  headers: Headers;
-};
-
-export type adminCheckConnectionResponse =
-  adminCheckConnectionResponseSuccess | adminCheckConnectionResponseError;
-
-export const getAdminCheckConnectionUrl = (id: string) => {
-  return `/api/admin/v1/connections/${id}/check`;
-};
-
-/**
- * Calls the external system with the credentials and records the outcome on the connection.
- * @summary Check a connection
- */
-export const adminCheckConnection = async (
-  id: string,
-  options?: Parameters<typeof customFetch>[1],
-): Promise<adminCheckConnectionResponse> => {
-  return customFetch<adminCheckConnectionResponse>(getAdminCheckConnectionUrl(id), {
-    ...options,
-    method: "POST",
-  });
-};
-
-export const getAdminCheckConnectionMutationKey = () => ["adminCheckConnection"] as const;
-
-export const getAdminCheckConnectionMutationOptions = <
-  TError = Error,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof adminCheckConnection>>,
-    TError,
-    AdminCheckConnectionMutationVariables,
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof adminCheckConnection>>,
-  TError,
-  AdminCheckConnectionMutationVariables,
-  TContext
-> => {
-  const mutationKey = getAdminCheckConnectionMutationKey();
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof adminCheckConnection>>,
-    AdminCheckConnectionMutationVariables
-  > = (props) => {
-    const { id } = props ?? {};
-
-    return adminCheckConnection(id, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type AdminCheckConnectionMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminCheckConnection>>
->;
-
-export type AdminCheckConnectionMutationError = Error;
-export type AdminCheckConnectionMutationVariables = { id: string };
-
-/**
- * @summary Check a connection
- */
-export const useAdminCheckConnection = <TError = Error, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof adminCheckConnection>>,
-      TError,
-      AdminCheckConnectionMutationVariables,
-      TContext
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof adminCheckConnection>>,
-  TError,
-  AdminCheckConnectionMutationVariables,
-  TContext
-> => {
-  return useMutation(getAdminCheckConnectionMutationOptions(options), queryClient);
-};
-
-export type adminRefreshConnectionResponse202 = {
-  data: RefreshRunResponse;
-  status: 202;
-};
-
-export type adminRefreshConnectionResponse404 = {
-  data: Error;
-  status: 404;
-};
-
-export type adminRefreshConnectionResponse422 = {
-  data: Error;
-  status: 422;
-};
-
-export type adminRefreshConnectionResponseSuccess = adminRefreshConnectionResponse202 & {
-  headers: Headers;
-};
-export type adminRefreshConnectionResponseError = (
-  adminRefreshConnectionResponse404 | adminRefreshConnectionResponse422
-) & {
-  headers: Headers;
-};
-
-export type adminRefreshConnectionResponse =
-  adminRefreshConnectionResponseSuccess | adminRefreshConnectionResponseError;
-
-export const getAdminRefreshConnectionUrl = (id: string) => {
-  return `/api/admin/v1/connections/${id}/refresh`;
-};
-
-/**
- * Enqueues a pull of the pixel's hourly stats for the range. Meta serves about the last seven days; older days come back empty.
- * @summary Pull a Meta connection's pixel stats
- */
-export const adminRefreshConnection = async (
-  id: string,
-  refreshRangeParams?: RefreshRangeParams,
-  options?: Parameters<typeof customFetch>[1],
-): Promise<adminRefreshConnectionResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-  return customFetch<adminRefreshConnectionResponse>(getAdminRefreshConnectionUrl(id), {
-    ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(refreshRangeParams),
-  });
-};
-
-export const getAdminRefreshConnectionMutationKey = () => ["adminRefreshConnection"] as const;
-
-export const getAdminRefreshConnectionMutationOptions = <
-  TError = Error,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof adminRefreshConnection>>,
-    TError,
-    AdminRefreshConnectionMutationVariables,
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof adminRefreshConnection>>,
-  TError,
-  AdminRefreshConnectionMutationVariables,
-  TContext
-> => {
-  const mutationKey = getAdminRefreshConnectionMutationKey();
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof adminRefreshConnection>>,
-    AdminRefreshConnectionMutationVariables
-  > = (props) => {
-    const { id, data } = props ?? {};
-
-    return adminRefreshConnection(id, data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type AdminRefreshConnectionMutationResult = NonNullable<
-  Awaited<ReturnType<typeof adminRefreshConnection>>
->;
-export type AdminRefreshConnectionMutationBody = RefreshRangeParams | undefined;
-export type AdminRefreshConnectionMutationError = Error;
-export type AdminRefreshConnectionMutationVariables = { id: string; data?: RefreshRangeParams };
-
-/**
- * @summary Pull a Meta connection's pixel stats
- */
-export const useAdminRefreshConnection = <TError = Error, TContext = unknown>(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof adminRefreshConnection>>,
-      TError,
-      AdminRefreshConnectionMutationVariables,
-      TContext
-    >;
-    request?: SecondParameter<typeof customFetch>;
-  },
-  queryClient?: QueryClient,
-): UseMutationResult<
-  Awaited<ReturnType<typeof adminRefreshConnection>>,
-  TError,
-  AdminRefreshConnectionMutationVariables,
-  TContext
-> => {
-  return useMutation(getAdminRefreshConnectionMutationOptions(options), queryClient);
 };
 
 export type adminListFunnelsResponse200 = {
@@ -3854,3 +2817,1685 @@ export function useAdminListRefreshRunDays<
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+export type adminListConnectionsResponse200 = {
+  data: ConnectionsResponse;
+  status: 200;
+};
+
+export type adminListConnectionsResponseSuccess = adminListConnectionsResponse200 & {
+  headers: Headers;
+};
+export type adminListConnectionsResponse = adminListConnectionsResponseSuccess;
+
+export const getAdminListConnectionsUrl = () => {
+  return `/api/admin/v1/settings/connections`;
+};
+
+/**
+ * @summary List connections
+ */
+export const adminListConnections = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminListConnectionsResponse> => {
+  return customFetch<adminListConnectionsResponse>(getAdminListConnectionsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminListConnectionsQueryKey = () => {
+  return [`/api/admin/v1/settings/connections`] as const;
+};
+
+export const getAdminListConnectionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminListConnections>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminListConnectionsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListConnections>>> = ({ signal }) =>
+    adminListConnections({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminListConnections>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type AdminListConnectionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminListConnections>>
+>;
+export type AdminListConnectionsQueryError = unknown;
+
+export function useAdminListConnections<
+  TData = Awaited<ReturnType<typeof adminListConnections>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListConnections>>,
+          TError,
+          Awaited<ReturnType<typeof adminListConnections>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListConnections<
+  TData = Awaited<ReturnType<typeof adminListConnections>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListConnections>>,
+          TError,
+          Awaited<ReturnType<typeof adminListConnections>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListConnections<
+  TData = Awaited<ReturnType<typeof adminListConnections>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary List connections
+ */
+
+export function useAdminListConnections<
+  TData = Awaited<ReturnType<typeof adminListConnections>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnections>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminListConnectionsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type adminCreateConnectionResponse201 = {
+  data: ConnectionResponse;
+  status: 201;
+};
+
+export type adminCreateConnectionResponse422 = {
+  data: ValidationErrors;
+  status: 422;
+};
+
+export type adminCreateConnectionResponseSuccess = adminCreateConnectionResponse201 & {
+  headers: Headers;
+};
+export type adminCreateConnectionResponseError = adminCreateConnectionResponse422 & {
+  headers: Headers;
+};
+
+export type adminCreateConnectionResponse =
+  adminCreateConnectionResponseSuccess | adminCreateConnectionResponseError;
+
+export const getAdminCreateConnectionUrl = () => {
+  return `/api/admin/v1/settings/connections`;
+};
+
+/**
+ * A Meta connection's pixel stats are pulled right away for the last days.
+ * @summary Create a connection
+ */
+export const adminCreateConnection = async (
+  connectionParams?: ConnectionParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminCreateConnectionResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<adminCreateConnectionResponse>(getAdminCreateConnectionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(connectionParams),
+  });
+};
+
+export const getAdminCreateConnectionMutationKey = () => ["adminCreateConnection"] as const;
+
+export const getAdminCreateConnectionMutationOptions = <
+  TError = ValidationErrors,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminCreateConnection>>,
+    TError,
+    AdminCreateConnectionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminCreateConnection>>,
+  TError,
+  AdminCreateConnectionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAdminCreateConnectionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminCreateConnection>>,
+    AdminCreateConnectionMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return adminCreateConnection(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminCreateConnectionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminCreateConnection>>
+>;
+export type AdminCreateConnectionMutationBody = ConnectionParams | undefined;
+export type AdminCreateConnectionMutationError = ValidationErrors;
+export type AdminCreateConnectionMutationVariables = { data?: ConnectionParams };
+
+/**
+ * @summary Create a connection
+ */
+export const useAdminCreateConnection = <TError = ValidationErrors, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminCreateConnection>>,
+      TError,
+      AdminCreateConnectionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminCreateConnection>>,
+  TError,
+  AdminCreateConnectionMutationVariables,
+  TContext
+> => {
+  return useMutation(getAdminCreateConnectionMutationOptions(options), queryClient);
+};
+
+export type adminListConnectionTypesResponse200 = {
+  data: ConnectionTypesResponse;
+  status: 200;
+};
+
+export type adminListConnectionTypesResponseSuccess = adminListConnectionTypesResponse200 & {
+  headers: Headers;
+};
+export type adminListConnectionTypesResponse = adminListConnectionTypesResponseSuccess;
+
+export const getAdminListConnectionTypesUrl = () => {
+  return `/api/admin/v1/settings/connections/types`;
+};
+
+/**
+ * @summary List the connection types and their credential fields
+ */
+export const adminListConnectionTypes = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminListConnectionTypesResponse> => {
+  return customFetch<adminListConnectionTypesResponse>(getAdminListConnectionTypesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminListConnectionTypesQueryKey = () => {
+  return [`/api/admin/v1/settings/connections/types`] as const;
+};
+
+export const getAdminListConnectionTypesQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminListConnectionTypesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListConnectionTypes>>> = ({
+    signal,
+  }) => adminListConnectionTypes({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminListConnectionTypes>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type AdminListConnectionTypesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminListConnectionTypes>>
+>;
+export type AdminListConnectionTypesQueryError = unknown;
+
+export function useAdminListConnectionTypes<
+  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListConnectionTypes>>,
+          TError,
+          Awaited<ReturnType<typeof adminListConnectionTypes>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListConnectionTypes<
+  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListConnectionTypes>>,
+          TError,
+          Awaited<ReturnType<typeof adminListConnectionTypes>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListConnectionTypes<
+  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary List the connection types and their credential fields
+ */
+
+export function useAdminListConnectionTypes<
+  TData = Awaited<ReturnType<typeof adminListConnectionTypes>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionTypes>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminListConnectionTypesQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type adminDeleteConnectionResponse204 = {
+  data: void;
+  status: 204;
+};
+
+export type adminDeleteConnectionResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminDeleteConnectionResponse409 = {
+  data: Error;
+  status: 409;
+};
+
+export type adminDeleteConnectionResponseSuccess = adminDeleteConnectionResponse204 & {
+  headers: Headers;
+};
+export type adminDeleteConnectionResponseError = (
+  adminDeleteConnectionResponse404 | adminDeleteConnectionResponse409
+) & {
+  headers: Headers;
+};
+
+export type adminDeleteConnectionResponse =
+  adminDeleteConnectionResponseSuccess | adminDeleteConnectionResponseError;
+
+export const getAdminDeleteConnectionUrl = (id: string) => {
+  return `/api/admin/v1/settings/connections/${id}`;
+};
+
+/**
+ * Refused (409 connection_in_use) while a data source reads through it.
+ * @summary Delete a connection
+ */
+export const adminDeleteConnection = async (
+  id: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminDeleteConnectionResponse> => {
+  return customFetch<adminDeleteConnectionResponse>(getAdminDeleteConnectionUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getAdminDeleteConnectionMutationKey = () => ["adminDeleteConnection"] as const;
+
+export const getAdminDeleteConnectionMutationOptions = <
+  TError = Error,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminDeleteConnection>>,
+    TError,
+    AdminDeleteConnectionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminDeleteConnection>>,
+  TError,
+  AdminDeleteConnectionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAdminDeleteConnectionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminDeleteConnection>>,
+    AdminDeleteConnectionMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return adminDeleteConnection(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminDeleteConnectionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminDeleteConnection>>
+>;
+
+export type AdminDeleteConnectionMutationError = Error;
+export type AdminDeleteConnectionMutationVariables = { id: string };
+
+/**
+ * @summary Delete a connection
+ */
+export const useAdminDeleteConnection = <TError = Error, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminDeleteConnection>>,
+      TError,
+      AdminDeleteConnectionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminDeleteConnection>>,
+  TError,
+  AdminDeleteConnectionMutationVariables,
+  TContext
+> => {
+  return useMutation(getAdminDeleteConnectionMutationOptions(options), queryClient);
+};
+
+export type adminGetConnectionResponse200 = {
+  data: ConnectionResponse;
+  status: 200;
+};
+
+export type adminGetConnectionResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminGetConnectionResponseSuccess = adminGetConnectionResponse200 & {
+  headers: Headers;
+};
+export type adminGetConnectionResponseError = adminGetConnectionResponse404 & {
+  headers: Headers;
+};
+
+export type adminGetConnectionResponse =
+  adminGetConnectionResponseSuccess | adminGetConnectionResponseError;
+
+export const getAdminGetConnectionUrl = (id: string) => {
+  return `/api/admin/v1/settings/connections/${id}`;
+};
+
+/**
+ * @summary Get a connection
+ */
+export const adminGetConnection = async (
+  id: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminGetConnectionResponse> => {
+  return customFetch<adminGetConnectionResponse>(getAdminGetConnectionUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminGetConnectionQueryKey = (id: string) => {
+  return [`/api/admin/v1/settings/connections/${id}`] as const;
+};
+
+export const getAdminGetConnectionQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetConnection>>,
+  TError = Error,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminGetConnectionQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetConnection>>> = ({ signal }) =>
+    adminGetConnection(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type AdminGetConnectionQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetConnection>>
+>;
+export type AdminGetConnectionQueryError = Error;
+
+export function useAdminGetConnection<
+  TData = Awaited<ReturnType<typeof adminGetConnection>>,
+  TError = Error,
+>(
+  id: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetConnection>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetConnection>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetConnection<
+  TData = Awaited<ReturnType<typeof adminGetConnection>>,
+  TError = Error,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetConnection>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetConnection>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetConnection<
+  TData = Awaited<ReturnType<typeof adminGetConnection>>,
+  TError = Error,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Get a connection
+ */
+
+export function useAdminGetConnection<
+  TData = Awaited<ReturnType<typeof adminGetConnection>>,
+  TError = Error,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetConnection>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminGetConnectionQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type adminUpdateConnectionResponse200 = {
+  data: ConnectionResponse;
+  status: 200;
+};
+
+export type adminUpdateConnectionResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminUpdateConnectionResponse409 = {
+  data: Error;
+  status: 409;
+};
+
+export type adminUpdateConnectionResponse422 = {
+  data: ValidationErrors;
+  status: 422;
+};
+
+export type adminUpdateConnectionResponseSuccess = adminUpdateConnectionResponse200 & {
+  headers: Headers;
+};
+export type adminUpdateConnectionResponseError = (
+  | adminUpdateConnectionResponse404
+  | adminUpdateConnectionResponse409
+  | adminUpdateConnectionResponse422
+) & {
+  headers: Headers;
+};
+
+export type adminUpdateConnectionResponse =
+  adminUpdateConnectionResponseSuccess | adminUpdateConnectionResponseError;
+
+export const getAdminUpdateConnectionUrl = (id: string) => {
+  return `/api/admin/v1/settings/connections/${id}`;
+};
+
+/**
+ * Only the credential keys sent change; `null` clears one. A connection managed by the environment refuses a change of type or credentials (409 managed_by_env).
+ * @summary Update a connection
+ */
+export const adminUpdateConnection = async (
+  id: string,
+  connectionParams?: ConnectionParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminUpdateConnectionResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<adminUpdateConnectionResponse>(getAdminUpdateConnectionUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(connectionParams),
+  });
+};
+
+export const getAdminUpdateConnectionMutationKey = () => ["adminUpdateConnection"] as const;
+
+export const getAdminUpdateConnectionMutationOptions = <
+  TError = Error | ValidationErrors,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateConnection>>,
+    TError,
+    AdminUpdateConnectionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminUpdateConnection>>,
+  TError,
+  AdminUpdateConnectionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAdminUpdateConnectionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminUpdateConnection>>,
+    AdminUpdateConnectionMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return adminUpdateConnection(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminUpdateConnectionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminUpdateConnection>>
+>;
+export type AdminUpdateConnectionMutationBody = ConnectionParams | undefined;
+export type AdminUpdateConnectionMutationError = Error | ValidationErrors;
+export type AdminUpdateConnectionMutationVariables = { id: string; data?: ConnectionParams };
+
+/**
+ * @summary Update a connection
+ */
+export const useAdminUpdateConnection = <TError = Error | ValidationErrors, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminUpdateConnection>>,
+      TError,
+      AdminUpdateConnectionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminUpdateConnection>>,
+  TError,
+  AdminUpdateConnectionMutationVariables,
+  TContext
+> => {
+  return useMutation(getAdminUpdateConnectionMutationOptions(options), queryClient);
+};
+
+export type adminCheckConnectionResponse200 = {
+  data: ConnectionResponse;
+  status: 200;
+};
+
+export type adminCheckConnectionResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminCheckConnectionResponseSuccess = adminCheckConnectionResponse200 & {
+  headers: Headers;
+};
+export type adminCheckConnectionResponseError = adminCheckConnectionResponse404 & {
+  headers: Headers;
+};
+
+export type adminCheckConnectionResponse =
+  adminCheckConnectionResponseSuccess | adminCheckConnectionResponseError;
+
+export const getAdminCheckConnectionUrl = (id: string) => {
+  return `/api/admin/v1/settings/connections/${id}/check`;
+};
+
+/**
+ * Calls the external system with the credentials and records the outcome on the connection.
+ * @summary Check a connection
+ */
+export const adminCheckConnection = async (
+  id: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminCheckConnectionResponse> => {
+  return customFetch<adminCheckConnectionResponse>(getAdminCheckConnectionUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getAdminCheckConnectionMutationKey = () => ["adminCheckConnection"] as const;
+
+export const getAdminCheckConnectionMutationOptions = <
+  TError = Error,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminCheckConnection>>,
+    TError,
+    AdminCheckConnectionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminCheckConnection>>,
+  TError,
+  AdminCheckConnectionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAdminCheckConnectionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminCheckConnection>>,
+    AdminCheckConnectionMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return adminCheckConnection(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminCheckConnectionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminCheckConnection>>
+>;
+
+export type AdminCheckConnectionMutationError = Error;
+export type AdminCheckConnectionMutationVariables = { id: string };
+
+/**
+ * @summary Check a connection
+ */
+export const useAdminCheckConnection = <TError = Error, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminCheckConnection>>,
+      TError,
+      AdminCheckConnectionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminCheckConnection>>,
+  TError,
+  AdminCheckConnectionMutationVariables,
+  TContext
+> => {
+  return useMutation(getAdminCheckConnectionMutationOptions(options), queryClient);
+};
+
+export type adminRefreshConnectionResponse202 = {
+  data: RefreshRunResponse;
+  status: 202;
+};
+
+export type adminRefreshConnectionResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminRefreshConnectionResponse422 = {
+  data: Error;
+  status: 422;
+};
+
+export type adminRefreshConnectionResponseSuccess = adminRefreshConnectionResponse202 & {
+  headers: Headers;
+};
+export type adminRefreshConnectionResponseError = (
+  adminRefreshConnectionResponse404 | adminRefreshConnectionResponse422
+) & {
+  headers: Headers;
+};
+
+export type adminRefreshConnectionResponse =
+  adminRefreshConnectionResponseSuccess | adminRefreshConnectionResponseError;
+
+export const getAdminRefreshConnectionUrl = (id: string) => {
+  return `/api/admin/v1/settings/connections/${id}/refresh`;
+};
+
+/**
+ * Enqueues a pull of the pixel's hourly stats for the range. Meta serves about the last seven days; older days come back empty.
+ * @summary Pull a Meta connection's pixel stats
+ */
+export const adminRefreshConnection = async (
+  id: string,
+  refreshRangeParams?: RefreshRangeParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminRefreshConnectionResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<adminRefreshConnectionResponse>(getAdminRefreshConnectionUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(refreshRangeParams),
+  });
+};
+
+export const getAdminRefreshConnectionMutationKey = () => ["adminRefreshConnection"] as const;
+
+export const getAdminRefreshConnectionMutationOptions = <
+  TError = Error,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminRefreshConnection>>,
+    TError,
+    AdminRefreshConnectionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminRefreshConnection>>,
+  TError,
+  AdminRefreshConnectionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAdminRefreshConnectionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminRefreshConnection>>,
+    AdminRefreshConnectionMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return adminRefreshConnection(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminRefreshConnectionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminRefreshConnection>>
+>;
+export type AdminRefreshConnectionMutationBody = RefreshRangeParams | undefined;
+export type AdminRefreshConnectionMutationError = Error;
+export type AdminRefreshConnectionMutationVariables = { id: string; data?: RefreshRangeParams };
+
+/**
+ * @summary Pull a Meta connection's pixel stats
+ */
+export const useAdminRefreshConnection = <TError = Error, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminRefreshConnection>>,
+      TError,
+      AdminRefreshConnectionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminRefreshConnection>>,
+  TError,
+  AdminRefreshConnectionMutationVariables,
+  TContext
+> => {
+  return useMutation(getAdminRefreshConnectionMutationOptions(options), queryClient);
+};
+
+export type adminListVariablesResponse200 = {
+  data: VariablesResponse;
+  status: 200;
+};
+
+export type adminListVariablesResponseSuccess = adminListVariablesResponse200 & {
+  headers: Headers;
+};
+export type adminListVariablesResponse = adminListVariablesResponseSuccess;
+
+export const getAdminListVariablesUrl = () => {
+  return `/api/admin/v1/settings/variables`;
+};
+
+/**
+ * @summary List variables
+ */
+export const adminListVariables = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminListVariablesResponse> => {
+  return customFetch<adminListVariablesResponse>(getAdminListVariablesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminListVariablesQueryKey = () => {
+  return [`/api/admin/v1/settings/variables`] as const;
+};
+
+export const getAdminListVariablesQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminListVariables>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminListVariables>>, TError, TData>>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminListVariablesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListVariables>>> = ({ signal }) =>
+    adminListVariables({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminListVariables>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type AdminListVariablesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminListVariables>>
+>;
+export type AdminListVariablesQueryError = unknown;
+
+export function useAdminListVariables<
+  TData = Awaited<ReturnType<typeof adminListVariables>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminListVariables>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListVariables>>,
+          TError,
+          Awaited<ReturnType<typeof adminListVariables>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListVariables<
+  TData = Awaited<ReturnType<typeof adminListVariables>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListVariables>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListVariables>>,
+          TError,
+          Awaited<ReturnType<typeof adminListVariables>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListVariables<
+  TData = Awaited<ReturnType<typeof adminListVariables>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminListVariables>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary List variables
+ */
+
+export function useAdminListVariables<
+  TData = Awaited<ReturnType<typeof adminListVariables>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminListVariables>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminListVariablesQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type adminCreateVariableResponse201 = {
+  data: VariableResponse;
+  status: 201;
+};
+
+export type adminCreateVariableResponse422 = {
+  data: ValidationErrors;
+  status: 422;
+};
+
+export type adminCreateVariableResponseSuccess = adminCreateVariableResponse201 & {
+  headers: Headers;
+};
+export type adminCreateVariableResponseError = adminCreateVariableResponse422 & {
+  headers: Headers;
+};
+
+export type adminCreateVariableResponse =
+  adminCreateVariableResponseSuccess | adminCreateVariableResponseError;
+
+export const getAdminCreateVariableUrl = () => {
+  return `/api/admin/v1/settings/variables`;
+};
+
+/**
+ * @summary Create a variable
+ */
+export const adminCreateVariable = async (
+  variableParams?: VariableParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminCreateVariableResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<adminCreateVariableResponse>(getAdminCreateVariableUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(variableParams),
+  });
+};
+
+export const getAdminCreateVariableMutationKey = () => ["adminCreateVariable"] as const;
+
+export const getAdminCreateVariableMutationOptions = <
+  TError = ValidationErrors,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminCreateVariable>>,
+    TError,
+    AdminCreateVariableMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminCreateVariable>>,
+  TError,
+  AdminCreateVariableMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAdminCreateVariableMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminCreateVariable>>,
+    AdminCreateVariableMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return adminCreateVariable(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminCreateVariableMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminCreateVariable>>
+>;
+export type AdminCreateVariableMutationBody = VariableParams | undefined;
+export type AdminCreateVariableMutationError = ValidationErrors;
+export type AdminCreateVariableMutationVariables = { data?: VariableParams };
+
+/**
+ * @summary Create a variable
+ */
+export const useAdminCreateVariable = <TError = ValidationErrors, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminCreateVariable>>,
+      TError,
+      AdminCreateVariableMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminCreateVariable>>,
+  TError,
+  AdminCreateVariableMutationVariables,
+  TContext
+> => {
+  return useMutation(getAdminCreateVariableMutationOptions(options), queryClient);
+};
+
+export type adminDeleteVariableResponse204 = {
+  data: void;
+  status: 204;
+};
+
+export type adminDeleteVariableResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminDeleteVariableResponseSuccess = adminDeleteVariableResponse204 & {
+  headers: Headers;
+};
+export type adminDeleteVariableResponseError = adminDeleteVariableResponse404 & {
+  headers: Headers;
+};
+
+export type adminDeleteVariableResponse =
+  adminDeleteVariableResponseSuccess | adminDeleteVariableResponseError;
+
+export const getAdminDeleteVariableUrl = (id: string) => {
+  return `/api/admin/v1/settings/variables/${id}`;
+};
+
+/**
+ * @summary Delete a variable
+ */
+export const adminDeleteVariable = async (
+  id: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminDeleteVariableResponse> => {
+  return customFetch<adminDeleteVariableResponse>(getAdminDeleteVariableUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getAdminDeleteVariableMutationKey = () => ["adminDeleteVariable"] as const;
+
+export const getAdminDeleteVariableMutationOptions = <
+  TError = Error,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminDeleteVariable>>,
+    TError,
+    AdminDeleteVariableMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminDeleteVariable>>,
+  TError,
+  AdminDeleteVariableMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAdminDeleteVariableMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminDeleteVariable>>,
+    AdminDeleteVariableMutationVariables
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return adminDeleteVariable(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminDeleteVariableMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminDeleteVariable>>
+>;
+
+export type AdminDeleteVariableMutationError = Error;
+export type AdminDeleteVariableMutationVariables = { id: string };
+
+/**
+ * @summary Delete a variable
+ */
+export const useAdminDeleteVariable = <TError = Error, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminDeleteVariable>>,
+      TError,
+      AdminDeleteVariableMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminDeleteVariable>>,
+  TError,
+  AdminDeleteVariableMutationVariables,
+  TContext
+> => {
+  return useMutation(getAdminDeleteVariableMutationOptions(options), queryClient);
+};
+
+export type adminGetVariableResponse200 = {
+  data: VariableResponse;
+  status: 200;
+};
+
+export type adminGetVariableResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminGetVariableResponseSuccess = adminGetVariableResponse200 & {
+  headers: Headers;
+};
+export type adminGetVariableResponseError = adminGetVariableResponse404 & {
+  headers: Headers;
+};
+
+export type adminGetVariableResponse =
+  adminGetVariableResponseSuccess | adminGetVariableResponseError;
+
+export const getAdminGetVariableUrl = (id: string) => {
+  return `/api/admin/v1/settings/variables/${id}`;
+};
+
+/**
+ * @summary Get a variable
+ */
+export const adminGetVariable = async (
+  id: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminGetVariableResponse> => {
+  return customFetch<adminGetVariableResponse>(getAdminGetVariableUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminGetVariableQueryKey = (id: string) => {
+  return [`/api/admin/v1/settings/variables/${id}`] as const;
+};
+
+export const getAdminGetVariableQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetVariable>>,
+  TError = Error,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetVariable>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminGetVariableQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetVariable>>> = ({ signal }) =>
+    adminGetVariable(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof adminGetVariable>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type AdminGetVariableQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetVariable>>>;
+export type AdminGetVariableQueryError = Error;
+
+export function useAdminGetVariable<
+  TData = Awaited<ReturnType<typeof adminGetVariable>>,
+  TError = Error,
+>(
+  id: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetVariable>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetVariable>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetVariable>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetVariable<
+  TData = Awaited<ReturnType<typeof adminGetVariable>>,
+  TError = Error,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetVariable>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetVariable>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetVariable>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetVariable<
+  TData = Awaited<ReturnType<typeof adminGetVariable>>,
+  TError = Error,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetVariable>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Get a variable
+ */
+
+export function useAdminGetVariable<
+  TData = Awaited<ReturnType<typeof adminGetVariable>>,
+  TError = Error,
+>(
+  id: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetVariable>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminGetVariableQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type adminUpdateVariableResponse200 = {
+  data: VariableResponse;
+  status: 200;
+};
+
+export type adminUpdateVariableResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminUpdateVariableResponse409 = {
+  data: Error;
+  status: 409;
+};
+
+export type adminUpdateVariableResponse422 = {
+  data: ValidationErrors;
+  status: 422;
+};
+
+export type adminUpdateVariableResponseSuccess = adminUpdateVariableResponse200 & {
+  headers: Headers;
+};
+export type adminUpdateVariableResponseError = (
+  adminUpdateVariableResponse404 | adminUpdateVariableResponse409 | adminUpdateVariableResponse422
+) & {
+  headers: Headers;
+};
+
+export type adminUpdateVariableResponse =
+  adminUpdateVariableResponseSuccess | adminUpdateVariableResponseError;
+
+export const getAdminUpdateVariableUrl = (id: string) => {
+  return `/api/admin/v1/settings/variables/${id}`;
+};
+
+/**
+ * A variable managed by the environment refuses a change of key or value (409 managed_by_env); its description stays editable.
+ * @summary Update a variable
+ */
+export const adminUpdateVariable = async (
+  id: string,
+  variableParams?: VariableParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminUpdateVariableResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<adminUpdateVariableResponse>(getAdminUpdateVariableUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(variableParams),
+  });
+};
+
+export const getAdminUpdateVariableMutationKey = () => ["adminUpdateVariable"] as const;
+
+export const getAdminUpdateVariableMutationOptions = <
+  TError = Error | ValidationErrors,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateVariable>>,
+    TError,
+    AdminUpdateVariableMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminUpdateVariable>>,
+  TError,
+  AdminUpdateVariableMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAdminUpdateVariableMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminUpdateVariable>>,
+    AdminUpdateVariableMutationVariables
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return adminUpdateVariable(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminUpdateVariableMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminUpdateVariable>>
+>;
+export type AdminUpdateVariableMutationBody = VariableParams | undefined;
+export type AdminUpdateVariableMutationError = Error | ValidationErrors;
+export type AdminUpdateVariableMutationVariables = { id: string; data?: VariableParams };
+
+/**
+ * @summary Update a variable
+ */
+export const useAdminUpdateVariable = <TError = Error | ValidationErrors, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminUpdateVariable>>,
+      TError,
+      AdminUpdateVariableMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminUpdateVariable>>,
+  TError,
+  AdminUpdateVariableMutationVariables,
+  TContext
+> => {
+  return useMutation(getAdminUpdateVariableMutationOptions(options), queryClient);
+};

@@ -30,7 +30,7 @@ defmodule PixelAudit.Api.Funnels.DataSource do
   @foreign_key_type :binary_id
   schema "funnel_data_sources" do
     belongs_to :funnel, Funnel
-    belongs_to :connection, PixelAudit.Api.Connections.Connection
+    belongs_to :connection, PixelAudit.Api.Settings.Connection
     field :code, :string
     field :name, :string
     field :description, :string

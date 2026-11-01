@@ -1,8 +1,10 @@
 # Connections
 
 A connection holds the credentials for one external system under a short
-code. Four types, one connector module each
-(`PixelAudit.Api.Connections.Connector.*`):
+code. It is part of the Settings context (`PixelAudit.Api.Settings`, table
+`settings_connections`, API `/api/admin/v1/settings/connections`), beside
+the variables (`specs/variables.md`). Four types, one connector module each
+(`PixelAudit.Api.Settings.Connector.*`):
 
 | Type | `CONNECTION_<id>_TYPE` | Credentials | Client |
 |---|---|---|---|
@@ -38,17 +40,19 @@ vault's default, re-encrypt the table, drop `V1`.
 
 ## The environment (`boot`)
 
-`PixelAudit.Api.Connections.EnvSync` maps `CONNECTION_*` variables onto
-rows — what the `boot` role does after migrating (`mix boot`,
-`bin/boot` in the release, the chart's boot Job):
+`PixelAudit.Api.Settings.EnvSync` maps `CONNECTION_*` variables (its
+`Connections` half) and `VARIABLE_*` variables (`Variables`, see
+`specs/variables.md`) onto rows — what the `boot` role does after
+migrating (`mix boot`, `bin/boot` in the release, the chart's boot Job):
 
 - `CONNECTION_<id>_TYPE` names the type (the env names above); `<id>` is
   the code, lowercase so it fits a variable name and free of `_`, which
   keeps `CONNECTION_shop_URL` unambiguous.
 - `CONNECTION_<id>_<PARAM>` is a credential, `<PARAM>` the key upper-cased.
-- The whole set is validated first — an unknown type, an unknown
-  parameter, a missing required one — and nothing is written when any of
-  it is wrong; the role exits non-zero with the problems listed.
+- The whole set — connections and variables together — is validated
+  first (an unknown type, an unknown parameter, a missing required one)
+  and nothing is written when any of it is wrong; the role exits non-zero
+  with the problems listed. What passes is written in one transaction.
 - An existing code is updated: type and credentials replaced whole, name
   and description kept. A new code is created, named after itself. Both
   are `managed_by_env`: the API refuses a change of their type or

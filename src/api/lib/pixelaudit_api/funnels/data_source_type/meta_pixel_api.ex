@@ -1,7 +1,7 @@
 defmodule PixelAudit.Api.Funnels.DataSourceType.MetaPixelApi do
   @moduledoc """
   A step is a Meta pixel event, counted from PixelAudit's own copy of the
-  pixel's hourly stats (`PixelAudit.Api.Connections.MetaPixelStat`) — never
+  pixel's hourly stats (`PixelAudit.Api.Settings.MetaPixelStat`) — never
   from Meta directly, which only keeps about a week.
   """
 
@@ -9,7 +9,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.MetaPixelApi do
 
   import PixelAudit.Api.FieldSpec, only: [field: 2]
 
-  alias PixelAudit.Api.Connections
+  alias PixelAudit.Api.Settings
 
   @impl true
   def type, do: :meta_pixel_api
@@ -43,7 +43,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.MetaPixelApi do
   def count(connection, _settings, %{"event_name" => event_name}, date_from, date_to) do
     Date.range(date_from, date_to)
     |> Enum.reduce_while({:ok, 0}, fn date, {:ok, total} ->
-      case Connections.meta_pixel_day_count(connection, event_name, date) do
+      case Settings.meta_pixel_day_count(connection, event_name, date) do
         {:ok, count} ->
           {:cont, {:ok, total + count}}
 

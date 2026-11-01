@@ -15,7 +15,7 @@ defmodule PixelAudit.Api.Reporting.Schedule do
 
   require Logger
 
-  alias PixelAudit.Api.{Connections, Funnels, Reporting}
+  alias PixelAudit.Api.{Funnels, Reporting, Settings}
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"scope" => "meta_hourly"}}) do
@@ -41,7 +41,7 @@ defmodule PixelAudit.Api.Reporting.Schedule do
   end
 
   defp refresh_meta(date_from, date_to) do
-    for connection <- Connections.list_meta_connections() do
+    for connection <- Settings.list_meta_connections() do
       {:ok, _run} = Reporting.refresh_meta_connection(connection, date_from, date_to, :cron)
     end
   end

@@ -15,7 +15,7 @@ defmodule PixelAudit.Api.Reporting.RefreshRun do
   @foreign_key_type :binary_id
   schema "reporting_refresh_runs" do
     field :kind, Ecto.Enum, values: [:meta_pixel, :data_source]
-    belongs_to :connection, PixelAudit.Api.Connections.Connection
+    belongs_to :connection, PixelAudit.Api.Settings.Connection
     belongs_to :funnel, PixelAudit.Api.Funnels.Funnel
     belongs_to :data_source, PixelAudit.Api.Funnels.DataSource
     field :date_from, :date

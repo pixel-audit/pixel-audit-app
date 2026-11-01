@@ -17,7 +17,7 @@ export function describeErrorDetail(detail: string, subject?: MessageDescriptor)
     case "connection_in_use":
       return copy(messages.connectionInUse);
     case "managed_by_env":
-      return copy(messages.managedByEnv);
+      return copy(messages.managedByEnv, { subject: what });
     case "connection_type_mismatch":
       return copy(messages.connectionTypeMismatch);
     case "not_a_meta_connection":
@@ -43,11 +43,6 @@ const messages = {
       id: "refusal.connectionInUse",
       defaultMessage: "A data source still reads through this connection. Move it first.",
     },
-    managedByEnv: {
-      id: "refusal.managedByEnv",
-      defaultMessage:
-        "This connection's type and credentials come from the environment (CONNECTION_* variables) and cannot be changed here.",
-    },
     connectionTypeMismatch: {
       id: "refusal.connectionTypeMismatch",
       defaultMessage: "The connection is not of the type this data source reads through.",
@@ -72,6 +67,11 @@ const messages = {
       id: "refusal.rangeTooLarge",
       defaultMessage: "The range is too long: at most 366 days at a time.",
     },
+  }),
+  managedByEnv: defineMessage<{ subject: string }>({
+    id: "refusal.managedByEnv",
+    defaultMessage:
+      "This {subject} is defined by the environment (CONNECTION_* or VARIABLE_* variables); what it defines cannot be changed here.",
   }),
   notFound: defineMessage<{ subject: string }>({
     id: "refusal.notFound",

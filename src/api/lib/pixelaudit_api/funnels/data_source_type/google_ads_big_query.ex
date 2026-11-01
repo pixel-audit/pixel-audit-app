@@ -13,7 +13,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.GoogleAdsBigQuery do
 
   import PixelAudit.Api.FieldSpec, only: [field: 2]
 
-  alias PixelAudit.Api.Connections.Connector.BigQuery
+  alias PixelAudit.Api.Settings.Connector.BigQuery
   alias PixelAudit.Api.Funnels.DataSourceType
 
   @impl true

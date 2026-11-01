@@ -1,6 +1,6 @@
 defmodule PixelAudit.ApiWeb.Admin.Funnels.DataSourceJSON do
   alias PixelAudit.Api.Funnels.{DataSource, StepParameter}
-  alias PixelAudit.ApiWeb.Admin.Connections.ConnectionJSON
+  alias PixelAudit.ApiWeb.Admin.Settings.ConnectionJSON
 
   def show(%{data_source: data_source}) do
     %{data: data(data_source)}

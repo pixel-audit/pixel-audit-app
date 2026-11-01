@@ -6,8 +6,9 @@ not repeat them. The API is in `specs/api.md`.
 
 ## Navigation
 
-Three groups in the top bar, each one screen; the sidebar shows the open
-group's screen. Screens are file routes in `src/routes`; an item's own page
+Three groups in the top bar — Funnels and Refreshes with one screen each,
+Settings with two (Connections, Variables); the sidebar shows the open
+group's screens. Screens are file routes in `src/routes`; an item's own page
 is a route escaped from its list (`funnels_.$code.tsx`). A funnel's address is its code (`/funnels/checkout`), which the API resolves alongside the id; a connection's and a run's address is the id.
 
 | Route | Screen |
@@ -16,8 +17,11 @@ is a route escaped from its list (`funnels_.$code.tsx`). A funnel's address is i
 | `/funnels` | The funnels; add. |
 | `/funnels/$code` | The funnel's page, **View** tab: a date range (presets and two dates, kept in the address as `date_from`/`date_to`), the data source the sankey draws (`source`), the sankey, the counts table, a Refresh button for the shown range. |
 | `/funnels/$code/setup` | **Setup** tab: the steps (add, edit, delete, move up/down), the data sources (type → connection of that type → the type's settings), the parameters grid (steps × sources; a cell opens the type's parameter form, or stops measuring the step). |
-| `/connections` | The connections; add. |
-| `/connections/$id` | The connection's page: credentials (secrets shown as set, not their values), the last check, and the actions: check, pull pixel stats (Meta), edit, delete (blocked while in use). |
+| `/settings` | Leads to `/settings/connections`. |
+| `/settings/connections` | The connections; add. |
+| `/settings/connections/$id` | The connection's page: credentials (secrets shown as set, not their values; a URL with its password hidden), the last check, and the actions: check, pull pixel stats (Meta), edit, delete (blocked while in use). |
+| `/settings/variables` | The variables (key, value, description); add. |
+| `/settings/variables/$id` | The variable's page: the value, and the actions: edit (a managed one's description only), delete. |
 | `/refreshes` | Every refresh run, filtered by status and kind (in the address); a row leads to the run's page. |
 | `/refreshes/$id` | The run's page: what it refreshed, when, the whole error as selectable text, and — for a daily-counts run — every step and day it computed with its count or error. |
 

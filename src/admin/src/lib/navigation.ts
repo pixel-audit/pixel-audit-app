@@ -28,8 +28,10 @@ export type NavGroup = { title: MessageDescriptor; url: string; categories: NavC
 const navMessages = defineMessages({
   dashboard: { id: "nav.dashboard", defaultMessage: "Dashboard" },
   funnels: { id: "nav.funnels", defaultMessage: "Funnels" },
-  connections: { id: "nav.connections", defaultMessage: "Connections" },
   refreshes: { id: "nav.refreshes", defaultMessage: "Refreshes" },
+  settings: { id: "nav.settings", defaultMessage: "Settings" },
+  connections: { id: "nav.connections", defaultMessage: "Connections" },
+  variables: { id: "nav.variables", defaultMessage: "Variables" },
 });
 
 export const DASHBOARD = { title: navMessages.dashboard, url: "/" };
@@ -46,22 +48,25 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    title: navMessages.connections,
-    url: "/connections",
-    categories: [
-      {
-        url: "/connections",
-        items: [{ title: navMessages.connections, url: "/connections" }],
-      },
-    ],
-  },
-  {
     title: navMessages.refreshes,
     url: "/refreshes",
     categories: [
       {
         url: "/refreshes",
         items: [{ title: navMessages.refreshes, url: "/refreshes" }],
+      },
+    ],
+  },
+  {
+    title: navMessages.settings,
+    url: "/settings",
+    categories: [
+      {
+        url: "/settings",
+        items: [
+          { title: navMessages.connections, url: "/settings/connections" },
+          { title: navMessages.variables, url: "/settings/variables" },
+        ],
       },
     ],
   },

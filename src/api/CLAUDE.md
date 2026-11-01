@@ -14,8 +14,8 @@ here are the project's own rules of placement.
   A worker is an entry point into a context, like a controller action, not a
   category of its own.
 - **A connector is a module per connection type** under
-  `PixelAudit.Api.Connections.Connector.*`, implementing the behaviour in
-  `connections/connector.ex`; it declares its credentials as
+  `PixelAudit.Api.Settings.Connector.*`, implementing the behaviour in
+  `settings/connector.ex`; it declares its credentials as
   `PixelAudit.Api.FieldSpec`s, which drive the env sync, the validation and
   the panel's form at once. A new connection type is one module plus its
   entry in `Connector.all/0`.
@@ -26,7 +26,13 @@ here are the project's own rules of placement.
 - **Counts are per day.** A resolver is always asked for one day
   (`date_from = date_to`); the report sums cached days. SQL resolvers bind
   the dates as parameters — never interpolate them.
-- **Credentials never leave the API.** `connections.credentials` is a
+- **Settings is one context.** Connections and variables are
+  `PixelAudit.Api.Settings.Connection` and `...Variable` in
+  `lib/pixelaudit_api/settings/`, tables `settings_connections` and
+  `settings_variables`, served under `/api/admin/v1/settings/`; the env
+  sync (`Settings.EnvSync`) applies `CONNECTION_*` and `VARIABLE_*` in one
+  run and one transaction.
+- **Credentials never leave the API.** `settings_connections.credentials` is a
   Cloak-encrypted map; JSON views render `credential_keys` and the
   non-secret `credentials_preview` only, and `Inspect` skips the field.
 

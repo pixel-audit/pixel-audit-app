@@ -71,7 +71,7 @@ export function RefreshRunDetail({ run }: { run: RefreshRun }) {
         <DetailField label={intl.formatMessage(messages.connection)}>
           {run.connection && (
             <Link
-              to="/connections/$id"
+              to="/settings/connections/$id"
               params={{ id: run.connection.id }}
               className="text-primary underline-offset-2 hover:underline"
             >

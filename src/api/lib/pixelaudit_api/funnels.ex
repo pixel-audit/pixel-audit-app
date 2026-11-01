@@ -10,7 +10,7 @@ defmodule PixelAudit.Api.Funnels do
 
   import Ecto.Query, warn: false
 
-  alias PixelAudit.Api.Connections.Connection
+  alias PixelAudit.Api.Settings.Connection
   alias PixelAudit.Api.Funnels.{DataSource, DataSourceType, Funnel, Step, StepParameter}
   alias PixelAudit.Api.Repo
 

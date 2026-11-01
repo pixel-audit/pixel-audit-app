@@ -51,7 +51,7 @@ The rules that follow from this:
   only: a connection type, a data source type, a run status.
 - **The API's field specs drive the forms.** A connection's credentials, a
   data source's settings and a step's parameters are declared by the API
-  (`GET /connections/types`, `GET /funnels/data-source-types`) as
+  (`GET /settings/connections/types`, `GET /funnels/data-source-types`) as
   `FieldSpec`s; `FieldSpecFields` renders them. No screen hard-codes which
   credential a type takes.
 - **Components take slots, not flags.** `ListRow` receives `badges`, `actions`
@@ -95,7 +95,7 @@ mechanics; the rules that matter here:
 
 ## Every item has a page, not a modal
 
-A list row leads to the item's own page (`/funnels/$code`, `/connections/$id`),
+A list row leads to the item's own page (`/funnels/$code`, `/settings/connections/$id`),
 where the item is shown, edited (the add/edit `FormDialog` opens from there),
 checked, refreshed or deleted. Lists only list and add. The page is a route
 file escaped from its list's route (`funnels_.$code.tsx`), so it renders on its
@@ -105,7 +105,7 @@ tab routes (`funnels_.$code.tsx` and `funnels_.$code.setup.tsx`). A funnel is ad
 
 ## The address follows the navigation
 
-Navigation has two levels: the groups (Funnels, Connections, Refreshes) are
+Navigation has two levels: the groups (Funnels, Refreshes, Settings) are
 tabs in the top bar, and the open group's screens fill the sidebar. The
 address follows that tree: `/group/screen`, then the item and the tab
 (`/funnels/$code/setup`). A group with one screen skips the second segment.

@@ -10,23 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as FunnelsRouteImport } from './routes/funnels'
 import { Route as RefreshesRouteImport } from './routes/refreshes'
-import { Route as ConnectionsIdRouteImport } from './routes/connections_.$id'
 import { Route as FunnelsCodeRouteImport } from './routes/funnels_.$code'
 import { Route as RefreshesIdRouteImport } from './routes/refreshes_.$id'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsConnectionsRouteImport } from './routes/settings.connections'
+import { Route as SettingsVariablesRouteImport } from './routes/settings.variables'
 import { Route as FunnelsCodeIndexRouteImport } from './routes/funnels_.$code.index'
 import { Route as FunnelsCodeSetupRouteImport } from './routes/funnels_.$code.setup'
+import { Route as SettingsConnectionsIdRouteImport } from './routes/settings.connections_.$id'
+import { Route as SettingsVariablesIdRouteImport } from './routes/settings.variables_.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConnectionsRoute = ConnectionsRouteImport.update({
-  id: '/connections',
-  path: '/connections',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FunnelsRoute = FunnelsRouteImport.update({
@@ -39,11 +37,6 @@ const RefreshesRoute = RefreshesRouteImport.update({
   path: '/refreshes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConnectionsIdRoute = ConnectionsIdRouteImport.update({
-  id: '/connections_/$id',
-  path: '/connections/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const FunnelsCodeRoute = FunnelsCodeRouteImport.update({
   id: '/funnels_/$code',
   path: '/funnels/$code',
@@ -52,6 +45,21 @@ const FunnelsCodeRoute = FunnelsCodeRouteImport.update({
 const RefreshesIdRoute = RefreshesIdRouteImport.update({
   id: '/refreshes_/$id',
   path: '/refreshes/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsConnectionsRoute = SettingsConnectionsRouteImport.update({
+  id: '/settings/connections',
+  path: '/settings/connections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsVariablesRoute = SettingsVariablesRouteImport.update({
+  id: '/settings/variables',
+  path: '/settings/variables',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FunnelsCodeIndexRoute = FunnelsCodeIndexRouteImport.update({
@@ -64,83 +72,114 @@ const FunnelsCodeSetupRoute = FunnelsCodeSetupRouteImport.update({
   path: '/setup',
   getParentRoute: () => FunnelsCodeRoute,
 } as any)
+const SettingsConnectionsIdRoute = SettingsConnectionsIdRouteImport.update({
+  id: '/settings/connections_/$id',
+  path: '/settings/connections/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsVariablesIdRoute = SettingsVariablesIdRouteImport.update({
+  id: '/settings/variables_/$id',
+  path: '/settings/variables/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/connections': typeof ConnectionsRoute
   '/funnels': typeof FunnelsRoute
   '/refreshes': typeof RefreshesRoute
-  '/connections/$id': typeof ConnectionsIdRoute
   '/funnels/$code': typeof FunnelsCodeRouteWithChildren
   '/refreshes/$id': typeof RefreshesIdRoute
+  '/settings/connections': typeof SettingsConnectionsRoute
+  '/settings/variables': typeof SettingsVariablesRoute
+  '/settings/': typeof SettingsIndexRoute
   '/funnels/$code/setup': typeof FunnelsCodeSetupRoute
+  '/settings/connections/$id': typeof SettingsConnectionsIdRoute
+  '/settings/variables/$id': typeof SettingsVariablesIdRoute
   '/funnels/$code/': typeof FunnelsCodeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/connections': typeof ConnectionsRoute
   '/funnels': typeof FunnelsRoute
   '/refreshes': typeof RefreshesRoute
-  '/connections/$id': typeof ConnectionsIdRoute
   '/refreshes/$id': typeof RefreshesIdRoute
+  '/settings/connections': typeof SettingsConnectionsRoute
+  '/settings/variables': typeof SettingsVariablesRoute
+  '/settings': typeof SettingsIndexRoute
   '/funnels/$code/setup': typeof FunnelsCodeSetupRoute
+  '/settings/connections/$id': typeof SettingsConnectionsIdRoute
+  '/settings/variables/$id': typeof SettingsVariablesIdRoute
   '/funnels/$code': typeof FunnelsCodeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/connections': typeof ConnectionsRoute
   '/funnels': typeof FunnelsRoute
   '/refreshes': typeof RefreshesRoute
-  '/connections_/$id': typeof ConnectionsIdRoute
   '/funnels_/$code': typeof FunnelsCodeRouteWithChildren
   '/refreshes_/$id': typeof RefreshesIdRoute
+  '/settings/connections': typeof SettingsConnectionsRoute
+  '/settings/variables': typeof SettingsVariablesRoute
+  '/settings/': typeof SettingsIndexRoute
   '/funnels_/$code/setup': typeof FunnelsCodeSetupRoute
+  '/settings/connections_/$id': typeof SettingsConnectionsIdRoute
+  '/settings/variables_/$id': typeof SettingsVariablesIdRoute
   '/funnels_/$code/': typeof FunnelsCodeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/connections'
     | '/funnels'
     | '/refreshes'
-    | '/connections/$id'
     | '/funnels/$code'
     | '/refreshes/$id'
+    | '/settings/connections'
+    | '/settings/variables'
+    | '/settings/'
     | '/funnels/$code/setup'
+    | '/settings/connections/$id'
+    | '/settings/variables/$id'
     | '/funnels/$code/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/connections'
     | '/funnels'
     | '/refreshes'
-    | '/connections/$id'
     | '/refreshes/$id'
+    | '/settings/connections'
+    | '/settings/variables'
+    | '/settings'
     | '/funnels/$code/setup'
+    | '/settings/connections/$id'
+    | '/settings/variables/$id'
     | '/funnels/$code'
   id:
     | '__root__'
     | '/'
-    | '/connections'
     | '/funnels'
     | '/refreshes'
-    | '/connections_/$id'
     | '/funnels_/$code'
     | '/refreshes_/$id'
+    | '/settings/connections'
+    | '/settings/variables'
+    | '/settings/'
     | '/funnels_/$code/setup'
+    | '/settings/connections_/$id'
+    | '/settings/variables_/$id'
     | '/funnels_/$code/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ConnectionsRoute: typeof ConnectionsRoute
   FunnelsRoute: typeof FunnelsRoute
   RefreshesRoute: typeof RefreshesRoute
-  ConnectionsIdRoute: typeof ConnectionsIdRoute
   FunnelsCodeRoute: typeof FunnelsCodeRouteWithChildren
   RefreshesIdRoute: typeof RefreshesIdRoute
+  SettingsConnectionsRoute: typeof SettingsConnectionsRoute
+  SettingsVariablesRoute: typeof SettingsVariablesRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+  SettingsConnectionsIdRoute: typeof SettingsConnectionsIdRoute
+  SettingsVariablesIdRoute: typeof SettingsVariablesIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -150,13 +189,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/connections': {
-      id: '/connections'
-      path: '/connections'
-      fullPath: '/connections'
-      preLoaderRoute: typeof ConnectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/funnels': {
@@ -173,13 +205,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RefreshesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/connections_/$id': {
-      id: '/connections_/$id'
-      path: '/connections/$id'
-      fullPath: '/connections/$id'
-      preLoaderRoute: typeof ConnectionsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/funnels_/$code': {
       id: '/funnels_/$code'
       path: '/funnels/$code'
@@ -192,6 +217,27 @@ declare module '@tanstack/react-router' {
       path: '/refreshes/$id'
       fullPath: '/refreshes/$id'
       preLoaderRoute: typeof RefreshesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/connections': {
+      id: '/settings/connections'
+      path: '/settings/connections'
+      fullPath: '/settings/connections'
+      preLoaderRoute: typeof SettingsConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/variables': {
+      id: '/settings/variables'
+      path: '/settings/variables'
+      fullPath: '/settings/variables'
+      preLoaderRoute: typeof SettingsVariablesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/funnels_/$code/': {
@@ -207,6 +253,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/funnels/$code/setup'
       preLoaderRoute: typeof FunnelsCodeSetupRouteImport
       parentRoute: typeof FunnelsCodeRoute
+    }
+    '/settings/connections_/$id': {
+      id: '/settings/connections_/$id'
+      path: '/settings/connections/$id'
+      fullPath: '/settings/connections/$id'
+      preLoaderRoute: typeof SettingsConnectionsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/variables_/$id': {
+      id: '/settings/variables_/$id'
+      path: '/settings/variables/$id'
+      fullPath: '/settings/variables/$id'
+      preLoaderRoute: typeof SettingsVariablesIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -227,12 +287,15 @@ const FunnelsCodeRouteWithChildren = FunnelsCodeRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ConnectionsRoute: ConnectionsRoute,
   FunnelsRoute: FunnelsRoute,
   RefreshesRoute: RefreshesRoute,
-  ConnectionsIdRoute: ConnectionsIdRoute,
   FunnelsCodeRoute: FunnelsCodeRouteWithChildren,
   RefreshesIdRoute: RefreshesIdRoute,
+  SettingsConnectionsRoute: SettingsConnectionsRoute,
+  SettingsVariablesRoute: SettingsVariablesRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+  SettingsConnectionsIdRoute: SettingsConnectionsIdRoute,
+  SettingsVariablesIdRoute: SettingsVariablesIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
