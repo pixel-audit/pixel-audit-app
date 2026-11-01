@@ -7,10 +7,9 @@
  */
 
 /**
- * A connection, funnel or data source named by id, code and name.
+ * A connection, funnel or data source named by id and name.
  */
 export interface EntityRef {
-  code: string;
   id: string;
   name: string;
 }

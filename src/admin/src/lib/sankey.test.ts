@@ -5,7 +5,6 @@ import { funnelLayout, MARGIN, median, ribbonPath, stepStats } from "@/lib/sanke
 
 const step = (id: string, position: number) => ({
   id,
-  code: id,
   name: id,
   description: null,
   position,
@@ -13,12 +12,11 @@ const step = (id: string, position: number) => ({
 
 const source = (id: string): DataSource => ({
   id,
-  code: id,
   name: id,
   description: null,
   type: "postgres_query",
   connection_id: "c",
-  connection: { id: "c", code: "c", name: "c", type: "postgres" },
+  connection: { id: "c", name: "c", type: "postgres" },
   settings: {},
   position: 0,
   color: "#123456",
@@ -74,8 +72,8 @@ describe("funnelLayout — the sources over one another on one scale", () => {
     );
 
     expect(layout.scaleMax).toBe(100);
-    expect(layout.columns.map((c) => c.step.code)).toEqual(["visit", "cart", "purchase"]);
-    expect(layout.nodes.map((n) => [n.source.id, n.step.code, n.y1 - n.y0])).toEqual([
+    expect(layout.columns.map((c) => c.step.name)).toEqual(["visit", "cart", "purchase"]);
+    expect(layout.nodes.map((n) => [n.source.id, n.step.name, n.y1 - n.y0])).toEqual([
       ["a", "visit", 100],
       ["a", "cart", 40],
       ["a", "purchase", 10],
@@ -99,7 +97,7 @@ describe("funnelLayout — the sources over one another on one scale", () => {
 
     expect(layout.ribbons).toHaveLength(1);
     const ribbon = layout.ribbons[0]!;
-    expect([ribbon.from.code, ribbon.to.code]).toEqual(["visit", "cart"]);
+    expect([ribbon.from.name, ribbon.to.name]).toEqual(["visit", "cart"]);
     expect([ribbon.y1Left - ribbon.y0Left, ribbon.y1Right - ribbon.y0Right]).toEqual([100, 40]);
     expect((ribbon.y0Right + ribbon.y1Right) / 2).toBe((ribbon.y0Left + ribbon.y1Left) / 2);
     expect([ribbon.fromCount, ribbon.toCount]).toEqual([100, 40]);
@@ -125,10 +123,10 @@ describe("funnelLayout — the sources over one another on one scale", () => {
       frame,
     );
 
-    const cart = layout.nodes.find((n) => n.source.id === "a" && n.step.code === "cart");
+    const cart = layout.nodes.find((n) => n.source.id === "a" && n.step.name === "cart");
     expect(cart).toMatchObject({ count: 40, estimated: true });
     expect(
-      layout.ribbons.filter((r) => r.source.id === "a").map((r) => [r.from.code, r.to.code]),
+      layout.ribbons.filter((r) => r.source.id === "a").map((r) => [r.from.name, r.to.name]),
     ).toEqual([
       ["visit", "cart"],
       ["cart", "purchase"],
@@ -144,7 +142,7 @@ describe("funnelLayout — the sources over one another on one scale", () => {
       ],
       frame,
     );
-    expect(layout.nodes.find((n) => n.source.id === "a" && n.step.code === "cart")?.count).toBe(30);
+    expect(layout.nodes.find((n) => n.source.id === "a" && n.step.name === "cart")?.count).toBe(30);
   });
 
   it("skips an unmeasured step when the source is shown alone", () => {
@@ -154,8 +152,8 @@ describe("funnelLayout — the sources over one another on one scale", () => {
       frame,
     );
 
-    expect(layout.nodes.map((n) => n.step.code)).toEqual(["visit", "purchase"]);
-    expect(layout.ribbons.map((r) => [r.from.code, r.to.code])).toEqual([["visit", "purchase"]]);
+    expect(layout.nodes.map((n) => n.step.name)).toEqual(["visit", "purchase"]);
+    expect(layout.ribbons.map((r) => [r.from.name, r.to.name])).toEqual([["visit", "purchase"]]);
   });
 
   it("marks a node whose days are incomplete", () => {

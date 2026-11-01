@@ -7,8 +7,6 @@
  */
 
 export interface FunnelParams {
-  /** @pattern ^[a-z0-9]+$ */
-  code?: string;
   /** @nullable */
   description?: string | null;
   name?: string;

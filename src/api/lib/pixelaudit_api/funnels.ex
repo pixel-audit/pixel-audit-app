@@ -16,29 +16,22 @@ defmodule PixelAudit.Api.Funnels do
 
   ## Funnels
 
-  @doc "Every funnel, by code, with its steps and data sources."
+  @doc "Every funnel, by name, with its steps and data sources."
   def list_funnels do
     Repo.all(
       from f in Funnel,
-        order_by: f.code,
+        order_by: f.name,
         preload: [:steps, data_sources: [:connection, :step_parameters]]
     )
   end
 
   @doc """
-  A funnel by id or by code, with its steps, data sources (and their
-  connections) and parameters. A code (`[a-z0-9]+`) can never read as a
-  UUID, so the two never collide; the panel addresses funnels by code.
+  A funnel by id, with its steps, data sources (and their connections) and
+  parameters.
   """
-  def get_funnel!(id_or_code) do
-    query =
-      case Ecto.UUID.cast(id_or_code) do
-        {:ok, id} -> from(f in Funnel, where: f.id == ^id)
-        :error -> from(f in Funnel, where: f.code == ^id_or_code)
-      end
-
-    query
-    |> Repo.one!()
+  def get_funnel!(id) do
+    Funnel
+    |> Repo.get!(id)
     |> Repo.preload(
       steps: [],
       data_sources: [:connection, :step_parameters]

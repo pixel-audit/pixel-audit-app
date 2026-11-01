@@ -109,7 +109,7 @@ defmodule PixelAudit.Api.ReportingTest do
 
       days = Reporting.list_run_days(run)
 
-      assert Enum.map(days, &{&1.step.code, &1.status}) == [
+      assert Enum.map(days, &{&1.step.name, &1.status}) == [
                {"visit", :error},
                {"cart", :ok},
                {"purchase", :ok}

@@ -20,14 +20,13 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionControllerTest do
     conn: conn
   } do
     params = %{
-      "code" => "fb",
       "name" => "Facebook",
       "type" => "meta",
       "credentials" => %{"access_token" => "EAAsecret", "pixel_id" => "42"}
     }
 
     %{"data" => created} = conn |> post(@base, params) |> json_response(201)
-    assert created["code"] == "fb"
+    assert created["name"] == "Facebook"
     assert created["credential_keys"] == ["access_token", "api_version", "pixel_id"]
     assert created["credentials_preview"] == %{"api_version" => "v25.0", "pixel_id" => "42"}
     refute inspect(created) =~ "EAAsecret"
@@ -36,7 +35,7 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionControllerTest do
     # A Meta connection's creation pulls its stats.
     %{"data" => [run]} = conn |> get("/api/admin/v1/reporting/refresh-runs") |> json_response(200)
     assert run["kind"] == "meta_pixel"
-    assert run["connection"]["code"] == "fb"
+    assert run["connection"]["name"] == "Facebook"
 
     %{"data" => shown} = conn |> get("#{@base}/#{created["id"]}") |> json_response(200)
     assert shown == created
@@ -59,7 +58,6 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionControllerTest do
 
   test "shows a database URL with its password hidden", %{conn: conn} do
     params = %{
-      "code" => "shop",
       "name" => "Shop",
       "type" => "postgres",
       "credentials" => %{"url" => "postgres://sample:s3cret@db.example.com:5432/shop"}
@@ -78,11 +76,10 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionControllerTest do
   test "answers 422 with the field errors", %{conn: conn} do
     %{"errors" => errors} =
       conn
-      |> post(@base, %{"code" => "X", "type" => "postgres", "credentials" => %{}})
+      |> post(@base, %{"type" => "postgres", "credentials" => %{}})
       |> json_response(422)
 
     assert errors["name"] == ["can't be blank"]
-    assert errors["code"] == ["must be lowercase letters and digits only"]
     assert errors["credentials.url"] == ["can't be blank"]
   end
 
@@ -100,15 +97,17 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionControllerTest do
         "CONNECTION_shop_URL" => test_database_url()
       })
 
-    connection = PixelAudit.Api.Settings.get_connection_by_code("shop")
+    connection = PixelAudit.Api.Settings.get_connection_by_name("shop")
 
     assert %{"errors" => %{"detail" => "managed_by_env"}} =
              conn
              |> put("#{@base}/#{connection.id}", %{"type" => "clickhouse"})
              |> json_response(409)
 
-    assert %{"data" => %{"name" => "Shop", "managed_by_env" => true}} =
-             conn |> put("#{@base}/#{connection.id}", %{"name" => "Shop"}) |> json_response(200)
+    assert %{"data" => %{"description" => "The shop", "managed_by_env" => true}} =
+             conn
+             |> put("#{@base}/#{connection.id}", %{"description" => "The shop"})
+             |> json_response(200)
   end
 
   test "checks a connection and records the outcome", %{conn: conn} do

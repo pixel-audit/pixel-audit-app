@@ -9,7 +9,6 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.DataSourceJSON do
   def data(%DataSource{} = data_source) do
     %{
       id: data_source.id,
-      code: data_source.code,
       name: data_source.name,
       description: data_source.description,
       type: data_source.type,

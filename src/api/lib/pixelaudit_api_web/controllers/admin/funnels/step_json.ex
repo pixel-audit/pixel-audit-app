@@ -12,7 +12,6 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.StepJSON do
   def data(%Step{} = step) do
     %{
       id: step.id,
-      code: step.code,
       name: step.name,
       description: step.description,
       position: step.position

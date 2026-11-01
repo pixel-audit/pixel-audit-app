@@ -38,7 +38,7 @@ export function FunnelReport({
   range: DateRange;
   modes: SourceModes;
   onRangeChange: (range: DateRange) => void;
-  onModeChange: (code: string, mode: SourceMode) => void;
+  onModeChange: (sourceId: string, mode: SourceMode) => void;
 }) {
   const intl = useIntl();
   const api = useApi();

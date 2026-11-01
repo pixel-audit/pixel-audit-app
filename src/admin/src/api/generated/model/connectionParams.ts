@@ -12,8 +12,6 @@ import type { ConnectionParamsType } from "./connectionParamsType.ts";
  * A connection to create or update. `credentials` is keyed by the type's credential keys (GET /connections/types); on update only the keys sent change, and `null` clears one.
  */
 export interface ConnectionParams {
-  /** @pattern ^[a-z0-9]+$ */
-  code?: string;
   credentials?: ConnectionParamsCredentials;
   /** @nullable */
   description?: string | null;

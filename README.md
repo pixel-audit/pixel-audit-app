@@ -127,12 +127,12 @@ applied by the API's **boot** role
 `boot` command). Run `make boot` again after editing `.env`.
 
 ```sh
-CONNECTION_<id>_TYPE=meta | bigquery | postgres | clickhouse
-CONNECTION_<id>_<PARAM>=...
+CONNECTION_<name>_TYPE=meta | bigquery | postgres | clickhouse
+CONNECTION_<name>_<PARAM>=...
 ```
 
-`<id>` is the connection's code (lowercase letters and digits,
-case-sensitive) and `<PARAM>` one of the type's credentials, in upper case:
+`<name>` is the connection's name (letters and digits, case-sensitive)
+and `<PARAM>` one of the type's credentials, in upper case:
 
 - `meta` — a Meta pixel: `ACCESS_TOKEN`, `PIXEL_ID`, `API_VERSION`
   (optional, `v25.0`).
@@ -147,10 +147,9 @@ case-sensitive) and `<PARAM>` one of the type's credentials, in upper case:
   default to `default`).
 
 `GET /api/admin/v1/settings/connections/types` lists the same. An existing
-connection with the same code is updated (its name and description kept),
-a new one is created named after its code; both are marked as managed by
-the environment, which makes their type and credentials read-only in the
-panel. The panel shows a URL with its password hidden.
+connection with that name is updated (its description kept), a new one
+is created; both are marked as managed by the environment, which makes
+their name, type and credentials read-only in the panel. The panel shows a URL with its password hidden.
 
 ### Variables from the environment
 

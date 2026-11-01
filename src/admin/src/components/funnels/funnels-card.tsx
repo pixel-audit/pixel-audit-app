@@ -36,7 +36,7 @@ export function FunnelsCard() {
                 key={funnel.id}
                 icon={Filter}
                 title={funnel.name}
-                link={linkOptions({ to: "/funnels/$code", params: { code: funnel.code } })}
+                link={linkOptions({ to: "/funnels/$id", params: { id: funnel.id } })}
               >
                 <RowDetail>
                   {intl.formatMessage(messages.summary, {

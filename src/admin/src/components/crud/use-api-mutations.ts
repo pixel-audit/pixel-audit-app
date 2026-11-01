@@ -24,7 +24,7 @@ export type Mutation<V> = {
  * place) passes no `update`.
  *
  * Create and update commonly take slightly different params (create requires
- * a stable `code`/id the update omits) — pass both type arguments when they
+ * an id the update omits) — pass both type arguments when they
  * differ; a single `P` still works when create and update share one type.
  */
 export function useApiSave<PCreate, PUpdate = PCreate, TSaved = unknown>({
@@ -155,21 +155,6 @@ export function useApiAction<T extends { id: string }>({
   };
 
   return { run, pending: act.isPending };
-}
-
-/**
- * Adapts a mutation addressed by `code` (day types, rate options) to the
- * `id`-addressed shape `useApiSave` and `useApiDelete` take: the item's code
- * travels as `id`.
- */
-export function byCode<V extends { code: string }>(mutation: {
-  mutateAsync: (variables: V) => Promise<ApiResponse>;
-  isPending: boolean;
-}): Mutation<Omit<V, "code"> & { id: string }> {
-  return {
-    mutateAsync: ({ id, ...rest }) => mutation.mutateAsync({ ...rest, code: id } as unknown as V),
-    isPending: mutation.isPending,
-  };
 }
 
 /**

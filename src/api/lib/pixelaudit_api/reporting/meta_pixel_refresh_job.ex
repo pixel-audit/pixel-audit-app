@@ -32,7 +32,7 @@ defmodule PixelAudit.Api.Reporting.MetaPixelRefreshJob do
           stored = Settings.upsert_meta_pixel_stats(connection, rows)
 
           Logger.info(
-            "reporting.meta_pixel refreshed code=#{connection.code} from=#{run.date_from} to=#{run.date_to} rows=#{stored}"
+            "reporting.meta_pixel refreshed connection=#{connection.id} from=#{run.date_from} to=#{run.date_to} rows=#{stored}"
           )
 
           :ok
@@ -49,7 +49,7 @@ defmodule PixelAudit.Api.Reporting.MetaPixelRefreshJob do
 
       {:error, message} ->
         Logger.warning(
-          "reporting.meta_pixel failed code=#{connection.code} from=#{run.date_from} to=#{run.date_to} error=#{inspect(message)}"
+          "reporting.meta_pixel failed connection=#{connection.id} from=#{run.date_from} to=#{run.date_to} error=#{inspect(message)}"
         )
 
         {:error, message}

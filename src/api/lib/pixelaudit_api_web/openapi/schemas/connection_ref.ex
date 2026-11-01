@@ -9,10 +9,9 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.ConnectionRef do
     type: :object,
     properties: %{
       id: %Schema{type: :string, format: :uuid},
-      code: %Schema{type: :string},
       name: %Schema{type: :string},
       type: %Schema{type: :string, enum: ["meta", "bigquery", "postgres", "clickhouse"]}
     },
-    required: [:id, :code, :name, :type]
+    required: [:id, :name, :type]
   })
 end

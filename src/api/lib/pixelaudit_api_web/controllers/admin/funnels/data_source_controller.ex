@@ -15,7 +15,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.DataSourceController do
     in: :path,
     type: %OpenApiSpex.Schema{type: :string},
     required: true,
-    description: "Funnel id or code"
+    description: "Funnel id"
   ]
   @id_parameter [
     in: :path,
@@ -54,7 +54,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.DataSourceController do
     with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(funnel_id) end),
          {:ok, data_source} <- Funnels.create_data_source(funnel, conn.body_params) do
       Logger.info(
-        "admin.funnel.data_source created funnel=#{funnel.code} code=#{data_source.code} type=#{data_source.type}"
+        "admin.funnel.data_source created funnel=#{funnel.id} id=#{data_source.id} type=#{data_source.type}"
       )
 
       conn
@@ -80,9 +80,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.DataSourceController do
     with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(funnel_id) end),
          {:ok, data_source} <- fetch_resource(fn -> Funnels.get_data_source!(funnel, id) end),
          {:ok, data_source} <- Funnels.update_data_source(data_source, conn.body_params) do
-      Logger.info(
-        "admin.funnel.data_source updated funnel=#{funnel.code} code=#{data_source.code}"
-      )
+      Logger.info("admin.funnel.data_source updated funnel=#{funnel.id} id=#{data_source.id}")
 
       if data_source.step_parameters != [], do: Reporting.refresh_after_change(data_source)
       render(conn, :show, data_source: data_source)
@@ -103,9 +101,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.DataSourceController do
     with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(funnel_id) end),
          {:ok, data_source} <- fetch_resource(fn -> Funnels.get_data_source!(funnel, id) end),
          {:ok, _data_source} <- Funnels.delete_data_source(data_source) do
-      Logger.info(
-        "admin.funnel.data_source deleted funnel=#{funnel.code} code=#{data_source.code}"
-      )
+      Logger.info("admin.funnel.data_source deleted funnel=#{funnel.id} id=#{data_source.id}")
 
       send_resp(conn, :no_content, "")
     end

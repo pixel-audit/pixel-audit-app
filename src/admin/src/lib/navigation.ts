@@ -5,7 +5,7 @@ import { defineMessages, type MessageDescriptor } from "react-intl";
  * the breadcrumb bar. Two levels: a group is a tab in the top bar, and the
  * open group's categories and their screens fill the sidebar. The address
  * follows the tree: `/group/category/screen`, then the item and the tab
- * (`/funnels/$code/setup`). A group whose screens need no grouping has one
+ * (`/funnels/$id/setup`). A group whose screens need no grouping has one
  * untitled category at the group's own address.
  *
  * A screen of tab routes at sibling addresses names the other tabs in

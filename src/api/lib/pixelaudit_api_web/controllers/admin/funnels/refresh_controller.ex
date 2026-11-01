@@ -24,7 +24,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.RefreshController do
         in: :path,
         type: %OpenApiSpex.Schema{type: :string},
         required: true,
-        description: "Funnel id or code"
+        description: "Funnel id"
       ]
     ],
     request_body: {"Range", "application/json", Schemas.RefreshRangeParams},
@@ -46,7 +46,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.RefreshController do
              data_source_id: params["data_source_id"]
            ) do
       Logger.info(
-        "admin.funnel refresh code=#{funnel.code} from=#{date_from} to=#{date_to} runs=#{length(runs)}"
+        "admin.funnel refresh id=#{funnel.id} from=#{date_from} to=#{date_to} runs=#{length(runs)}"
       )
 
       runs = Enum.map(runs, &Reporting.get_refresh_run_with_assocs!(&1.id))

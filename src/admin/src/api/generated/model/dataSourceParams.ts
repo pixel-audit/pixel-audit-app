@@ -12,8 +12,6 @@ import type { DataSourceParamsType } from "./dataSourceParamsType.ts";
  * A data source to create or update. The connection must be of the type's connection type; `settings` is keyed by the type's setting keys (GET /funnels/data-source-types).
  */
 export interface DataSourceParams {
-  /** @pattern ^[a-z0-9]+$ */
-  code?: string;
   /**
    * The data source's colour in the report, #rrggbb. Dealt from a palette when absent on create.
    * @pattern ^#[0-9a-f]{6}$

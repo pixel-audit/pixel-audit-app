@@ -36,12 +36,7 @@ function DashboardPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(funnels ?? []).map((funnel) => (
-            <Link
-              key={funnel.id}
-              to="/funnels/$code"
-              params={{ code: funnel.code }}
-              className="group"
-            >
+            <Link key={funnel.id} to="/funnels/$id" params={{ id: funnel.id }} className="group">
               <Card className="h-full shadow-none transition-colors group-hover:border-primary/40">
                 <CardHeader>
                   <CardTitle className="font-serif text-lg">{funnel.name}</CardTitle>

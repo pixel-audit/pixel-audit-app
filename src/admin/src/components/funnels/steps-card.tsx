@@ -53,7 +53,7 @@ export function StepsCard({ funnel }: { funnel: Funnel }) {
       mutateAsync: ({ id }) => remove.mutateAsync({ funnelId: funnel.id, id }),
       isPending: remove.isPending,
     },
-    listQueryKey: api.getAdminGetFunnelQueryKey(funnel.code),
+    listQueryKey: api.getAdminGetFunnelQueryKey(funnel.id),
     deleted: (step) => intl.formatMessage(messages.deleted, { name: step.name }),
     failed: intl.formatMessage(messages.deleteFailed),
   });
@@ -135,7 +135,7 @@ export function StepsCard({ funnel }: { funnel: Funnel }) {
   );
 }
 
-type Form = { code: string; name: string; description: string };
+type Form = { name: string; description: string };
 
 function StepDialog({
   funnel,
@@ -151,15 +151,15 @@ function StepDialog({
   const intl = useIntl();
   const api = useApi();
   const invalidate = useFunnelInvalidation(funnel);
-  const { form, set, reset } = useFormState<Form>({ code: "", name: "", description: "" });
+  const { form, set, reset } = useFormState<Form>({ name: "", description: "" });
   const editing = step !== undefined;
 
   useEffect(() => {
     if (open) {
       reset(
         step
-          ? { code: step.code, name: step.name, description: step.description ?? "" }
-          : { code: "", name: "", description: "" },
+          ? { name: step.name, description: step.description ?? "" }
+          : { name: "", description: "" },
       );
     }
   }, [open, step, reset]);
@@ -194,28 +194,12 @@ function StepDialog({
       saving={saving}
       onSubmit={async () => {
         const saved = await save({
-          code: form.code,
           name: form.name,
           description: form.description || null,
         });
         if (saved) onOpenChange(false);
       }}
     >
-      <FormField
-        label={intl.formatMessage(messages.code)}
-        htmlFor="step-code"
-        hint={intl.formatMessage(messages.codeHint)}
-        errors={errors.code}
-      >
-        <Input
-          id="step-code"
-          value={form.code}
-          onChange={(e) => set("code", e.target.value)}
-          disabled={editing}
-          autoComplete="off"
-          pattern="[a-z0-9]+"
-        />
-      </FormField>
       <FormField label={intl.formatMessage(messages.name)} htmlFor="step-name" errors={errors.name}>
         <Input id="step-name" value={form.name} onChange={(e) => set("name", e.target.value)} />
       </FormField>
@@ -262,12 +246,6 @@ const messages = {
     },
     addTitle: { id: "steps.dialog.addTitle", defaultMessage: "Add a step" },
     editTitle: { id: "steps.dialog.editTitle", defaultMessage: "Edit the step" },
-    code: { id: "steps.dialog.code", defaultMessage: "Code" },
-    codeHint: {
-      id: "steps.dialog.codeHint",
-      defaultMessage:
-        "Lowercase letters and digits, unique within the funnel. Cannot be changed later.",
-    },
     name: { id: "steps.dialog.name", defaultMessage: "Name" },
     descriptionField: { id: "steps.dialog.description", defaultMessage: "Description" },
     saveFailed: { id: "steps.dialog.failed", defaultMessage: "The step could not be saved." },

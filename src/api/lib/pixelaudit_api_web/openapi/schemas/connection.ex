@@ -12,7 +12,6 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.Connection do
     type: :object,
     properties: %{
       id: %Schema{type: :string, format: :uuid},
-      code: %Schema{type: :string, pattern: "^[a-z0-9]+$"},
       name: %Schema{type: :string},
       description: %Schema{type: :string, nullable: true},
       type: %Schema{type: :string, enum: ["meta", "bigquery", "postgres", "clickhouse"]},
@@ -35,7 +34,6 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.Connection do
     },
     required: [
       :id,
-      :code,
       :name,
       :description,
       :type,

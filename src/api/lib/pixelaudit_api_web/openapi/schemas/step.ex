@@ -9,11 +9,10 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.Step do
     type: :object,
     properties: %{
       id: %Schema{type: :string, format: :uuid},
-      code: %Schema{type: :string, pattern: "^[a-z0-9]+$"},
       name: %Schema{type: :string},
       description: %Schema{type: :string, nullable: true},
       position: %Schema{type: :integer}
     },
-    required: [:id, :code, :name, :description, :position]
+    required: [:id, :name, :description, :position]
   })
 end

@@ -33,20 +33,15 @@ defmodule PixelAudit.Api.Fixtures do
   def credentials_for(:clickhouse), do: %{"url" => "http://sample:sample@localhost:18123/shop"}
 
   def connection_fixture(type \\ :postgres, attrs \\ %{}) do
-    code = attrs[:code] || "c#{System.unique_integer([:positive])}"
-
     {:ok, connection} =
       Settings.create_connection(
         Map.merge(
           %{
-            "code" => code,
-            "name" => attrs[:name] || "Connection #{code}",
+            "name" => attrs[:name] || "Connection #{System.unique_integer([:positive])}",
             "type" => Atom.to_string(type),
             "credentials" => attrs[:credentials] || credentials_for(type)
           },
-          Map.new(Map.drop(attrs, [:code, :name, :credentials]), fn {k, v} ->
-            {to_string(k), v}
-          end)
+          Map.new(Map.drop(attrs, [:name, :credentials]), fn {k, v} -> {to_string(k), v} end)
         )
       )
 
@@ -67,12 +62,9 @@ defmodule PixelAudit.Api.Fixtures do
   end
 
   def funnel_fixture(attrs \\ %{}) do
-    code = attrs[:code] || "f#{System.unique_integer([:positive])}"
-
     {:ok, funnel} =
       Funnels.create_funnel(%{
-        "code" => code,
-        "name" => attrs[:name] || "Funnel #{code}",
+        "name" => attrs[:name] || "Funnel #{System.unique_integer([:positive])}",
         "description" => attrs[:description]
       })
 
@@ -80,21 +72,18 @@ defmodule PixelAudit.Api.Fixtures do
   end
 
   def step_fixture(funnel, attrs \\ %{}) do
-    code = attrs[:code] || "s#{System.unique_integer([:positive])}"
-
     {:ok, step} =
-      Funnels.create_step(funnel, %{"code" => code, "name" => attrs[:name] || "Step #{code}"})
+      Funnels.create_step(funnel, %{
+        "name" => attrs[:name] || "Step #{System.unique_integer([:positive])}"
+      })
 
     step
   end
 
   def data_source_fixture(funnel, connection, type, attrs \\ %{}) do
-    code = attrs[:code] || "d#{System.unique_integer([:positive])}"
-
     {:ok, data_source} =
       Funnels.create_data_source(funnel, %{
-        "code" => code,
-        "name" => attrs[:name] || "Source #{code}",
+        "name" => attrs[:name] || "Source #{System.unique_integer([:positive])}",
         "type" => Atom.to_string(type),
         "connection_id" => connection.id,
         "settings" => attrs[:settings] || %{}
@@ -108,7 +97,7 @@ defmodule PixelAudit.Api.Fixtures do
     funnel = funnel_fixture()
 
     [visit, cart, purchase] =
-      for code <- ~w(visit cart purchase), do: step_fixture(funnel, %{code: code})
+      for name <- ~w(visit cart purchase), do: step_fixture(funnel, %{name: name})
 
     connection = connection_fixture(:postgres)
     data_source = data_source_fixture(funnel, connection, :postgres_query)

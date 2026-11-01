@@ -119,7 +119,7 @@ export function ConnectionDetail({ connection }: { connection: Connection }) {
         ))}
         {connection.managed_by_env && (
           <DetailField label={intl.formatMessage(messages.source)} wide>
-            {intl.formatMessage(messages.managedDetail, { code: connection.code })}
+            {intl.formatMessage(messages.managedDetail, { name: connection.name })}
           </DetailField>
         )}
       </DetailsCard>
@@ -243,9 +243,9 @@ const messages = {
     id: "connections.detail.checkFailed",
     defaultMessage: "The check failed: {error}",
   }),
-  managedDetail: defineMessage<{ code: string }>({
+  managedDetail: defineMessage<{ name: string }>({
     id: "connections.detail.managedDetail",
-    defaultMessage: "The CONNECTION_{code}_* environment variables, applied by the boot role.",
+    defaultMessage: "The CONNECTION_{name}_* environment variables, applied by the boot role.",
   }),
   deleteTitle: defineMessage<{ name: string }>({
     id: "connections.detail.deleteTitle",

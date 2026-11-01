@@ -2,7 +2,7 @@ defmodule PixelAudit.Api.Settings.Connection do
   @moduledoc """
   A connection: credentials for one external system — a Meta pixel's Graph
   API access, a BigQuery project, a Postgres or ClickHouse database — under
-  a short code the environment and the panel address it by.
+  a name, unique, which the environment addresses it by.
 
   `credentials` is a map keyed by the connector's field keys
   (`PixelAudit.Api.Settings.Connector.credential_params/0`), stored
@@ -18,19 +18,16 @@ defmodule PixelAudit.Api.Settings.Connection do
   @type type :: :meta | :bigquery | :postgres | :clickhouse
   @types [:meta, :bigquery, :postgres, :clickhouse]
 
-  @code_format ~r/^[a-z0-9]+$/
-
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @derive {Inspect, except: [:credentials]}
   schema "settings_connections" do
-    field :code, :string
     field :name, :string
     field :description, :string
     field :type, Ecto.Enum, values: @types
     field :credentials, PixelAudit.Api.Encrypted.Map, redact: true
-    # Set by the `boot` role's env sync: type and credentials come from the
-    # environment and the API refuses to change them.
+    # Set by the `boot` role's env sync: name, type and credentials come
+    # from the environment and the API refuses to change them.
     field :managed_by_env, :boolean, default: false
     field :last_checked_at, :utc_datetime
     field :last_check_status, Ecto.Enum, values: [:ok, :error]
@@ -40,28 +37,24 @@ defmodule PixelAudit.Api.Settings.Connection do
   end
 
   def types, do: @types
-  def code_format, do: @code_format
 
   @doc "The changeset of a connection created or edited in the panel."
   def changeset(connection, attrs) do
     connection
-    |> cast(attrs, [:code, :name, :description, :type])
-    |> validate_required([:code, :name, :type])
-    |> validate_format(:code, @code_format, message: "must be lowercase letters and digits only")
-    |> validate_length(:code, max: 64)
+    |> cast(attrs, [:name, :description, :type])
+    |> validate_required([:name, :type])
     |> validate_length(:name, max: 200)
     |> validate_length(:description, max: 2000)
-    |> unique_constraint(:code)
+    |> unique_constraint(:name)
     |> put_credentials(attrs)
   end
 
   @doc "The changeset of a connection written from the environment."
   def env_changeset(connection, attrs) do
     connection
-    |> cast(attrs, [:code, :name, :description, :type, :managed_by_env])
-    |> validate_required([:code, :name, :type])
-    |> validate_format(:code, @code_format)
-    |> unique_constraint(:code)
+    |> cast(attrs, [:name, :description, :type, :managed_by_env])
+    |> validate_required([:name, :type])
+    |> unique_constraint(:name)
     |> put_credentials(attrs)
   end
 

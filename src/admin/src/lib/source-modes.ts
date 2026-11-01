@@ -5,7 +5,7 @@ import type { ShownSource, SourceMode } from "@/lib/sankey";
  * How each data source is drawn on the funnel chart, as the address
  * carries it: `show=db:fill,warehouse:outline` — a source left out is
  * shown filled (the default), one named `hidden` is not drawn. Keyed by
- * the source's code, so a link stays readable.
+ * the source's id.
  */
 export type SourceModes = Record<string, SourceMode>;
 
@@ -18,8 +18,8 @@ export function parseModes(value: unknown): SourceModes {
   if (typeof value !== "string" || value === "") return {};
   const modes: SourceModes = {};
   for (const part of value.split(",")) {
-    const [code, mode] = part.split(":");
-    if (code && mode && isMode(mode) && mode !== "fill") modes[code] = mode;
+    const [id, mode] = part.split(":");
+    if (id && mode && isMode(mode) && mode !== "fill") modes[id] = mode;
   }
   return modes;
 }
@@ -28,12 +28,12 @@ export function parseModes(value: unknown): SourceModes {
 export function serializeModes(modes: SourceModes): string | undefined {
   const parts = Object.entries(modes)
     .filter(([, mode]) => mode !== "fill")
-    .map(([code, mode]) => `${code}:${mode}`);
+    .map(([id, mode]) => `${id}:${mode}`);
   return parts.length > 0 ? parts.join(",") : undefined;
 }
 
 export const modeOf = (modes: SourceModes, source: DataSource): SourceMode =>
-  modes[source.code] ?? "fill";
+  modes[source.id] ?? "fill";
 
 /** The next mode when the control is clicked: fill → outline → hidden → fill. */
 export const nextMode = (mode: SourceMode): SourceMode =>

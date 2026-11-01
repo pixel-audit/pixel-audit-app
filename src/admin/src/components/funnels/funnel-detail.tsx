@@ -36,9 +36,9 @@ export function FunnelDetail({ funnel, children }: { funnel: Funnel; children: R
 
   const onSetup = pathname.endsWith("/setup");
   const tabs = [
-    { to: "/funnels/$code" as const, label: intl.formatMessage(messages.view), active: !onSetup },
+    { to: "/funnels/$id" as const, label: intl.formatMessage(messages.view), active: !onSetup },
     {
-      to: "/funnels/$code/setup" as const,
+      to: "/funnels/$id/setup" as const,
       label: intl.formatMessage(messages.setup),
       active: onSetup,
     },
@@ -69,7 +69,7 @@ export function FunnelDetail({ funnel, children }: { funnel: Funnel; children: R
           <Link
             key={tab.to}
             to={tab.to}
-            params={{ code: funnel.code }}
+            params={{ id: funnel.id }}
             aria-current={tab.active ? "page" : undefined}
             className={cn(
               "inline-flex items-center rounded-md px-3 py-1 text-sm font-medium transition-colors",

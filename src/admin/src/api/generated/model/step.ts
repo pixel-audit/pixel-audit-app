@@ -10,8 +10,6 @@
  * One step of the funnel's user journey; `position` orders them from 0.
  */
 export interface Step {
-  /** @pattern ^[a-z0-9]+$ */
-  code: string;
   /** @nullable */
   description: string | null;
   id: string;

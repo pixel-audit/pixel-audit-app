@@ -7,7 +7,6 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.FunnelParams do
     title: "FunnelParams",
     type: :object,
     properties: %{
-      code: %Schema{type: :string, pattern: "^[a-z0-9]+$"},
       name: %Schema{type: :string},
       description: %Schema{type: :string, nullable: true}
     }

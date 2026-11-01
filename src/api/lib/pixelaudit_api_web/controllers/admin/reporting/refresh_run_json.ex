@@ -49,5 +49,5 @@ defmodule PixelAudit.ApiWeb.Admin.Reporting.RefreshRunJSON do
 
   defp ref(nil), do: nil
   defp ref(%Ecto.Association.NotLoaded{}), do: nil
-  defp ref(%{id: id, code: code, name: name}), do: %{id: id, code: code, name: name}
+  defp ref(%{id: id, name: name}), do: %{id: id, name: name}
 end

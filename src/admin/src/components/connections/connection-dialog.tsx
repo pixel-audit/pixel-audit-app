@@ -28,7 +28,6 @@ import { useApi } from "@/lib/api";
 import { commonMessages } from "@/lib/i18n/common-messages";
 
 type Form = {
-  code: string;
   name: string;
   description: string;
   type: ConnectionParamsType;
@@ -36,7 +35,6 @@ type Form = {
 };
 
 const blank = (): Form => ({
-  code: "",
   name: "",
   description: "",
   type: "meta",
@@ -44,7 +42,6 @@ const blank = (): Form => ({
 });
 
 const fromConnection = (connection: Connection, specs: FieldSpec[]): Form => ({
-  code: connection.code,
   name: connection.name,
   description: connection.description ?? "",
   type: connection.type,
@@ -110,9 +107,8 @@ export function ConnectionDialog({
 
   const submit = async () => {
     const params: ConnectionParams = managed
-      ? { name: form.name, description: form.description || null }
+      ? { description: form.description || null }
       : {
-          code: form.code,
           name: form.name,
           description: form.description || null,
           type: form.type,
@@ -138,22 +134,6 @@ export function ConnectionDialog({
       {managed && <InlineWarning>{intl.formatMessage(messages.managed)}</InlineWarning>}
 
       <FormField
-        label={intl.formatMessage(messages.code)}
-        htmlFor="connection-code"
-        hint={intl.formatMessage(messages.codeHint)}
-        errors={errors.code}
-      >
-        <Input
-          id="connection-code"
-          value={form.code}
-          onChange={(e) => set("code", e.target.value)}
-          disabled={editing}
-          autoComplete="off"
-          pattern="[a-z0-9]+"
-        />
-      </FormField>
-
-      <FormField
         label={intl.formatMessage(messages.name)}
         htmlFor="connection-name"
         errors={errors.name}
@@ -162,6 +142,7 @@ export function ConnectionDialog({
           id="connection-name"
           value={form.name}
           onChange={(e) => set("name", e.target.value)}
+          disabled={managed}
         />
       </FormField>
 
@@ -227,19 +208,13 @@ const messages = {
   ...defineMessages({
     addTitle: { id: "connections.dialog.addTitle", defaultMessage: "Add a connection" },
     editTitle: { id: "connections.dialog.editTitle", defaultMessage: "Edit the connection" },
-    code: { id: "connections.dialog.code", defaultMessage: "Code" },
-    codeHint: {
-      id: "connections.dialog.codeHint",
-      defaultMessage:
-        "Lowercase letters and digits; the id in the CONNECTION_code_* variables. Cannot be changed later.",
-    },
     name: { id: "connections.dialog.name", defaultMessage: "Name" },
     description: { id: "connections.dialog.description", defaultMessage: "Description" },
     type: { id: "connections.dialog.type", defaultMessage: "Type" },
     managed: {
       id: "connections.dialog.managed",
       defaultMessage:
-        "This connection is defined by the environment: its type and credentials are set at boot and cannot be edited here.",
+        "This connection is defined by the environment: its name, type and credentials are set at boot and cannot be edited here.",
     },
     failed: {
       id: "connections.dialog.failed",

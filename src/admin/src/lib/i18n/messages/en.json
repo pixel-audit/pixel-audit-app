@@ -120,7 +120,7 @@
     "defaultMessage": "From environment"
   },
   "connections.detail.managedDetail": {
-    "defaultMessage": "The CONNECTION_{code}_* environment variables, applied by the boot role."
+    "defaultMessage": "The CONNECTION_{name}_* environment variables, applied by the boot role."
   },
   "connections.detail.outcome": {
     "defaultMessage": "Outcome"
@@ -152,12 +152,6 @@
   "connections.dialog.addTitle": {
     "defaultMessage": "Add a connection"
   },
-  "connections.dialog.code": {
-    "defaultMessage": "Code"
-  },
-  "connections.dialog.codeHint": {
-    "defaultMessage": "Lowercase letters and digits; the id in the CONNECTION_code_* variables. Cannot be changed later."
-  },
   "connections.dialog.description": {
     "defaultMessage": "Description"
   },
@@ -168,7 +162,7 @@
     "defaultMessage": "The connection could not be saved."
   },
   "connections.dialog.managed": {
-    "defaultMessage": "This connection is defined by the environment: its type and credentials are set at boot and cannot be edited here."
+    "defaultMessage": "This connection is defined by the environment: its name, type and credentials are set at boot and cannot be edited here."
   },
   "connections.dialog.name": {
     "defaultMessage": "Name"
@@ -278,12 +272,6 @@
   "dataSources.dialog.addTitle": {
     "defaultMessage": "Add a data source"
   },
-  "dataSources.dialog.code": {
-    "defaultMessage": "Code"
-  },
-  "dataSources.dialog.codeHint": {
-    "defaultMessage": "Lowercase letters and digits, unique within the funnel. Cannot be changed later."
-  },
   "dataSources.dialog.color": {
     "defaultMessage": "Colour"
   },
@@ -370,12 +358,6 @@
   },
   "funnels.dialog.addTitle": {
     "defaultMessage": "Add a funnel"
-  },
-  "funnels.dialog.code": {
-    "defaultMessage": "Code"
-  },
-  "funnels.dialog.codeHint": {
-    "defaultMessage": "Lowercase letters and digits. Cannot be changed later."
   },
   "funnels.dialog.description": {
     "defaultMessage": "Description"
@@ -730,12 +712,6 @@
   },
   "steps.dialog.addTitle": {
     "defaultMessage": "Add a step"
-  },
-  "steps.dialog.code": {
-    "defaultMessage": "Code"
-  },
-  "steps.dialog.codeHint": {
-    "defaultMessage": "Lowercase letters and digits, unique within the funnel. Cannot be changed later."
   },
   "steps.dialog.description": {
     "defaultMessage": "Description"

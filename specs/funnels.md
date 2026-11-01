@@ -1,7 +1,7 @@
 # Funnels
 
-A funnel (`funnels`: code, name, description) is a user journey as ordered
-**steps** (`funnel_steps`: code unique within the funnel, name,
+A funnel (`funnels`: name, description) is a user journey as ordered
+**steps** (`funnel_steps`: name,
 description, `position`), measured by one or more **data sources**
 (`funnel_data_sources`, each with a `color` — `#rrggbb`, dealt from a
 palette of twelve when not given, the first not yet used in the funnel at

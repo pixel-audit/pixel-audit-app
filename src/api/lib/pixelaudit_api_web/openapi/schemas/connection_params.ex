@@ -10,7 +10,6 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.ConnectionParams do
         "keys (GET /connections/types); on update only the keys sent change, and `null` clears one.",
     type: :object,
     properties: %{
-      code: %Schema{type: :string, pattern: "^[a-z0-9]+$"},
       name: %Schema{type: :string},
       description: %Schema{type: :string, nullable: true},
       type: %Schema{type: :string, enum: ["meta", "bigquery", "postgres", "clickhouse"]},

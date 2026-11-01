@@ -7,7 +7,7 @@ export function PageHeader({
   actions,
 }: {
   title: ReactNode;
-  /** Badges after the title — an item's code, its state. */
+  /** Badges after the title — an item's type, its state. */
   badges?: ReactNode;
   description?: string;
   actions?: ReactNode;

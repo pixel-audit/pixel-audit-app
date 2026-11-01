@@ -22,7 +22,7 @@ export function FunnelCountsTable({
 }: {
   report: Report;
   modes: SourceModes;
-  onModeChange: (code: string, mode: SourceMode) => void;
+  onModeChange: (sourceId: string, mode: SourceMode) => void;
 }) {
   const intl = useIntl();
 
@@ -56,7 +56,7 @@ export function FunnelCountsTable({
                       <SourceModeToggle
                         source={source}
                         mode={mode}
-                        onChange={(next) => onModeChange(source.code, next)}
+                        onChange={(next) => onModeChange(source.id, next)}
                       />
                       {source.name}
                     </span>

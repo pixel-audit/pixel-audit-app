@@ -49,8 +49,8 @@ export function RefreshRunDetail({ run }: { run: RefreshRun }) {
         <DetailField label={intl.formatMessage(messages.funnel)}>
           {run.funnel && (
             <Link
-              to="/funnels/$code"
-              params={{ code: run.funnel.code }}
+              to="/funnels/$id"
+              params={{ id: run.funnel.id }}
               className="text-primary underline-offset-2 hover:underline"
             >
               {run.funnel.name}
@@ -60,8 +60,8 @@ export function RefreshRunDetail({ run }: { run: RefreshRun }) {
         <DetailField label={intl.formatMessage(messages.dataSource)}>
           {run.data_source && run.funnel && (
             <Link
-              to="/funnels/$code/setup"
-              params={{ code: run.funnel.code }}
+              to="/funnels/$id/setup"
+              params={{ id: run.funnel.id }}
               className="text-primary underline-offset-2 hover:underline"
             >
               {run.data_source.name}

@@ -14,8 +14,6 @@ import type { StepParameter } from "./stepParameter.ts";
  * Where a funnel's step counts are read from, with its per-step parameters.
  */
 export interface DataSource {
-  /** @pattern ^[a-z0-9]+$ */
-  code: string;
   /**
    * The data source's colour in the report, #rrggbb. Dealt from a palette when absent on create.
    * @pattern ^#[0-9a-f]{6}$

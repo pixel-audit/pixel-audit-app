@@ -8,8 +8,8 @@ import { FunnelDetail } from "@/components/funnels/funnel-detail";
 import { Page } from "@/components/page";
 import { useApi } from "@/lib/api";
 
-/** The funnel's page, addressed by its code: the frame with its tabs; the tab routes render inside. */
-export const Route = createFileRoute("/funnels_/$code")({
+/** The funnel's page: the frame with its tabs; the tab routes render inside. */
+export const Route = createFileRoute("/funnels_/$id")({
   staticData: { crumbs: useFunnelCrumbs },
   component: FunnelPage,
 });
@@ -17,15 +17,15 @@ export const Route = createFileRoute("/funnels_/$code")({
 const BACK_LINK = linkOptions({ to: "/funnels" });
 
 function useFunnelCrumbs(): Crumb[] {
-  const { code } = Route.useParams();
-  const funnel = okData(useApi().useAdminGetFunnel(code).data)?.data;
+  const { id } = Route.useParams();
+  const funnel = okData(useApi().useAdminGetFunnel(id).data)?.data;
   return funnel ? [{ label: funnel.name }] : [];
 }
 
 function FunnelPage() {
   const intl = useIntl();
-  const { code } = Route.useParams();
-  const query = useApi().useAdminGetFunnel(code);
+  const { id } = Route.useParams();
+  const query = useApi().useAdminGetFunnel(id);
 
   return (
     <Page wide>

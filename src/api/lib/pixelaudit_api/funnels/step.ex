@@ -11,7 +11,6 @@ defmodule PixelAudit.Api.Funnels.Step do
   @foreign_key_type :binary_id
   schema "funnel_steps" do
     belongs_to :funnel, Funnel
-    field :code, :string
     field :name, :string
     field :description, :string
     field :position, :integer
@@ -21,14 +20,9 @@ defmodule PixelAudit.Api.Funnels.Step do
 
   def changeset(step, attrs) do
     step
-    |> cast(attrs, [:code, :name, :description])
-    |> validate_required([:code, :name])
-    |> validate_format(:code, Funnel.code_format(),
-      message: "must be lowercase letters and digits only"
-    )
-    |> validate_length(:code, max: 64)
+    |> cast(attrs, [:name, :description])
+    |> validate_required([:name])
     |> validate_length(:name, max: 200)
     |> validate_length(:description, max: 2000)
-    |> unique_constraint(:code, name: :funnel_steps_funnel_id_code_index)
   end
 end

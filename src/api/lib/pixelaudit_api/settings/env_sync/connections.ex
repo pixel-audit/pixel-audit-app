@@ -2,20 +2,20 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
   @moduledoc """
   The `CONNECTION_*` half of `PixelAudit.Api.Settings.EnvSync`:
 
-      CONNECTION_<id>_TYPE=meta | bigquery | postgres | clickhouse
-      CONNECTION_<id>_<PARAM>=...
+      CONNECTION_<name>_TYPE=meta | bigquery | postgres | clickhouse
+      CONNECTION_<name>_<PARAM>=...
 
-  `<id>` is the connection's code, `[a-z0-9]+` and case-sensitive, so it
-  is written in lowercase in the variable's name and cannot hold `_` — which
-  makes `CONNECTION_shop_URL` unambiguous. `<PARAM>` is one of the
-  type's credential keys, uppercased (`ACCESS_TOKEN` for `access_token`).
+  `<name>` is the connection's name, `[A-Za-z0-9]+` and case-sensitive
+  here, so it cannot hold `_` — which makes `CONNECTION_shop_URL`
+  unambiguous. `<PARAM>` is one of the type's credential keys, uppercased
+  (`ACCESS_TOKEN` for `access_token`).
 
-  A connection whose code exists is updated: type and credentials replaced,
-  name and description kept. A new one is created with its name set to its
-  code. Both are marked `managed_by_env`, which makes type and credentials
-  read-only in the API. One that was managed and is no longer in the
-  environment is left as it is, no longer marked — deleting it would take
-  its data sources' cached counts along for what may be a typo.
+  A connection of that name exists: type and credentials replaced,
+  description kept. Otherwise one is created. Both are marked
+  `managed_by_env`, which makes name, type and credentials read-only in
+  the API. One that was managed and is no longer in the environment is
+  left as it is, no longer marked — deleting it would take its data
+  sources' cached counts along for what may be a typo.
   """
 
   require Logger
@@ -23,27 +23,27 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
   alias PixelAudit.Api.Settings.{Connection, Connector}
   alias PixelAudit.Api.Repo
 
-  @type result :: %{code: String.t(), type: Connection.type(), action: :created | :updated}
+  @type result :: %{name: String.t(), type: Connection.type(), action: :created | :updated}
 
   @doc """
   Reads the definitions out of the environment without touching the
-  database: `{:ok, [%{code, connector, credentials}]}` or the problems.
+  database: `{:ok, [%{name, connector, credentials}]}` or the problems.
   """
   def parse(env) do
-    codes =
+    names =
       env
       |> Map.keys()
-      |> Enum.flat_map(fn name ->
-        case Regex.run(~r/^CONNECTION_([a-z0-9]+)_TYPE$/, name) do
-          [_, code] -> [code]
+      |> Enum.flat_map(fn variable ->
+        case Regex.run(~r/^CONNECTION_([A-Za-z0-9]+)_TYPE$/, variable) do
+          [_, name] -> [name]
           nil -> []
         end
       end)
       |> Enum.sort()
 
     {definitions, problems} =
-      Enum.reduce(codes, {[], []}, fn code, {definitions, problems} ->
-        case parse_one(env, code) do
+      Enum.reduce(names, {[], []}, fn name, {definitions, problems} ->
+        case parse_one(env, name) do
           {:ok, definition} -> {[definition | definitions], problems}
           {:error, more} -> {definitions, problems ++ more}
         end
@@ -55,8 +55,8 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
     end
   end
 
-  defp parse_one(env, code) do
-    prefix = "CONNECTION_#{code}_"
+  defp parse_one(env, name) do
+    prefix = "CONNECTION_#{name}_"
     env_type = env["#{prefix}TYPE"]
 
     case Connector.for_env_type(env_type) do
@@ -70,10 +70,12 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
 
         provided =
           env
-          |> Enum.filter(fn {name, _} ->
-            String.starts_with?(name, prefix) and name != "#{prefix}TYPE"
+          |> Enum.filter(fn {variable, _} ->
+            String.starts_with?(variable, prefix) and variable != "#{prefix}TYPE"
           end)
-          |> Map.new(fn {name, value} -> {String.replace_prefix(name, prefix, ""), value} end)
+          |> Map.new(fn {variable, value} ->
+            {String.replace_prefix(variable, prefix, ""), value}
+          end)
 
         unknown =
           for {param, _} <- provided, not Map.has_key?(keys, param) do
@@ -86,7 +88,7 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
 
         case {unknown, PixelAudit.Api.FieldSpec.validate(params, credentials)} do
           {[], {:ok, normalised}} ->
-            {:ok, %{code: code, connector: connector, credentials: normalised}}
+            {:ok, %{name: name, connector: connector, credentials: normalised}}
 
           {unknown, {:ok, _}} ->
             {:error, unknown}
@@ -110,11 +112,11 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
       for definition <- definitions do
         case upsert(definition) do
           {:ok, result} -> result
-          {:error, changeset} -> Repo.rollback(describe_changeset(definition.code, changeset))
+          {:error, changeset} -> Repo.rollback(describe_changeset(definition.name, changeset))
         end
       end
 
-    release_unmanaged(Enum.map(results, & &1.code))
+    release_unmanaged(Enum.map(results, & &1.name))
     results
   end
 
@@ -123,25 +125,25 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
   def log(results) do
     for result <- results do
       Logger.info(
-        "settings.env_sync connection #{result.action} code=#{result.code} type=#{result.type}"
+        "settings.env_sync connection #{result.action} name=#{result.name} type=#{result.type}"
       )
     end
 
     :ok
   end
 
-  defp upsert(%{code: code, connector: connector, credentials: credentials}) do
+  defp upsert(%{name: name, connector: connector, credentials: credentials}) do
     attrs = %{
-      "code" => code,
+      "name" => name,
       "type" => connector.type(),
       "credentials" => credentials,
       "managed_by_env" => true
     }
 
-    case Repo.get_by(Connection, code: code) do
+    case Repo.get_by(Connection, name: name) do
       nil ->
         %Connection{}
-        |> Connection.env_changeset(Map.put(attrs, "name", code))
+        |> Connection.env_changeset(attrs)
         |> Repo.insert()
         |> annotate(:created)
 
@@ -156,18 +158,18 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
   end
 
   defp annotate({:ok, connection}, action),
-    do: {:ok, %{code: connection.code, type: connection.type, action: action}}
+    do: {:ok, %{name: connection.name, type: connection.type, action: action}}
 
   defp annotate(error, _action), do: error
 
-  defp release_unmanaged(managed_codes) do
+  defp release_unmanaged(managed_names) do
     import Ecto.Query
 
     {count, released} =
       Repo.update_all(
         from(c in Connection,
-          where: c.managed_by_env == true and c.code not in ^managed_codes,
-          select: c.code
+          where: c.managed_by_env == true and c.name not in ^managed_names,
+          select: c.name
         ),
         set: [managed_by_env: false]
       )
@@ -182,7 +184,7 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
     :ok
   end
 
-  defp describe_changeset(code, changeset) do
+  defp describe_changeset(name, changeset) do
     errors =
       Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
         Enum.reduce(opts, msg, fn {key, value}, acc ->
@@ -190,7 +192,7 @@ defmodule PixelAudit.Api.Settings.EnvSync.Connections do
         end)
       end)
 
-    "connection #{code}: " <>
+    "connection #{name}: " <>
       Enum.map_join(errors, "; ", fn {field, messages} ->
         "#{field} #{Enum.join(messages, ", ")}"
       end)

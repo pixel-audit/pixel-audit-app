@@ -13,7 +13,7 @@ type ReportSearch = Partial<DateRange> & { show?: string };
  * (`show=db:outline,warehouse:hidden`) are in the address, so a reload —
  * or a link sent on — shows the same picture.
  */
-export const Route = createFileRoute("/funnels_/$code/")({
+export const Route = createFileRoute("/funnels_/$id/")({
   validateSearch: (search: Record<string, unknown>): ReportSearch => ({
     date_from: isIsoDate(search.date_from) ? search.date_from : undefined,
     date_to: isIsoDate(search.date_to) ? search.date_to : undefined,
@@ -23,10 +23,10 @@ export const Route = createFileRoute("/funnels_/$code/")({
 });
 
 function FunnelViewTab() {
-  const { code } = Route.useParams();
+  const { id } = Route.useParams();
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const funnel = okData(useApi().useAdminGetFunnel(code).data)?.data;
+  const funnel = okData(useApi().useAdminGetFunnel(id).data)?.data;
   if (!funnel) return null;
 
   const range = rangeFromSearch(search);

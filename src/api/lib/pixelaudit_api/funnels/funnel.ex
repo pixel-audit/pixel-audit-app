@@ -8,12 +8,9 @@ defmodule PixelAudit.Api.Funnels.Funnel do
 
   import Ecto.Changeset
 
-  @code_format ~r/^[a-z0-9]+$/
-
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "funnels" do
-    field :code, :string
     field :name, :string
     field :description, :string
 
@@ -23,16 +20,11 @@ defmodule PixelAudit.Api.Funnels.Funnel do
     timestamps(type: :utc_datetime)
   end
 
-  def code_format, do: @code_format
-
   def changeset(funnel, attrs) do
     funnel
-    |> cast(attrs, [:code, :name, :description])
-    |> validate_required([:code, :name])
-    |> validate_format(:code, @code_format, message: "must be lowercase letters and digits only")
-    |> validate_length(:code, max: 64)
+    |> cast(attrs, [:name, :description])
+    |> validate_required([:name])
     |> validate_length(:name, max: 200)
     |> validate_length(:description, max: 2000)
-    |> unique_constraint(:code)
   end
 end

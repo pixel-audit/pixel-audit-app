@@ -95,20 +95,20 @@ mechanics; the rules that matter here:
 
 ## Every item has a page, not a modal
 
-A list row leads to the item's own page (`/funnels/$code`, `/settings/connections/$id`),
+A list row leads to the item's own page (`/funnels/$id`, `/settings/connections/$id`),
 where the item is shown, edited (the add/edit `FormDialog` opens from there),
 checked, refreshed or deleted. Lists only list and add. The page is a route
-file escaped from its list's route (`funnels_.$code.tsx`), so it renders on its
+file escaped from its list's route (`funnels_.$id.tsx`), so it renders on its
 own rather than inside the list; it is assembled from `ApiItem` + a
 `*-detail.tsx` component. A funnel's page has two tabs, View and Setup, as
-tab routes (`funnels_.$code.tsx` and `funnels_.$code.setup.tsx`). A funnel is addressed by its code (the API resolves either); a connection by its id.
+tab routes (`funnels_.$id.tsx` and `funnels_.$id.setup.tsx`). Every item is addressed by its id.
 
 ## The address follows the navigation
 
 Navigation has two levels: the groups (Funnels, Refreshes, Settings) are
 tabs in the top bar, and the open group's screens fill the sidebar. The
 address follows that tree: `/group/screen`, then the item and the tab
-(`/funnels/$code/setup`). A group with one screen skips the second segment.
+(`/funnels/$id/setup`). A group with one screen skips the second segment.
 Every screen wraps itself in `Page` (`wide` for the report). A selection a
 reload should keep — the report's date range, the sankey's source — is in
 the address (`validateSearch`), not component state.

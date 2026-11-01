@@ -26,7 +26,7 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionJSON do
 
   @doc "A connection as a data source names it."
   def ref(%Connection{} = connection) do
-    %{id: connection.id, code: connection.code, name: connection.name, type: connection.type}
+    %{id: connection.id, name: connection.name, type: connection.type}
   end
 
   # The credentials never leave the API whole: which keys are set, and the
@@ -38,7 +38,6 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionJSON do
 
     %{
       id: connection.id,
-      code: connection.code,
       name: connection.name,
       description: connection.description,
       type: connection.type,

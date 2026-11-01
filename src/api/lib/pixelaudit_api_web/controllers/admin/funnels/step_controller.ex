@@ -15,7 +15,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.StepController do
     in: :path,
     type: %OpenApiSpex.Schema{type: :string},
     required: true,
-    description: "Funnel id or code"
+    description: "Funnel id"
   ]
   @id_parameter [
     in: :path,
@@ -41,7 +41,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.StepController do
   def create(conn, %{"funnel_id" => funnel_id}) do
     with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(funnel_id) end),
          {:ok, step} <- Funnels.create_step(funnel, conn.body_params) do
-      Logger.info("admin.funnel.step created funnel=#{funnel.code} code=#{step.code}")
+      Logger.info("admin.funnel.step created funnel=#{funnel.id} id=#{step.id}")
 
       conn
       |> put_status(:created)
@@ -65,7 +65,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.StepController do
     with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(funnel_id) end),
          {:ok, step} <- fetch_resource(fn -> Funnels.get_step!(funnel, id) end),
          {:ok, step} <- Funnels.update_step(step, conn.body_params) do
-      Logger.info("admin.funnel.step updated funnel=#{funnel.code} code=#{step.code}")
+      Logger.info("admin.funnel.step updated funnel=#{funnel.id} id=#{step.id}")
       render(conn, :show, step: step)
     end
   end
@@ -84,7 +84,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.StepController do
     with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(funnel_id) end),
          {:ok, step} <- fetch_resource(fn -> Funnels.get_step!(funnel, id) end),
          {:ok, _step} <- Funnels.delete_step(step) do
-      Logger.info("admin.funnel.step deleted funnel=#{funnel.code} code=#{step.code}")
+      Logger.info("admin.funnel.step deleted funnel=#{funnel.id} id=#{step.id}")
       send_resp(conn, :no_content, "")
     end
   end
@@ -106,7 +106,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.StepController do
   def reorder(conn, %{"funnel_id" => funnel_id}) do
     with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(funnel_id) end),
          {:ok, steps} <- Funnels.reorder_steps(funnel, conn.body_params["step_ids"]) do
-      Logger.info("admin.funnel.steps reordered funnel=#{funnel.code}")
+      Logger.info("admin.funnel.steps reordered funnel=#{funnel.id}")
       render(conn, :index, steps: steps)
     end
   end

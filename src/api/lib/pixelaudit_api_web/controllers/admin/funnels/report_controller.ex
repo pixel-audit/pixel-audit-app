@@ -22,7 +22,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.ReportController do
         in: :path,
         type: %OpenApiSpex.Schema{type: :string},
         required: true,
-        description: "Funnel id or code"
+        description: "Funnel id"
       ],
       date_from: [
         in: :query,

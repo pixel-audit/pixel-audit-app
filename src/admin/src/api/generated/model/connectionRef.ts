@@ -11,7 +11,6 @@ import type { ConnectionRefType } from "./connectionRefType.ts";
  * The connection a data source reads through.
  */
 export interface ConnectionRef {
-  code: string;
   id: string;
   name: string;
   type: ConnectionRefType;

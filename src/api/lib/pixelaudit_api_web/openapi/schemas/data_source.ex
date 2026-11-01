@@ -10,7 +10,6 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.DataSource do
     type: :object,
     properties: %{
       id: %Schema{type: :string, format: :uuid},
-      code: %Schema{type: :string, pattern: "^[a-z0-9]+$"},
       name: %Schema{type: :string},
       description: %Schema{type: :string, nullable: true},
       type: %Schema{
@@ -37,7 +36,6 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.DataSource do
     },
     required: [
       :id,
-      :code,
       :name,
       :description,
       :type,

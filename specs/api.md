@@ -16,11 +16,10 @@ Rules for the REST API served by the `src/api` Phoenix application.
   and `/settings/variables` are `PixelAudit.ApiWeb.Admin.Settings.*`, the
   context `PixelAudit.Api.Settings`, the tables `settings_connections` and
   `settings_variables`.
-- Ids are UUIDs; the human-facing identifier is a separate `code`
-  (`[a-z0-9]+`, case-sensitive, unique within its parent) that the
-  environment and people use. A funnel is addressed by either
-  (`/funnels/:id_or_code`): a code can never read as a UUID, so the panel
-  uses codes in its addresses.
+- Ids are UUIDs and every resource is addressed by its id. The one
+  human-facing identifier is a connection's `name`, unique, which the
+  `CONNECTION_<name>_*` environment addresses it by; a variable's `key`
+  plays the same part for `VARIABLE_<key>_*`.
 
 ## No authentication, by design
 

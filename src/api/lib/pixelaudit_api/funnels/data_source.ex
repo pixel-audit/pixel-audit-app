@@ -31,7 +31,6 @@ defmodule PixelAudit.Api.Funnels.DataSource do
   schema "funnel_data_sources" do
     belongs_to :funnel, Funnel
     belongs_to :connection, PixelAudit.Api.Settings.Connection
-    field :code, :string
     field :name, :string
     field :description, :string
     field :type, Ecto.Enum, values: @types
@@ -56,17 +55,12 @@ defmodule PixelAudit.Api.Funnels.DataSource do
 
   def changeset(data_source, attrs) do
     data_source
-    |> cast(attrs, [:code, :name, :description, :type, :connection_id, :color])
+    |> cast(attrs, [:name, :description, :type, :connection_id, :color])
     |> update_change(:color, &String.downcase/1)
-    |> validate_required([:code, :name, :type, :connection_id, :color])
+    |> validate_required([:name, :type, :connection_id, :color])
     |> validate_format(:color, @color_format, message: "must be a colour like #1a2b3c")
-    |> validate_format(:code, Funnel.code_format(),
-      message: "must be lowercase letters and digits only"
-    )
-    |> validate_length(:code, max: 64)
     |> validate_length(:name, max: 200)
     |> validate_length(:description, max: 2000)
-    |> unique_constraint(:code, name: :funnel_data_sources_funnel_id_code_index)
     |> foreign_key_constraint(:connection_id)
     |> put_settings(attrs)
   end

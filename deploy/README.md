@@ -97,11 +97,11 @@ kubectl -n pixelaudit rollout restart deployment/pixelaudit
 Connections (a Meta pixel, a BigQuery project, a Postgres or ClickHouse database) can be added in the panel, or defined by `CONNECTION_*` variables that the boot Job maps onto connection rows on every install and upgrade:
 
 ```
-CONNECTION_<id>_TYPE = meta | bigquery | postgres | clickhouse
-CONNECTION_<id>_<PARAM> = ...
+CONNECTION_<name>_TYPE = meta | bigquery | postgres | clickhouse
+CONNECTION_<name>_<PARAM> = ...
 ```
 
-`<id>` is the connection's code — lowercase letters and digits — and `<PARAM>` one of the type's credentials: `ACCESS_TOKEN`, `PIXEL_ID`, `API_VERSION` for `meta`; `CREDENTIALS_JSON` (the service account's key file, as JSON or base64 of it), `PROJECT_ID`, `LOCATION` for `bigquery`; `URL` for `postgres` (`postgres://user:password@host:5432/database`) and for `clickhouse` (`http://user:password@host:8123/database`, the HTTP interface). Put them in a Secret and hand it to the application through `app.extraEnvFrom`:
+`<name>` is the connection's name — letters and digits — and `<PARAM>` one of the type's credentials: `ACCESS_TOKEN`, `PIXEL_ID`, `API_VERSION` for `meta`; `CREDENTIALS_JSON` (the service account's key file, as JSON or base64 of it), `PROJECT_ID`, `LOCATION` for `bigquery`; `URL` for `postgres` (`postgres://user:password@host:5432/database`) and for `clickhouse` (`http://user:password@host:8123/database`, the HTTP interface). Put them in a Secret and hand it to the application through `app.extraEnvFrom`:
 
 ```sh
 kubectl -n pixelaudit create secret generic pixelaudit-connections \
@@ -120,7 +120,7 @@ app:
         name: pixelaudit-connections
 ```
 
-A connection defined this way is marked *managed by the environment* in the panel: its type and credentials are read-only there, its name and description editable. An existing connection with the same code is updated, a new one created with its name set to its code.
+A connection defined this way is marked *managed by the environment* in the panel: its name, type and credentials are read-only there, its description editable. An existing connection with that name is updated, a new one created.
 
 Variables — the key/value store under **Settings → Variables** — are seeded the same way, from the same Secret or another one handed over through `app.extraEnvFrom`:
 

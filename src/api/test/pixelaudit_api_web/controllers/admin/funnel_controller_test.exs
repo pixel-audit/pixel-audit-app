@@ -18,7 +18,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
 
   test "builds a funnel: steps, data source, parameters, report, refresh", %{conn: conn} do
     %{"data" => funnel} =
-      conn |> post(@base, %{"code" => "checkout", "name" => "Checkout"}) |> json_response(201)
+      conn |> post(@base, %{"name" => "Checkout"}) |> json_response(201)
 
     assert funnel["steps"] == []
     assert funnel["data_sources"] == []
@@ -26,12 +26,12 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
 
     %{"data" => visit} =
       conn
-      |> post("#{funnel_path}/steps", %{"code" => "visit", "name" => "Visit"})
+      |> post("#{funnel_path}/steps", %{"name" => "Visit"})
       |> json_response(201)
 
     %{"data" => cart} =
       conn
-      |> post("#{funnel_path}/steps", %{"code" => "cart", "name" => "Cart"})
+      |> post("#{funnel_path}/steps", %{"name" => "Cart"})
       |> json_response(201)
 
     assert [visit["position"], cart["position"]] == [0, 1]
@@ -41,7 +41,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
       |> put("#{funnel_path}/steps/order", %{"step_ids" => [cart["id"], visit["id"]]})
       |> json_response(200)
 
-    assert Enum.map(reordered, & &1["code"]) == ["cart", "visit"]
+    assert Enum.map(reordered, & &1["name"]) == ["Cart", "Visit"]
 
     assert %{"errors" => %{"detail" => "invalid_order"}} =
              conn
@@ -60,14 +60,13 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
     %{"data" => data_source} =
       conn
       |> post("#{funnel_path}/data-sources", %{
-        "code" => "db",
         "name" => "Shop DB",
         "type" => "postgres_query",
         "connection_id" => connection.id
       })
       |> json_response(201)
 
-    assert data_source["connection"]["code"] == connection.code
+    assert data_source["connection"]["id"] == connection.id
     assert data_source["step_parameters"] == []
 
     meta = connection_fixture(:meta)
@@ -75,7 +74,6 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
     assert %{"errors" => %{"detail" => "connection_type_mismatch"}} =
              conn
              |> post("#{funnel_path}/data-sources", %{
-               "code" => "fb",
                "name" => "FB",
                "type" => "postgres_query",
                "connection_id" => meta.id
@@ -97,14 +95,8 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
     assert_enqueued(worker: PixelAudit.Api.Reporting.RefreshJob)
 
     %{"data" => shown} = conn |> get(funnel_path) |> json_response(200)
-    # The code is an address too — the panel's.
-    assert conn |> get("#{@base}/checkout") |> json_response(200) == %{"data" => shown}
-
-    assert conn
-           |> get("#{@base}/checkout/report?date_from=2026-10-01&date_to=2026-10-01")
-           |> json_response(200)
-
     assert conn |> get("#{@base}/nosuch") |> json_response(404)
+    assert conn |> get("#{@base}/#{Ecto.UUID.generate()}") |> json_response(404)
     assert [%{"step_parameters" => [%{"step_id" => step_id}]}] = shown["data_sources"]
     assert step_id == visit["id"]
 
@@ -115,7 +107,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
       |> json_response(200)
 
     assert report["days"] == 2
-    assert Enum.map(report["steps"], & &1["code"]) == ["cart", "visit"]
+    assert Enum.map(report["steps"], & &1["name"]) == ["Cart", "Visited"]
 
     visit_cell = Enum.find(report["cells"], &(&1["step_id"] == visit["id"]))
     assert %{"count" => nil, "days_missing" => 2, "days_ok" => 0} = visit_cell
@@ -134,7 +126,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
              %{
                "kind" => "data_source",
                "trigger" => "manual",
-               "funnel" => %{"code" => "checkout"}
+               "funnel" => %{"name" => "Checkout"}
              }
            ] = runs
 

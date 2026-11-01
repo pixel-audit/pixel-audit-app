@@ -8,13 +8,13 @@ defmodule PixelAudit.Api.FunnelsTest do
   describe "steps" do
     test "are appended in order, reordered, and compacted on delete" do
       funnel = funnel_fixture()
-      a = step_fixture(funnel, %{code: "a"})
-      b = step_fixture(funnel, %{code: "b"})
-      c = step_fixture(funnel, %{code: "c"})
+      a = step_fixture(funnel, %{name: "a"})
+      b = step_fixture(funnel, %{name: "b"})
+      c = step_fixture(funnel, %{name: "c"})
       assert [a.position, b.position, c.position] == [0, 1, 2]
 
       {:ok, steps} = Funnels.reorder_steps(funnel, [c.id, a.id, b.id])
-      assert Enum.map(steps, &{&1.code, &1.position}) == [{"c", 0}, {"a", 1}, {"b", 2}]
+      assert Enum.map(steps, &{&1.name, &1.position}) == [{"c", 0}, {"a", 1}, {"b", 2}]
 
       assert {:error, :invalid_order} = Funnels.reorder_steps(funnel, [a.id, b.id])
       assert {:error, :invalid_order} = Funnels.reorder_steps(funnel, [a.id, b.id, c.id, c.id])
@@ -22,22 +22,16 @@ defmodule PixelAudit.Api.FunnelsTest do
 
       {:ok, _} = Funnels.delete_step(Funnels.get_step!(funnel, a.id))
 
-      assert Enum.map(Funnels.get_funnel!(funnel.id).steps, &{&1.code, &1.position}) == [
+      assert Enum.map(Funnels.get_funnel!(funnel.id).steps, &{&1.name, &1.position}) == [
                {"c", 0},
                {"b", 1}
              ]
     end
 
-    test "codes are unique within a funnel, not across" do
+    test "need a name" do
       funnel = funnel_fixture()
-      other = funnel_fixture()
-      step_fixture(funnel, %{code: "visit"})
-
-      assert {:error, changeset} =
-               Funnels.create_step(funnel, %{"code" => "visit", "name" => "V"})
-
-      assert %{code: ["has already been taken"]} = errors_on(changeset)
-      assert {:ok, _} = Funnels.create_step(other, %{"code" => "visit", "name" => "V"})
+      assert {:error, changeset} = Funnels.create_step(funnel, %{"name" => ""})
+      assert %{name: ["can't be blank"]} = errors_on(changeset)
     end
   end
 
@@ -49,7 +43,6 @@ defmodule PixelAudit.Api.FunnelsTest do
 
       assert {:error, :connection_type_mismatch} =
                Funnels.create_data_source(funnel, %{
-                 "code" => "fb",
                  "name" => "FB",
                  "type" => "meta_pixel_api",
                  "connection_id" => postgres.id
@@ -57,13 +50,12 @@ defmodule PixelAudit.Api.FunnelsTest do
 
       assert {:ok, data_source} =
                Funnels.create_data_source(funnel, %{
-                 "code" => "fb",
                  "name" => "FB",
                  "type" => "meta_pixel_api",
                  "connection_id" => meta.id
                })
 
-      assert data_source.connection.code == meta.code
+      assert data_source.connection.id == meta.id
       assert data_source.position == 0
       assert data_source.color in PixelAudit.Api.Funnels.DataSource.palette()
     end
@@ -77,7 +69,6 @@ defmodule PixelAudit.Api.FunnelsTest do
 
       {:ok, third} =
         Funnels.create_data_source(funnel, %{
-          "code" => "c",
           "name" => "C",
           "type" => "postgres_query",
           "connection_id" => connection.id,
@@ -96,7 +87,6 @@ defmodule PixelAudit.Api.FunnelsTest do
 
       assert {:error, changeset} =
                Funnels.create_data_source(funnel, %{
-                 "code" => "ga",
                  "name" => "GA4",
                  "type" => "google_analytics_bigquery",
                  "connection_id" => bigquery.id,
@@ -108,7 +98,6 @@ defmodule PixelAudit.Api.FunnelsTest do
 
       assert {:ok, data_source} =
                Funnels.create_data_source(funnel, %{
-                 "code" => "ga",
                  "name" => "GA4",
                  "type" => "google_analytics_bigquery",
                  "connection_id" => bigquery.id,

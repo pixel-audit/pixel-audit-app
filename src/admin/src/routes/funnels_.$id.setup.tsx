@@ -7,13 +7,13 @@ import { StepsCard } from "@/components/funnels/steps-card";
 import { useApi } from "@/lib/api";
 
 /** The Setup tab: the steps, the data sources, and what each source needs per step. */
-export const Route = createFileRoute("/funnels_/$code/setup")({
+export const Route = createFileRoute("/funnels_/$id/setup")({
   component: FunnelSetupTab,
 });
 
 function FunnelSetupTab() {
-  const { code } = Route.useParams();
-  const funnel = okData(useApi().useAdminGetFunnel(code).data)?.data;
+  const { id } = Route.useParams();
+  const funnel = okData(useApi().useAdminGetFunnel(id).data)?.data;
   if (!funnel) return null;
 
   return (

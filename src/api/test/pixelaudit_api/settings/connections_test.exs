@@ -8,9 +8,9 @@ defmodule PixelAudit.Api.Settings.ConnectionsTest do
 
   describe "create_connection/1" do
     test "stores the credentials encrypted and reads them back" do
-      connection = connection_fixture(:meta, %{code: "fb"})
+      connection = connection_fixture(:meta, %{name: "fb"})
 
-      assert %Connection{code: "fb", type: :meta} = connection
+      assert %Connection{name: "fb", type: :meta} = connection
       assert connection.credentials["access_token"] == "EAAtoken"
 
       # The column holds a Cloak ciphertext, not the JSON.
@@ -35,7 +35,6 @@ defmodule PixelAudit.Api.Settings.ConnectionsTest do
     test "refuses a missing required credential, keyed by the field" do
       {:error, changeset} =
         Settings.create_connection(%{
-          "code" => "fb",
           "name" => "FB",
           "type" => "meta",
           "credentials" => %{"pixel_id" => "1"}
@@ -47,7 +46,6 @@ defmodule PixelAudit.Api.Settings.ConnectionsTest do
     test "refuses an unknown credential key" do
       {:error, changeset} =
         Settings.create_connection(%{
-          "code" => "pg",
           "name" => "PG",
           "type" => "postgres",
           "credentials" => %{"url" => "postgres://x/y", "bogus" => "1"}
@@ -56,28 +54,17 @@ defmodule PixelAudit.Api.Settings.ConnectionsTest do
       assert %{credentials: ["is not a known field"]} = errors_on(changeset)
     end
 
-    test "refuses a code outside [a-z0-9]+ and a duplicate" do
+    test "refuses a duplicate name" do
+      connection_fixture(:postgres, %{name: "dup"})
+
       {:error, changeset} =
         Settings.create_connection(%{
-          "code" => "Bad_Code",
-          "name" => "x",
+          "name" => "dup",
           "type" => "postgres",
           "credentials" => credentials_for(:postgres)
         })
 
-      assert %{code: [_]} = errors_on(changeset)
-
-      connection_fixture(:postgres, %{code: "dup"})
-
-      {:error, changeset} =
-        Settings.create_connection(%{
-          "code" => "dup",
-          "name" => "x",
-          "type" => "postgres",
-          "credentials" => credentials_for(:postgres)
-        })
-
-      assert %{code: ["has already been taken"]} = errors_on(changeset)
+      assert %{name: ["has already been taken"]} = errors_on(changeset)
     end
   end
 
@@ -114,14 +101,14 @@ defmodule PixelAudit.Api.Settings.ConnectionsTest do
                errors_on(changeset)
     end
 
-    test "keeps the type and credentials of a connection managed by the environment" do
+    test "keeps the name, type and credentials of a connection managed by the environment" do
       {:ok, _} =
         PixelAudit.Api.Settings.EnvSync.run(%{
           "CONNECTION_shop_TYPE" => "postgres",
           "CONNECTION_shop_URL" => test_database_url()
         })
 
-      connection = Settings.get_connection_by_code("shop")
+      connection = Settings.get_connection_by_name("shop")
       assert connection.managed_by_env
 
       assert {:error, :managed_by_env} =
@@ -132,11 +119,11 @@ defmodule PixelAudit.Api.Settings.ConnectionsTest do
       assert {:error, :managed_by_env} =
                Settings.update_connection(connection, %{"type" => "clickhouse"})
 
-      assert {:ok, %{name: "Shop DB", description: "the shop"}} =
-               Settings.update_connection(connection, %{
-                 "name" => "Shop DB",
-                 "description" => "the shop"
-               })
+      assert {:error, :managed_by_env} =
+               Settings.update_connection(connection, %{"name" => "Shop DB"})
+
+      assert {:ok, %{name: "shop", description: "the shop"}} =
+               Settings.update_connection(connection, %{"description" => "the shop"})
     end
   end
 

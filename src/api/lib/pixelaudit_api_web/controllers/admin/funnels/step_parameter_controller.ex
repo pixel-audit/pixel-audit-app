@@ -17,7 +17,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.StepParameterController do
       in: :path,
       type: %OpenApiSpex.Schema{type: :string},
       required: true,
-      description: "Funnel id or code"
+      description: "Funnel id"
     ],
     data_source_id: [in: :path, type: @uuid, required: true, description: "Data source id"],
     step_id: [in: :path, type: @uuid, required: true, description: "Step id"]
@@ -51,7 +51,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.StepParameterController do
          {:ok, step} <- fetch_resource(fn -> Funnels.get_step!(funnel, step_id) end),
          {:ok, step_parameter} <- Funnels.put_step_parameters(data_source, step, conn.body_params) do
       Logger.info(
-        "admin.funnel.step_parameters set funnel=#{funnel.code} data_source=#{data_source.code} step=#{step.code}"
+        "admin.funnel.step_parameters set funnel=#{funnel.id} data_source=#{data_source.id} step=#{step.id}"
       )
 
       Reporting.refresh_after_change(data_source)
@@ -86,7 +86,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.StepParameterController do
          {:ok, step} <- fetch_resource(fn -> Funnels.get_step!(funnel, step_id) end),
          {:ok, _} <- Funnels.delete_step_parameters(data_source, step) do
       Logger.info(
-        "admin.funnel.step_parameters cleared funnel=#{funnel.code} data_source=#{data_source.code} step=#{step.code}"
+        "admin.funnel.step_parameters cleared funnel=#{funnel.id} data_source=#{data_source.id} step=#{step.id}"
       )
 
       send_resp(conn, :no_content, "")

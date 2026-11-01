@@ -10,7 +10,6 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.Funnel do
     type: :object,
     properties: %{
       id: %Schema{type: :string, format: :uuid},
-      code: %Schema{type: :string, pattern: "^[a-z0-9]+$"},
       name: %Schema{type: :string},
       description: %Schema{type: :string, nullable: true},
       steps: %Schema{type: :array, items: Schemas.Step},
@@ -18,6 +17,6 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.Funnel do
       inserted_at: %Schema{type: :string, format: :"date-time"},
       updated_at: %Schema{type: :string, format: :"date-time"}
     },
-    required: [:id, :code, :name, :description, :steps, :data_sources, :inserted_at, :updated_at]
+    required: [:id, :name, :description, :steps, :data_sources, :inserted_at, :updated_at]
   })
 end

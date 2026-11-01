@@ -10,7 +10,6 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.DataSourceParams do
         "type; `settings` is keyed by the type's setting keys (GET /funnels/data-source-types).",
     type: :object,
     properties: %{
-      code: %Schema{type: :string, pattern: "^[a-z0-9]+$"},
       name: %Schema{type: :string},
       description: %Schema{type: :string, nullable: true},
       type: %Schema{

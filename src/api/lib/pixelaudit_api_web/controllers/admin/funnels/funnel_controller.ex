@@ -15,7 +15,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelController do
     in: :path,
     type: %OpenApiSpex.Schema{type: :string},
     required: true,
-    description: "Funnel id or code"
+    description: "Funnel id"
   ]
 
   tags(["funnels"])
@@ -58,7 +58,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelController do
 
   def create(conn, _params) do
     with {:ok, funnel} <- Funnels.create_funnel(conn.body_params) do
-      Logger.info("admin.funnel created code=#{funnel.code}")
+      Logger.info("admin.funnel created id=#{funnel.id}")
 
       conn
       |> put_status(:created)
@@ -81,7 +81,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelController do
   def update(conn, %{"id" => id}) do
     with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(id) end),
          {:ok, funnel} <- Funnels.update_funnel(funnel, conn.body_params) do
-      Logger.info("admin.funnel updated code=#{funnel.code}")
+      Logger.info("admin.funnel updated id=#{funnel.id}")
       render(conn, :show, funnel: funnel)
     end
   end
@@ -99,7 +99,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelController do
   def delete(conn, %{"id" => id}) do
     with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(id) end),
          {:ok, _funnel} <- Funnels.delete_funnel(funnel) do
-      Logger.info("admin.funnel deleted code=#{funnel.code}")
+      Logger.info("admin.funnel deleted id=#{funnel.id}")
       send_resp(conn, :no_content, "")
     end
   end

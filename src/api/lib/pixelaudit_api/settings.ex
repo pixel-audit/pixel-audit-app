@@ -14,19 +14,19 @@ defmodule PixelAudit.Api.Settings do
 
   ## Connections
 
-  @doc "Every connection, by code."
+  @doc "Every connection, by name."
   def list_connections do
-    Repo.all(from c in Connection, order_by: c.code)
+    Repo.all(from c in Connection, order_by: c.name)
   end
 
-  @doc "Connections of one type, by code."
+  @doc "Connections of one type, by name."
   def list_connections(type: type) do
-    Repo.all(from c in Connection, where: c.type == ^type, order_by: c.code)
+    Repo.all(from c in Connection, where: c.type == ^type, order_by: c.name)
   end
 
   def get_connection!(id), do: Repo.get!(Connection, id)
 
-  def get_connection_by_code(code), do: Repo.get_by(Connection, code: code)
+  def get_connection_by_name(name), do: Repo.get_by(Connection, name: name)
 
   @doc "Creates a connection from the panel's attributes (`credentials` included)."
   def create_connection(attrs) do
@@ -36,16 +36,17 @@ defmodule PixelAudit.Api.Settings do
   end
 
   @doc """
-  Updates a connection. One the environment manages keeps its type and
-  credentials: a request that touches them is refused with
-  `{:error, :managed_by_env}`; its name and description stay editable.
+  Updates a connection. One the environment manages keeps its name (the
+  environment addresses it by it), type and credentials: a request that
+  touches them is refused with `{:error, :managed_by_env}`; its description
+  stays editable.
   """
   def update_connection(%Connection{managed_by_env: true} = connection, attrs) do
     if touches_managed_fields?(attrs) do
       {:error, :managed_by_env}
     else
       connection
-      |> Connection.changeset(Map.drop(attrs, ["type", :type, "credentials", :credentials]))
+      |> Connection.changeset(Map.take(attrs, ["description", :description]))
       |> Repo.update()
     end
   end
@@ -57,7 +58,7 @@ defmodule PixelAudit.Api.Settings do
   end
 
   defp touches_managed_fields?(attrs) do
-    Enum.any?(["type", "credentials"], fn key ->
+    Enum.any?(["name", "type", "credentials"], fn key ->
       Map.has_key?(attrs, key) or Map.has_key?(attrs, String.to_atom(key))
     end)
   end
@@ -95,11 +96,11 @@ defmodule PixelAudit.Api.Settings do
 
     case result do
       :ok ->
-        Logger.info("connections.check ok code=#{connection.code}")
+        Logger.info("connections.check ok name=#{connection.name}")
 
       {:error, message} ->
         Logger.warning(
-          "connections.check failed code=#{connection.code} error=#{inspect(message)}"
+          "connections.check failed name=#{connection.name} error=#{inspect(message)}"
         )
     end
 

@@ -13,7 +13,6 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelJSON do
   def data(%Funnel{} = funnel) do
     %{
       id: funnel.id,
-      code: funnel.code,
       name: funnel.name,
       description: funnel.description,
       steps: Enum.map(funnel.steps, &StepJSON.data/1),

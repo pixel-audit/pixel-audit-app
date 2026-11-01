@@ -61,7 +61,7 @@ defmodule PixelAudit.Api.Reporting.RefreshJob do
     Reporting.finish_run(run, result)
 
     Logger.info(
-      "reporting.refresh data_source=#{data_source.code} from=#{run.date_from} to=#{run.date_to} " <>
+      "reporting.refresh data_source=#{data_source.id} from=#{run.date_from} to=#{run.date_to} " <>
         "cells=#{length(outcomes)} failed=#{length(failed)}"
     )
 

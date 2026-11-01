@@ -17,7 +17,7 @@ import { ListRow, RowDetail } from "@/components/crud/list-row";
 import { Badge } from "@/components/ui/badge";
 import { useApi } from "@/lib/api";
 
-/** The connections list: every connection, by code, leading to its page. */
+/** The connections list: every connection, by name, leading to its page. */
 export function ConnectionsCard() {
   const intl = useIntl();
   const api = useApi();

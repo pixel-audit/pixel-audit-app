@@ -69,7 +69,7 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionController do
 
   def create(conn, _params) do
     with {:ok, connection} <- Settings.create_connection(conn.body_params) do
-      Logger.info("admin.connection created code=#{connection.code} type=#{connection.type}")
+      Logger.info("admin.connection created id=#{connection.id} type=#{connection.type}")
       Reporting.refresh_after_connection_created(connection)
 
       conn
@@ -97,7 +97,7 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionController do
   def update(conn, %{"id" => id}) do
     with {:ok, connection} <- fetch_resource(fn -> Settings.get_connection!(id) end),
          {:ok, connection} <- Settings.update_connection(connection, conn.body_params) do
-      Logger.info("admin.connection updated code=#{connection.code}")
+      Logger.info("admin.connection updated id=#{connection.id}")
       render(conn, :show, connection: connection)
     end
   end
@@ -117,7 +117,7 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionController do
   def delete(conn, %{"id" => id}) do
     with {:ok, connection} <- fetch_resource(fn -> Settings.get_connection!(id) end),
          {:ok, _connection} <- Settings.delete_connection(connection) do
-      Logger.info("admin.connection deleted code=#{connection.code}")
+      Logger.info("admin.connection deleted id=#{connection.id}")
       send_resp(conn, :no_content, "")
     end
   end
@@ -164,9 +164,7 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionController do
          {:ok, date_from, date_to} <-
            Reporting.parse_range(params["date_from"], params["date_to"]),
          {:ok, run} <- Reporting.refresh_meta_connection(connection, date_from, date_to, :manual) do
-      Logger.info(
-        "admin.connection refresh code=#{connection.code} from=#{date_from} to=#{date_to}"
-      )
+      Logger.info("admin.connection refresh id=#{connection.id} from=#{date_from} to=#{date_to}")
 
       conn
       |> put_status(:accepted)

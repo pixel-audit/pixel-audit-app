@@ -9,14 +9,14 @@ not repeat them. The API is in `specs/api.md`.
 Three groups in the top bar — Funnels and Refreshes with one screen each,
 Settings with two (Connections, Variables); the sidebar shows the open
 group's screens. Screens are file routes in `src/routes`; an item's own page
-is a route escaped from its list (`funnels_.$code.tsx`). A funnel's address is its code (`/funnels/checkout`), which the API resolves alongside the id; a connection's and a run's address is the id.
+is a route escaped from its list (`funnels_.$id.tsx`). Every item's address is its id.
 
 | Route | Screen |
 |---|---|
 | `/` | Dashboard: a card per funnel (its steps and sources), the last ten refresh runs. |
 | `/funnels` | The funnels; add. |
-| `/funnels/$code` | The funnel's page, **View** tab: a date range (presets and two dates, kept in the address as `date_from`/`date_to`), the data source the sankey draws (`source`), the sankey, the counts table, a Refresh button for the shown range. |
-| `/funnels/$code/setup` | **Setup** tab: the steps (add, edit, delete, move up/down), the data sources (type → connection of that type → the type's settings), the parameters grid (steps × sources; a cell opens the type's parameter form, or stops measuring the step). |
+| `/funnels/$id` | The funnel's page, **View** tab: a date range (presets and two dates, kept in the address as `date_from`/`date_to`), the data source the sankey draws (`source`), the sankey, the counts table, a Refresh button for the shown range. |
+| `/funnels/$id/setup` | **Setup** tab: the steps (add, edit, delete, move up/down), the data sources (type → connection of that type → the type's settings), the parameters grid (steps × sources; a cell opens the type's parameter form, or stops measuring the step). |
 | `/settings` | Leads to `/settings/connections`. |
 | `/settings/connections` | The connections; add. |
 | `/settings/connections/$id` | The connection's page: credentials (secrets shown as set, not their values; a URL with its password hidden), the last check, and the actions: check, pull pixel stats (Meta), edit, delete (blocked while in use). |

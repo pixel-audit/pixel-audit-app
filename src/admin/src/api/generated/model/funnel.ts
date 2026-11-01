@@ -12,8 +12,6 @@ import type { Step } from "./step.ts";
  * A funnel with its ordered steps and its data sources.
  */
 export interface Funnel {
-  /** @pattern ^[a-z0-9]+$ */
-  code: string;
   data_sources: DataSource[];
   /** @nullable */
   description: string | null;

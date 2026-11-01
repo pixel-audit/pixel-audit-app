@@ -6,7 +6,7 @@ defmodule PixelAudit.Api.Settings.EnvSyncTest do
   alias PixelAudit.Api.Settings
   alias PixelAudit.Api.Settings.EnvSync
 
-  test "creates connections named after their code, of every type" do
+  test "creates connections of every type, named by the variable" do
     env = %{
       "CONNECTION_fb_TYPE" => "meta",
       "CONNECTION_fb_ACCESS_TOKEN" => "tok",
@@ -23,14 +23,14 @@ defmodule PixelAudit.Api.Settings.EnvSyncTest do
 
     assert {:ok, %{connections: results, variables: []}} = EnvSync.run(env)
 
-    assert Enum.map(results, &{&1.code, &1.type, &1.action}) == [
+    assert Enum.map(results, &{&1.name, &1.type, &1.action}) == [
              {"bq", :bigquery, :created},
              {"ch", :clickhouse, :created},
              {"fb", :meta, :created},
              {"shop", :postgres, :created}
            ]
 
-    fb = Settings.get_connection_by_code("fb")
+    fb = Settings.get_connection_by_name("fb")
     assert fb.name == "fb"
     assert fb.managed_by_env
 
@@ -40,25 +40,24 @@ defmodule PixelAudit.Api.Settings.EnvSyncTest do
              "api_version" => "v25.0"
            }
 
-    ch = Settings.get_connection_by_code("ch")
+    ch = Settings.get_connection_by_name("ch")
 
     assert ch.credentials == %{"url" => "http://default:secret@ch:8123"}
   end
 
-  test "updates an existing connection's type and credentials, keeping its name" do
-    connection =
-      connection_fixture(:postgres, %{code: "shop", name: "The shop", description: "d"})
+  test "updates the connection of that name: type and credentials, keeping its description" do
+    connection = connection_fixture(:postgres, %{name: "shop", description: "d"})
 
     env = %{
       "CONNECTION_shop_TYPE" => "clickhouse",
       "CONNECTION_shop_URL" => "http://ch:8123"
     }
 
-    assert {:ok, %{connections: [%{code: "shop", action: :updated}]}} = EnvSync.run(env)
+    assert {:ok, %{connections: [%{name: "shop", action: :updated}]}} = EnvSync.run(env)
 
     updated = Settings.get_connection!(connection.id)
     assert updated.type == :clickhouse
-    assert updated.name == "The shop"
+    assert updated.name == "shop"
     assert updated.description == "d"
     assert updated.managed_by_env
     assert updated.credentials == %{"url" => "http://ch:8123"}
@@ -71,10 +70,10 @@ defmodule PixelAudit.Api.Settings.EnvSyncTest do
         "CONNECTION_a_URL" => "postgres://h/d"
       })
 
-    assert Settings.get_connection_by_code("a").managed_by_env
+    assert Settings.get_connection_by_name("a").managed_by_env
 
     {:ok, %{connections: []}} = EnvSync.run(%{})
-    assert %{managed_by_env: false} = Settings.get_connection_by_code("a")
+    assert %{managed_by_env: false} = Settings.get_connection_by_name("a")
   end
 
   test "refuses the whole set on one bad definition and writes nothing" do
@@ -95,7 +94,7 @@ defmodule PixelAudit.Api.Settings.EnvSyncTest do
   end
 
   test "ignores variables whose id is not lowercase alphanumeric" do
-    assert {:ok, %{connections: []}} = EnvSync.run(%{"CONNECTION_My_Shop_TYPE" => "postgres"})
+    assert {:ok, %{connections: []}} = EnvSync.run(%{"CONNECTION_my_shop_TYPE" => "postgres"})
   end
 
   describe "variables" do

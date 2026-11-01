@@ -54,7 +54,7 @@ export function DataSourcesCard({ funnel }: { funnel: Funnel }) {
       mutateAsync: ({ id }) => remove.mutateAsync({ funnelId: funnel.id, id }),
       isPending: remove.isPending,
     },
-    listQueryKey: api.getAdminGetFunnelQueryKey(funnel.code),
+    listQueryKey: api.getAdminGetFunnelQueryKey(funnel.id),
     deleted: (item) => intl.formatMessage(messages.deleted, { name: item.name }),
     failed: intl.formatMessage(messages.deleteFailed),
   });
@@ -148,7 +148,6 @@ export function DataSourcesCard({ funnel }: { funnel: Funnel }) {
 }
 
 type Form = {
-  code: string;
   name: string;
   description: string;
   type: DataSourceParamsType;
@@ -184,7 +183,6 @@ const randomColor = (used: string[]): string => {
 };
 
 const blank = (used: string[]): Form => ({
-  code: "",
   name: "",
   description: "",
   type: "meta_pixel_api",
@@ -219,7 +217,6 @@ function DataSourceDialog({
       reset(
         dataSource
           ? {
-              code: dataSource.code,
               name: dataSource.name,
               description: dataSource.description ?? "",
               type: dataSource.type,
@@ -264,7 +261,6 @@ function DataSourceDialog({
   // useApiSave would show the generic toast, so it is caught here first.
   const submit = async () => {
     const params: DataSourceParams = {
-      code: form.code,
       name: form.name,
       description: form.description || null,
       type: form.type,
@@ -286,21 +282,6 @@ function DataSourceDialog({
       onSubmit={submit}
       className="max-w-xl"
     >
-      <FormField
-        label={intl.formatMessage(messages.code)}
-        htmlFor="source-code"
-        hint={intl.formatMessage(messages.codeHint)}
-        errors={errors.code}
-      >
-        <Input
-          id="source-code"
-          value={form.code}
-          onChange={(e) => set("code", e.target.value)}
-          disabled={editing}
-          autoComplete="off"
-          pattern="[a-z0-9]+"
-        />
-      </FormField>
       <FormField
         label={intl.formatMessage(messages.name)}
         htmlFor="source-name"
@@ -389,7 +370,7 @@ function DataSourceDialog({
           id="source-connection"
           value={form.connection_id}
           onChange={(value) => set("connection_id", value)}
-          options={eligible.map((c) => ({ value: c.id, label: c.name, description: c.code }))}
+          options={eligible.map((c) => ({ value: c.id, label: c.name }))}
           placeholder={
             eligible.length === 0
               ? intl.formatMessage(messages.noConnections)
@@ -446,12 +427,6 @@ const messages = {
     },
     addTitle: { id: "dataSources.dialog.addTitle", defaultMessage: "Add a data source" },
     editTitle: { id: "dataSources.dialog.editTitle", defaultMessage: "Edit the data source" },
-    code: { id: "dataSources.dialog.code", defaultMessage: "Code" },
-    codeHint: {
-      id: "dataSources.dialog.codeHint",
-      defaultMessage:
-        "Lowercase letters and digits, unique within the funnel. Cannot be changed later.",
-    },
     name: { id: "dataSources.dialog.name", defaultMessage: "Name" },
     descriptionField: { id: "dataSources.dialog.description", defaultMessage: "Description" },
     type: { id: "dataSources.dialog.type", defaultMessage: "Type" },
