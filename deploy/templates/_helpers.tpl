@@ -114,7 +114,7 @@ comes from the external Secret, or is built for the chart's own Postgres
 with the password read from its Secret; the two secrets from secrets.secretName.
 */}}
 {{- define "pixelaudit.apiEnv" -}}
-{{- $secrets := required "secrets.secretName is required: a Secret holding PHOENIX_SECRET_KEY_BASE and CREDENTIALS_ENCRYPTION_KEY" .Values.secrets.secretName -}}
+{{- $secrets := required "secrets.secretName is required: a Secret holding WEB_SECRET_KEY_BASE and CREDENTIALS_ENCRYPTION_KEY" .Values.secrets.secretName -}}
 - name: PORT
   value: {{ .Values.api.port | quote }}
 - name: HOSTNAME
@@ -138,11 +138,11 @@ with the password read from its Secret; the two secrets from secrets.secretName.
       name: {{ .Values.database.external.secretName }}
       key: {{ .Values.database.external.secretKey }}
 {{- end }}
-- name: PHOENIX_SECRET_KEY_BASE
+- name: WEB_SECRET_KEY_BASE
   valueFrom:
     secretKeyRef:
       name: {{ $secrets }}
-      key: {{ .Values.secrets.keys.phoenixSecretKeyBase }}
+      key: {{ .Values.secrets.keys.webSecretKeyBase }}
 - name: CREDENTIALS_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:

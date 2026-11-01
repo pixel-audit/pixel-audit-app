@@ -19,7 +19,7 @@ The chart never takes a secret as a value. Everything secret is a Secret you cre
 
 | Secret | Keys | Value |
 |---|---|---|
-| `secrets.secretName` (**required**) | `PHOENIX_SECRET_KEY_BASE`, `CREDENTIALS_ENCRYPTION_KEY` | Phoenix's signing secret (64+ characters; what the framework signs its tokens and cookies with), and the 256-bit key the connection credentials are encrypted with at rest, as 64 hex characters. |
+| `secrets.secretName` (**required**) | `WEB_SECRET_KEY_BASE`, `CREDENTIALS_ENCRYPTION_KEY` | Phoenix's signing secret (64+ characters; what the framework signs its tokens and cookies with), and the 256-bit key the connection credentials are encrypted with at rest, as 64 hex characters. |
 | `database.external.secretName` | `DATABASE_URL` | Your managed Postgres: `postgres://user:password@host:5432/db?sslmode=require`. |
 | `database.internal.passwordSecret.name` | `POSTGRES_PASSWORD` | The chart's own Postgres, when you want to choose its password; left empty, the chart generates one once and keeps it. |
 | `api.extraEnvFrom` (a `secretRef`) | `CONNECTION_*` | Connections defined by the environment — see below. |
@@ -30,11 +30,11 @@ The key names inside the first two can be changed with `secrets.keys.*` and `dat
 ```sh
 kubectl create namespace pixelaudit
 kubectl -n pixelaudit create secret generic pixelaudit-keys \
-  --from-literal=PHOENIX_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
+  --from-literal=WEB_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
   --from-literal=CREDENTIALS_ENCRYPTION_KEY="$(openssl rand -hex 32)"
 ```
 
-**Back `CREDENTIALS_ENCRYPTION_KEY` up with the database**: a database restored without it cannot read any stored credential. `PHOENIX_SECRET_KEY_BASE` can be rotated freely; nothing stored depends on it.
+**Back `CREDENTIALS_ENCRYPTION_KEY` up with the database**: a database restored without it cannot read any stored credential. `WEB_SECRET_KEY_BASE` can be rotated freely; nothing stored depends on it.
 
 ## Install
 
@@ -163,7 +163,7 @@ Secrets you created stay. So do the chart's own Postgres volume claim and its ge
 git clone https://github.com/pixel-audit/pixel-audit-app && cd pixel-audit-app
 kubectl create namespace pixelaudit
 kubectl -n pixelaudit create secret generic pixelaudit-keys \
-  --from-literal=PHOENIX_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
+  --from-literal=WEB_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
   --from-literal=CREDENTIALS_ENCRYPTION_KEY="$(openssl rand -hex 32)"
 helm install pixelaudit deploy --namespace pixelaudit --atomic \
   --values deploy/examples/values-all-in-one.yaml
@@ -185,7 +185,7 @@ Then open <http://pixelaudit.127.0.0.1.nip.io>.
 | `hosts.admin` | — | **Required.** The panel's public hostname. |
 | `hosts.tls` | `true` | Whether the hostnames are served over https. |
 | `secrets.secretName` | — | **Required.** The Secret holding the two secrets. |
-| `secrets.keys.phoenixSecretKeyBase` | `PHOENIX_SECRET_KEY_BASE` | Its key for Phoenix's signing secret. |
+| `secrets.keys.webSecretKeyBase` | `WEB_SECRET_KEY_BASE` | Its key for Phoenix's signing secret. |
 | `secrets.keys.credentialsEncryptionKey` | `CREDENTIALS_ENCRYPTION_KEY` | Its key for the credentials' encryption key. |
 | `database.external.secretName` | `""` | A Secret holding your Postgres URL. |
 | `database.external.secretKey` | `DATABASE_URL` | Its key. |

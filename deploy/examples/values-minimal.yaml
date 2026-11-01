@@ -4,7 +4,7 @@
 #
 #   kubectl create namespace pixelaudit
 #   kubectl -n pixelaudit create secret generic pixelaudit-keys \
-#     --from-literal=PHOENIX_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
+#     --from-literal=WEB_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
 #     --from-literal=CREDENTIALS_ENCRYPTION_KEY="$(openssl rand -hex 32)"
 #   kubectl -n pixelaudit create secret generic pixelaudit-database \
 #     --from-literal=DATABASE_URL='postgres://pixelaudit:...@postgres.example.com:5432/pixelaudit?sslmode=require'

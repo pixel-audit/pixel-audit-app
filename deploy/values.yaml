@@ -58,10 +58,10 @@ hosts:
 
 # The Secret holding the API's two secrets. Required. Create it with
 #   kubectl create secret generic pixelaudit-keys \
-#     --from-literal=PHOENIX_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
+#     --from-literal=WEB_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
 #     --from-literal=CREDENTIALS_ENCRYPTION_KEY="$(openssl rand -hex 32)"
 #
-#   PHOENIX_SECRET_KEY_BASE     Phoenix's signing secret (64+ characters):
+#   WEB_SECRET_KEY_BASE     Phoenix's signing secret (64+ characters):
 #                               what the framework signs its tokens and
 #                               cookies with. Rotating it costs nothing here.
 #   CREDENTIALS_ENCRYPTION_KEY  the 256-bit key (64 hex characters) the
@@ -73,7 +73,7 @@ secrets:
   secretName: ""
   # The keys inside it.
   keys:
-    phoenixSecretKeyBase: PHOENIX_SECRET_KEY_BASE
+    webSecretKeyBase: WEB_SECRET_KEY_BASE
     credentialsEncryptionKey: CREDENTIALS_ENCRYPTION_KEY
 
 database:

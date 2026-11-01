@@ -46,12 +46,12 @@
         "secretName": {
           "type": "string",
           "minLength": 1,
-          "description": "The Secret holding PHOENIX_SECRET_KEY_BASE and CREDENTIALS_ENCRYPTION_KEY"
+          "description": "The Secret holding WEB_SECRET_KEY_BASE and CREDENTIALS_ENCRYPTION_KEY"
         },
         "keys": {
           "type": "object",
           "properties": {
-            "phoenixSecretKeyBase": { "type": "string", "minLength": 1 },
+            "webSecretKeyBase": { "type": "string", "minLength": 1 },
             "credentialsEncryptionKey": { "type": "string", "minLength": 1 }
           }
         }

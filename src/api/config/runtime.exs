@@ -117,14 +117,14 @@ if config_env() == :prod do
     pool_size: String.to_integer(System.get_env("DATABASE_POOL_SIZE") || "10"),
     socket_options: maybe_ipv6
 
-  # PHOENIX_SECRET_KEY_BASE: Phoenix's secret key base, what the framework
+  # WEB_SECRET_KEY_BASE: Phoenix's secret key base, what the framework
   # signs and encrypts its own tokens and cookies with. PixelAudit serves
   # no sessions, but Phoenix requires it. A fixed value sits in
   # config/dev.exs and config/test.exs; production gets its own here.
   secret_key_base =
-    System.get_env("PHOENIX_SECRET_KEY_BASE") ||
+    System.get_env("WEB_SECRET_KEY_BASE") ||
       raise """
-      environment variable PHOENIX_SECRET_KEY_BASE is missing.
+      environment variable WEB_SECRET_KEY_BASE is missing.
       It is Phoenix's signing secret, at least 64 characters.
       You can generate one by calling: mix phx.gen.secret  (or: openssl rand -base64 64)
       """

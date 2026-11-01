@@ -26,7 +26,7 @@ databases run `SELECT 1`. The outcome is stored on the connection
 `connections.credentials` is one map, JSON-encoded and encrypted with Cloak
 (`PixelAudit.Api.Vault`, AES-GCM-256, cipher tag `AES.GCM.V1`) under the
 key `CREDENTIALS_ENCRYPTION_KEY` — 64 hex characters, fixed in dev and
-test, required in production. (Phoenix's own `PHOENIX_SECRET_KEY_BASE`
+test, required in production. (Phoenix's own `WEB_SECRET_KEY_BASE`
 plays no part in this; it signs the framework's tokens and cookies.) The
 map never leaves the API: responses carry
 `credential_keys` and `credentials_preview` (the non-secret values), the

@@ -122,7 +122,7 @@ loads it — and run `make boot` after editing it.
 
 Credentials are stored encrypted (Cloak, AES-GCM) under
 `CREDENTIALS_ENCRYPTION_KEY`, fixed in `config/dev.exs` for development.
-The API's other secret, `PHOENIX_SECRET_KEY_BASE`, is Phoenix's own signing
+The API's other secret, `WEB_SECRET_KEY_BASE`, is Phoenix's own signing
 secret; the two are unrelated and both are required in production.
 
 ## A first funnel
