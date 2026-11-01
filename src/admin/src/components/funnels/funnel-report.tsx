@@ -17,7 +17,6 @@ import { useApi } from "@/lib/api";
 import type { DateRange } from "@/lib/date-range";
 import { copy, formatCopy } from "@/lib/i18n/copy";
 import { commonMessages } from "@/lib/i18n/common-messages";
-import type { SourceMode } from "@/lib/sankey";
 import { shownSources, type SourceModes } from "@/lib/source-modes";
 
 /**
@@ -32,13 +31,13 @@ export function FunnelReport({
   range,
   modes,
   onRangeChange,
-  onModeChange,
+  onModesChange,
 }: {
   funnel: Funnel;
   range: DateRange;
   modes: SourceModes;
   onRangeChange: (range: DateRange) => void;
-  onModeChange: (sourceId: string, mode: SourceMode) => void;
+  onModesChange: (modes: SourceModes) => void;
 }) {
   const intl = useIntl();
   const api = useApi();
@@ -87,7 +86,7 @@ export function FunnelReport({
         <Card className="shadow-none">
           <CardContent className="space-y-6 pt-6">
             <FunnelSankey report={report} shown={shownSources(report.data_sources, modes)} />
-            <FunnelCountsTable report={report} modes={modes} onModeChange={onModeChange} />
+            <FunnelCountsTable report={report} modes={modes} onModesChange={onModesChange} />
           </CardContent>
         </Card>
       )}

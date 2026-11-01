@@ -44,12 +44,9 @@ function FunnelViewTab() {
           resetScroll: false,
         })
       }
-      onModeChange={(sourceCode, mode) =>
+      onModesChange={(next) =>
         void navigate({
-          search: (previous) => ({
-            ...previous,
-            show: serializeModes({ ...modes, [sourceCode]: mode }),
-          }),
+          search: (previous) => ({ ...previous, show: serializeModes(next) }),
           replace: true,
           // The toggle sits in the table, below the chart: the page stays put.
           resetScroll: false,

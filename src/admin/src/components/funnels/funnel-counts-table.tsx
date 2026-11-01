@@ -4,25 +4,25 @@ import { defineMessage, defineMessages, useIntl } from "react-intl";
 import type { Report, ReportCell } from "@/api/generated/model";
 import { SourceModeToggle } from "@/components/funnels/source-mode-toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import type { SourceMode } from "@/lib/sankey";
-import { modeOf, type SourceModes } from "@/lib/source-modes";
+import { allModes, commonMode, modeOf, type SourceModes } from "@/lib/source-modes";
 import { cn } from "@/lib/utils";
 
 /**
  * The counts: a row per data source, a column per step, aligned with the
  * chart's columns. Each row starts with the source's three-state toggle in
- * its colour (filled, outlined, hidden on the chart). Each cell carries the
- * count, and a warning when some of the range's days failed or are not
- * computed yet (the tooltip says how many, and the last error).
+ * its colour (filled, outlined, hidden on the chart); the header's toggle
+ * puts every source in one state. Each cell carries the count, and a
+ * warning when some of the range's days failed or are not computed yet
+ * (the tooltip says how many, and the last error).
  */
 export function FunnelCountsTable({
   report,
   modes,
-  onModeChange,
+  onModesChange,
 }: {
   report: Report;
   modes: SourceModes;
-  onModeChange: (sourceId: string, mode: SourceMode) => void;
+  onModesChange: (modes: SourceModes) => void;
 }) {
   const intl = useIntl();
 
@@ -35,7 +35,17 @@ export function FunnelCountsTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-muted-foreground uppercase">
-              <th className="py-2 pr-4 font-semibold">{intl.formatMessage(messages.source)}</th>
+              <th className="py-2 pr-4 font-semibold">
+                <span className="inline-flex items-center gap-2">
+                  <SourceModeToggle
+                    name={intl.formatMessage(messages.allSources)}
+                    color="var(--muted-foreground)"
+                    mode={commonMode(report.data_sources, modes)}
+                    onChange={(next) => onModesChange(allModes(report.data_sources, next))}
+                  />
+                  {intl.formatMessage(messages.source)}
+                </span>
+              </th>
               {report.steps.map((step) => (
                 <th key={step.id} className="px-2 py-2 text-right font-semibold">
                   {step.name}
@@ -54,9 +64,10 @@ export function FunnelCountsTable({
                   <th scope="row" className="py-2 pr-4 text-left font-medium text-foreground">
                     <span className="inline-flex items-center gap-2">
                       <SourceModeToggle
-                        source={source}
+                        name={source.name}
+                        color={source.color}
                         mode={mode}
-                        onChange={(next) => onModeChange(source.id, next)}
+                        onChange={(next) => onModesChange({ ...modes, [source.id]: next })}
                       />
                       {source.name}
                     </span>
@@ -122,6 +133,7 @@ export function FunnelCountsTable({
 const messages = {
   ...defineMessages({
     source: { id: "counts.table.source", defaultMessage: "Data source" },
+    allSources: { id: "counts.table.allSources", defaultMessage: "All data sources" },
     notMeasured: { id: "counts.table.notMeasured", defaultMessage: "—" },
     noCount: { id: "counts.table.noCount", defaultMessage: "…" },
     incompleteLabel: { id: "counts.table.incompleteLabel", defaultMessage: "Incomplete" },

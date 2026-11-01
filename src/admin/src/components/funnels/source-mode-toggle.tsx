@@ -1,46 +1,47 @@
 import { Check, Minus } from "lucide-react";
 import { defineMessage, useIntl } from "react-intl";
 
-import type { DataSource } from "@/api/generated/model";
 import { nextMode } from "@/lib/source-modes";
 import type { SourceMode } from "@/lib/sankey";
 import { cn } from "@/lib/utils";
 
 /**
- * A three-state checkbox in the data source's colour: checked — the source
- * is drawn filled; a dash — drawn as an outline; empty — not drawn. A
- * click moves to the next state.
+ * A three-state checkbox in the given colour: checked — drawn filled; a
+ * dash — drawn as an outline; empty — not drawn. A click moves to the next
+ * state. `mixed` (a dashed border) is for a control that stands for several
+ * sources that differ; a click then fills them all.
  */
 export function SourceModeToggle({
-  source,
+  name,
+  color,
   mode,
   onChange,
 }: {
-  source: DataSource;
-  mode: SourceMode;
+  /** Whose mode this is — a data source's name, or what stands for all of them. */
+  name: string;
+  color: string;
+  mode: SourceMode | "mixed";
   onChange: (mode: SourceMode) => void;
 }) {
   const intl = useIntl();
-  const label = intl.formatMessage(messages.label, {
-    source: source.name,
-    mode,
-  });
+  const label = intl.formatMessage(messages.label, { name, mode });
   return (
     <button
       type="button"
       role="checkbox"
-      aria-checked={mode === "fill" ? true : mode === "outline" ? "mixed" : false}
+      aria-checked={mode === "fill" ? true : mode === "hidden" ? false : "mixed"}
       aria-label={label}
       title={label}
-      onClick={() => onChange(nextMode(mode))}
+      onClick={() => onChange(mode === "mixed" ? "fill" : nextMode(mode))}
       className={cn(
         "inline-flex size-5 shrink-0 items-center justify-center rounded-sm border-2 transition-colors",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        mode === "mixed" && "border-dashed",
       )}
       style={{
-        borderColor: source.color,
-        backgroundColor: mode === "fill" ? source.color : "transparent",
-        color: mode === "fill" ? "white" : source.color,
+        borderColor: color,
+        backgroundColor: mode === "fill" ? color : "transparent",
+        color: mode === "fill" ? "white" : color,
       }}
     >
       {mode === "fill" && <Check aria-hidden className="size-3.5" strokeWidth={3} />}
@@ -50,9 +51,9 @@ export function SourceModeToggle({
 }
 
 const messages = {
-  label: defineMessage<{ source: string; mode: string }>({
+  label: defineMessage<{ name: string; mode: string }>({
     id: "sourceMode.label",
     defaultMessage:
-      "{source}: {mode, select, fill {drawn filled} outline {drawn as an outline} other {hidden}} — click to change",
+      "{name}: {mode, select, fill {drawn filled} outline {drawn as an outline} mixed {drawn differently} other {hidden}} — click to change",
   }),
 };

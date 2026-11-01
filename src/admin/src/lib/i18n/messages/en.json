@@ -251,6 +251,9 @@
   "connections.status.ok": {
     "defaultMessage": "Check passed"
   },
+  "counts.table.allSources": {
+    "defaultMessage": "All data sources"
+  },
   "counts.table.incomplete": {
     "defaultMessage": "{ok} of {days} days counted; {error, plural, =0 {none} one {# day} other {# days}} failed, {missing, plural, =0 {none} one {# day} other {# days}} not computed yet."
   },
@@ -747,7 +750,7 @@
     "defaultMessage": "{count} ({source})"
   },
   "sourceMode.label": {
-    "defaultMessage": "{source}: {mode, select, fill {drawn filled} outline {drawn as an outline} other {hidden}} — click to change"
+    "defaultMessage": "{name}: {mode, select, fill {drawn filled} outline {drawn as an outline} mixed {drawn differently} other {hidden}} — click to change"
   },
   "steps.card.add": {
     "defaultMessage": "Add step"

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { nextMode, parseModes, serializeModes } from "@/lib/source-modes";
+import type { DataSource } from "@/api/generated/model";
+import { allModes, commonMode, nextMode, parseModes, serializeModes } from "@/lib/source-modes";
+
+const source = (id: string) => ({ id }) as DataSource;
 
 describe("the source modes in the address", () => {
   it("reads what differs from the default and ignores the rest", () => {
@@ -21,5 +24,19 @@ describe("the source modes in the address", () => {
     expect(nextMode("fill")).toBe("outline");
     expect(nextMode("outline")).toBe("hidden");
     expect(nextMode("hidden")).toBe("fill");
+  });
+
+  it("knows the mode all sources share", () => {
+    const sources = [source("db"), source("warehouse")];
+    expect(commonMode(sources, {})).toBe("fill");
+    expect(commonMode(sources, { db: "hidden", warehouse: "hidden" })).toBe("hidden");
+    expect(commonMode(sources, { db: "outline" })).toBe("mixed");
+  });
+
+  it("puts every source in one mode", () => {
+    expect(allModes([source("db"), source("warehouse")], "outline")).toEqual({
+      db: "outline",
+      warehouse: "outline",
+    });
   });
 });

@@ -39,6 +39,16 @@ export const modeOf = (modes: SourceModes, source: DataSource): SourceMode =>
 export const nextMode = (mode: SourceMode): SourceMode =>
   mode === "fill" ? "outline" : mode === "outline" ? "hidden" : "fill";
 
+/** The mode every source is in, or `mixed` when they differ. */
+export function commonMode(sources: DataSource[], modes: SourceModes): SourceMode | "mixed" {
+  const distinct = new Set(sources.map((source) => modeOf(modes, source)));
+  return distinct.size === 1 ? [...distinct][0]! : "mixed";
+}
+
+/** Every source in the one mode. */
+export const allModes = (sources: DataSource[], mode: SourceMode): SourceModes =>
+  Object.fromEntries(sources.map((source) => [source.id, mode]));
+
 /** The sources to draw, in the funnel's order, with how. */
 export function shownSources(sources: DataSource[], modes: SourceModes): ShownSource[] {
   return sources.flatMap((source) => {
