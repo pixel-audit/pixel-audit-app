@@ -1,0 +1,173 @@
+# PixelAudit — values for an on-premise install.
+#
+# One release installs the API (with its boot Job: migrations and the
+# CONNECTION_* environment applied before the API pods roll out) and the
+# admin panel, each behind its own hostname on one Ingress. The only state
+# is the Postgres database: yours (database.url / database.existingSecret),
+# or the chart's own (postgresql.enabled).
+#
+# What has to be set: api.hostname, admin.hostname, a database, and the two
+# secrets (secrets.secretKeyBase, secrets.secretKey — or secrets.existingSecret).
+# deploy/examples/ has a minimal and an all-in-one values file.
+
+image:
+  # The images CI publishes to the GitHub Container Registry: public
+  # packages, so no pull secret is needed. The repository is the GitHub
+  # <organisation>/<repository> the code lives under (pixel-audit/pixel-audit-app);
+  # a fork publishes under its own.
+  registry: ghcr.io
+  # Images are <registry>/<repository>-api and <registry>/<repository>-admin,
+  # i.e. ghcr.io/pixel-audit/pixel-audit-app-api and ghcr.io/pixel-audit/pixel-audit-app-admin.
+  repository: pixel-audit/pixel-audit-app
+  # Which version to run — two ways:
+  #
+  #   A particular release: leave `tag` empty (the chart's appVersion, the
+  #   X.Y.Z of the vX.Y.Z release the chart came from) or name any released
+  #   X.Y.Z; pulled once (IfNotPresent).
+  #
+  #   The main branch: `trackLatest: true` runs the `latest` tag, which CI
+  #   moves on every push to main, with pullPolicy Always so every pod
+  #   start fetches the current one. A newer `latest` is picked up by
+  #   `helm upgrade` (the boot Job re-runs the migrations) followed by
+  #   `kubectl rollout restart deployment -l app.kubernetes.io/instance=<release>`.
+  #
+  # trackLatest overrides tag and pullPolicy in one switch.
+  tag: ""
+  pullPolicy: IfNotPresent
+  trackLatest: false
+  # Names of image pull Secrets in the release namespace — only for a
+  # private registry or a private fork (`kubectl create secret docker-registry ...`).
+  pullSecrets: []
+
+# How many pods, and where the deployments may run.
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+serviceAccount:
+  # Whether to create a ServiceAccount for the pods (one for all of them).
+  create: true
+  # Its name; empty: the release's full name.
+  name: ""
+  annotations: {}
+
+# Both containers run unprivileged: the API as the release's `nobody`,
+# nginx (the panel) as its unprivileged user. These apply to every pod.
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  # The API writes nothing to its filesystem; nginx needs its cache and pid
+  # directories writable, which the panel's Deployment mounts as emptyDirs.
+  readOnlyRootFilesystem: true
+
+api:
+  replicaCount: 1
+  # The public hostname the API is served under — HOSTNAME for the pods and
+  # the Ingress host. Required.
+  hostname: ""
+  # The port the container listens on (PORT).
+  port: 4000
+  # Size of the API's connection pool to its database (DATABASE_POOL_SIZE).
+  poolSize: 10
+  # Browser origins allowed to call the API (CORS_ORIGINS), on top of the
+  # admin panel's own origin, which is always allowed.
+  corsOrigins: []
+  # Extra environment for the API pods and the boot Job — the place for
+  # CONNECTION_* variables set inline (api.extraEnv) or from a Secret or
+  # ConfigMap you create (api.extraEnvFrom); see the README.
+  extraEnv: []
+  #  - name: CONNECTION_shop_TYPE
+  #    value: postgres
+  extraEnvFrom: []
+  #  - secretRef:
+  #      name: pixelaudit-connections
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 50m
+    limits:
+      memory: 512Mi
+      cpu: "1"
+  # The boot Job (migrations + CONNECTION_* sync), a pre-install/upgrade hook.
+  boot:
+    # How long the Job may take before Helm gives up on the release.
+    activeDeadlineSeconds: 600
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 512Mi
+        cpu: "1"
+
+admin:
+  replicaCount: 1
+  # The public hostname the panel is served under — the Ingress host, and
+  # what the API allows as a browser origin. Required.
+  hostname: ""
+  # The port nginx listens on (PORT).
+  port: 8080
+  resources:
+    requests:
+      memory: 16Mi
+      cpu: 5m
+    limits:
+      memory: 64Mi
+      cpu: 100m
+
+database:
+  # The API's database as a URL — postgres://user:password@host:5432/db,
+  # with ?sslmode=require (or verify-full) for TLS. Rendered into a Secret
+  # the chart creates. Leave empty to use database.existingSecret or the
+  # in-chart postgresql.
+  url: ""
+  # A Secret you create that holds the URL, and its key.
+  existingSecret: ""
+  existingSecretKey: DATABASE_URL
+
+secrets:
+  # SECRET_KEY_BASE: Phoenix's signing secret (`mix phx.gen.secret`, or
+  # `openssl rand -base64 64`). Rendered into a Secret the chart creates.
+  secretKeyBase: ""
+  # SECRET_KEY: the 256-bit key the connection credentials are encrypted
+  # with, as 64 hex characters (`openssl rand -hex 32`). Back it up with the
+  # database: without it the stored credentials cannot be read.
+  secretKey: ""
+  # A Secret you create instead, with the keys SECRET_KEY_BASE and SECRET_KEY.
+  existingSecret: ""
+
+ingress:
+  enabled: true
+  # The IngressClass; empty: the cluster's default.
+  className: ""
+  # e.g. cert-manager.io/cluster-issuer: letsencrypt
+  annotations: {}
+  # Serve both hostnames over TLS. The panel then calls the API over https,
+  # and the API allows the panel's https origin.
+  tls: true
+  # The TLS Secret for both hostnames; empty: <release full name>-tls, which
+  # cert-manager fills in when the annotation above names an issuer.
+  tlsSecretName: ""
+
+# The Bitnami PostgreSQL subchart, for an install with no Postgres of its
+# own. When enabled, DATABASE_URL is built from postgresql.auth below and
+# the subchart's Service (<release name>-postgresql). The password must be
+# URL-safe (letters, digits, - _ . ~).
+postgresql:
+  enabled: false
+  # What the boot Job waits for the database with on a first install (a
+  # busybox with `nc`), since the subchart's Postgres only exists once the
+  # release's resources are created.
+  waitImage: docker.io/library/busybox:1.37
+  auth:
+    username: pixelaudit
+    password: ""
+    database: pixelaudit
+  primary:
+    persistence:
+      size: 8Gi

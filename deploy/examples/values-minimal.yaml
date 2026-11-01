@@ -1,0 +1,38 @@
+# A minimal production-shaped install: your own Postgres, TLS from
+# cert-manager, one Meta connection defined by a Secret you create first:
+#
+#   kubectl -n pixelaudit create secret generic pixelaudit-connections \
+#     --from-literal=CONNECTION_fb_TYPE=meta-api \
+#     --from-literal=CONNECTION_fb_PIXEL_ID=123456789012345 \
+#     --from-literal=CONNECTION_fb_ACCESS_TOKEN=EAA...
+#
+# and the two keys (or put them inline under `secrets`):
+#
+#   kubectl -n pixelaudit create secret generic pixelaudit-keys \
+#     --from-literal=SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
+#     --from-literal=SECRET_KEY="$(openssl rand -hex 32)"
+#
+#   helm install pixelaudit oci://ghcr.io/pixel-audit/charts/pixelaudit \
+#     --namespace pixelaudit --create-namespace --atomic \
+#     --values values-minimal.yaml
+
+api:
+  hostname: pixelaudit-api.example.com
+  extraEnvFrom:
+    - secretRef:
+        name: pixelaudit-connections
+
+admin:
+  hostname: pixelaudit.example.com
+
+database:
+  url: postgres://pixelaudit:change-me@postgres.example.com:5432/pixelaudit?sslmode=require
+
+secrets:
+  existingSecret: pixelaudit-keys
+
+ingress:
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  tls: true

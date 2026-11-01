@@ -1,0 +1,34 @@
+# Like values-minimal.yaml, but running the main branch: the `latest`
+# images CI publishes on every push to main, re-fetched on every pod start.
+# After CI has moved `latest`, pick it up with
+#
+#   helm upgrade pixelaudit oci://ghcr.io/pixel-audit/charts/pixelaudit \
+#     --namespace pixelaudit --reuse-values --atomic
+#   kubectl -n pixelaudit rollout restart deployment -l app.kubernetes.io/instance=pixelaudit
+#
+# (the upgrade re-runs the boot Job, so a migration that came with the new
+# images is applied before the restart).
+
+image:
+  trackLatest: true
+
+api:
+  hostname: pixelaudit-api.example.com
+  extraEnvFrom:
+    - secretRef:
+        name: pixelaudit-connections
+
+admin:
+  hostname: pixelaudit.example.com
+
+database:
+  url: postgres://pixelaudit:change-me@postgres.example.com:5432/pixelaudit?sslmode=require
+
+secrets:
+  existingSecret: pixelaudit-keys
+
+ingress:
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  tls: true

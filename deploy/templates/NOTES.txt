@@ -1,0 +1,41 @@
+PixelAudit {{ .Chart.AppVersion }} is installed as release {{ .Release.Name }} in {{ .Release.Namespace }}.
+
+  Admin panel:  {{ include "pixelaudit.scheme" . }}://{{ .Values.admin.hostname }}
+  API:          {{ include "pixelaudit.scheme" . }}://{{ .Values.api.hostname }}
+  OpenAPI:      {{ include "pixelaudit.scheme" . }}://{{ .Values.api.hostname }}/openapi/admin.json
+
+The API has no authentication: keep both hostnames behind your network
+boundary (VPN, IP allow-list on the ingress, or an authenticating proxy).
+
+The boot Job ({{ include "pixelaudit.fullname" . }}-boot) ran the migrations
+and applied the CONNECTION_* variables before the API pods rolled out.
+{{- if .Values.api.extraEnvFrom }}
+Connections come from the Secret(s) under api.extraEnvFrom; after changing
+them, `helm upgrade` re-runs the boot Job so the rows follow.
+{{- else }}
+No CONNECTION_* variables were given: add connections in the panel, or
+through a Secret referenced by api.extraEnvFrom (see the chart's README).
+{{- end }}
+
+Back up the database together with SECRET_KEY: the connection credentials
+are encrypted with it, and a database restored without it cannot read them.
+{{- if .Values.postgresql.enabled }}
+
+The in-chart PostgreSQL ({{ .Release.Name }}-postgresql) holds all the state;
+it is meant for a try-out or a small install. For production, point
+database.url at a Postgres you back up.
+{{- end }}
+
+{{- if .Values.image.trackLatest }}
+
+Images: the `latest` tag (image.trackLatest), moved by every push to main.
+To pick up a newer one:
+  helm upgrade {{ .Release.Name }} <chart> --namespace {{ .Release.Namespace }} --reuse-values --atomic
+  kubectl -n {{ .Release.Namespace }} rollout restart deployment -l app.kubernetes.io/instance={{ .Release.Name }}
+{{- else }}
+
+Images: {{ include "pixelaudit.imageTag" . }} (image.tag, else the chart's appVersion).
+{{- end }}
+
+Status:  kubectl -n {{ .Release.Namespace }} get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+Logs:    kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "pixelaudit.fullname" . }}-api

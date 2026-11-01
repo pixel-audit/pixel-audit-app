@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+
+    <!-- Fonts loaded statically, not via a route's head() — otherwise they wait
+         for JS and the first render goes with the system fallback. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap"
+    />
+
+    <!-- Runtime configuration (the API address) — a plain, blocking script
+         so it has run before the bundle (a deferred module, which Vite
+         hoists into the head below this) starts. The values are read at
+         page load, not baked in at build time. See public/config.js. -->
+    <script src="/config.js"></script>
+
+    <!-- The placeholder until the breadcrumb bar names the page: the trail,
+         read from the other end, is document.title (AppBreadcrumbs). -->
+    <title>PixelAudit</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,746 @@
+{
+  "about.licence": {
+    "defaultMessage": "— free software under the GNU AGPL v3."
+  },
+  "about.name": {
+    "defaultMessage": "PixelAudit"
+  },
+  "app.backToDashboard": {
+    "defaultMessage": "Back to the dashboard"
+  },
+  "app.dashboard": {
+    "defaultMessage": "Dashboard"
+  },
+  "app.errorLead": {
+    "defaultMessage": "Try again or go back to the dashboard."
+  },
+  "app.errorTitle": {
+    "defaultMessage": "The view could not be loaded"
+  },
+  "app.notFoundLead": {
+    "defaultMessage": "This view does not exist or has been moved."
+  },
+  "app.notFoundTitle": {
+    "defaultMessage": "Page not found"
+  },
+  "app.tryAgain": {
+    "defaultMessage": "Try again"
+  },
+  "breadcrumbs.trail": {
+    "defaultMessage": "Breadcrumbs"
+  },
+  "common.add": {
+    "defaultMessage": "Add"
+  },
+  "common.back": {
+    "defaultMessage": "Back"
+  },
+  "common.cancel": {
+    "defaultMessage": "Cancel"
+  },
+  "common.close": {
+    "defaultMessage": "Close"
+  },
+  "common.delete": {
+    "defaultMessage": "Delete"
+  },
+  "common.edit": {
+    "defaultMessage": "Edit"
+  },
+  "common.loading": {
+    "defaultMessage": "Loading…"
+  },
+  "common.no": {
+    "defaultMessage": "No"
+  },
+  "common.none": {
+    "defaultMessage": "—"
+  },
+  "common.notSet": {
+    "defaultMessage": "Not set"
+  },
+  "common.nothingMatches": {
+    "defaultMessage": "Nothing matches."
+  },
+  "common.retry": {
+    "defaultMessage": "Retry"
+  },
+  "common.save": {
+    "defaultMessage": "Save"
+  },
+  "common.search": {
+    "defaultMessage": "Search…"
+  },
+  "common.yes": {
+    "defaultMessage": "Yes"
+  },
+  "connections.credential": {
+    "defaultMessage": "{key}: {value}"
+  },
+  "connections.detail.check": {
+    "defaultMessage": "Check connection"
+  },
+  "connections.detail.checkError": {
+    "defaultMessage": "The check could not be run."
+  },
+  "connections.detail.checkFailed": {
+    "defaultMessage": "The check failed: {error}"
+  },
+  "connections.detail.checkOk": {
+    "defaultMessage": "The connection works."
+  },
+  "connections.detail.checkedAt": {
+    "defaultMessage": "Checked at"
+  },
+  "connections.detail.credentials": {
+    "defaultMessage": "Credentials"
+  },
+  "connections.detail.deleteBlocked": {
+    "defaultMessage": "A data source still reads through this connection. Point it at another connection or delete it first."
+  },
+  "connections.detail.deleteDescription": {
+    "defaultMessage": "Its cached pixel stats go with it. This cannot be undone."
+  },
+  "connections.detail.deleteFailed": {
+    "defaultMessage": "The connection could not be deleted."
+  },
+  "connections.detail.deleteTitle": {
+    "defaultMessage": "Delete \"{name}\"?"
+  },
+  "connections.detail.deleted": {
+    "defaultMessage": "Connection \"{name}\" deleted."
+  },
+  "connections.detail.error": {
+    "defaultMessage": "Error"
+  },
+  "connections.detail.lastCheck": {
+    "defaultMessage": "Last check"
+  },
+  "connections.detail.managed": {
+    "defaultMessage": "From environment"
+  },
+  "connections.detail.managedDetail": {
+    "defaultMessage": "The CONNECTION_{code}_* environment variables, applied by the boot role."
+  },
+  "connections.detail.outcome": {
+    "defaultMessage": "Outcome"
+  },
+  "connections.detail.refresh": {
+    "defaultMessage": "Pull pixel stats"
+  },
+  "connections.detail.refreshDescription": {
+    "defaultMessage": "Meta serves about the last seven days of hourly stats; days older than that come back empty. The pull is queued and listed under Refreshes."
+  },
+  "connections.detail.refreshFailed": {
+    "defaultMessage": "The pull could not be queued."
+  },
+  "connections.detail.refreshQueued": {
+    "defaultMessage": "The pull is queued."
+  },
+  "connections.detail.refreshTitle": {
+    "defaultMessage": "Pull the pixel's stats"
+  },
+  "connections.detail.secretSet": {
+    "defaultMessage": "Set (hidden)"
+  },
+  "connections.detail.source": {
+    "defaultMessage": "Defined by"
+  },
+  "connections.detail.subject": {
+    "defaultMessage": "connection"
+  },
+  "connections.dialog.addTitle": {
+    "defaultMessage": "Add a connection"
+  },
+  "connections.dialog.code": {
+    "defaultMessage": "Code"
+  },
+  "connections.dialog.codeHint": {
+    "defaultMessage": "Lowercase letters and digits; the id in the CONNECTION_code_* variables. Cannot be changed later."
+  },
+  "connections.dialog.description": {
+    "defaultMessage": "Description"
+  },
+  "connections.dialog.editTitle": {
+    "defaultMessage": "Edit the connection"
+  },
+  "connections.dialog.failed": {
+    "defaultMessage": "The connection could not be saved."
+  },
+  "connections.dialog.managed": {
+    "defaultMessage": "This connection is defined by the environment: its type and credentials are set at boot and cannot be edited here."
+  },
+  "connections.dialog.name": {
+    "defaultMessage": "Name"
+  },
+  "connections.dialog.saved": {
+    "defaultMessage": "Connection \"{name}\" saved."
+  },
+  "connections.dialog.type": {
+    "defaultMessage": "Type"
+  },
+  "connections.list.add": {
+    "defaultMessage": "Add connection"
+  },
+  "connections.list.empty": {
+    "defaultMessage": "No connections yet. Add one here, or define it with CONNECTION_* variables and run the boot role."
+  },
+  "connections.list.managed": {
+    "defaultMessage": "From environment"
+  },
+  "connections.list.noPreview": {
+    "defaultMessage": "Credentials set"
+  },
+  "connections.list.title": {
+    "defaultMessage": "Connections"
+  },
+  "connections.status.failed": {
+    "defaultMessage": "Check failed"
+  },
+  "connections.status.ok": {
+    "defaultMessage": "Check passed"
+  },
+  "counts.table.incomplete": {
+    "defaultMessage": "{ok} of {days} days counted; {error, plural, =0 {none} one {# day} other {# days}} failed, {missing, plural, =0 {none} one {# day} other {# days}} not computed yet."
+  },
+  "counts.table.incompleteLabel": {
+    "defaultMessage": "Incomplete"
+  },
+  "counts.table.noCount": {
+    "defaultMessage": "…"
+  },
+  "counts.table.notMeasured": {
+    "defaultMessage": "—"
+  },
+  "counts.table.source": {
+    "defaultMessage": "Data source"
+  },
+  "crud.details.title": {
+    "defaultMessage": "Details"
+  },
+  "crud.item.gone": {
+    "defaultMessage": "This {resource} doesn't exist or has been deleted."
+  },
+  "crud.item.loadFailed": {
+    "defaultMessage": "Could not load the {resource}."
+  },
+  "crud.list.loadFailed": {
+    "defaultMessage": "Could not load the {resource}."
+  },
+  "dashboard.addFirst": {
+    "defaultMessage": "Add the first one."
+  },
+  "dashboard.lead": {
+    "defaultMessage": "The funnels and what was refreshed last."
+  },
+  "dashboard.noFunnels": {
+    "defaultMessage": "No funnels yet."
+  },
+  "dashboard.sources": {
+    "defaultMessage": "{sources, plural, =0 {No data sources yet} one {# data source: {names}} other {# data sources: {names}}}"
+  },
+  "dashboard.steps": {
+    "defaultMessage": "{steps, plural, =0 {No steps yet} one {# step: {names}} other {# steps: {names}}}"
+  },
+  "dashboard.title": {
+    "defaultMessage": "Dashboard"
+  },
+  "dataSources.card.add": {
+    "defaultMessage": "Add data source"
+  },
+  "dataSources.card.deleteDescription": {
+    "defaultMessage": "Its step parameters and cached counts go with it."
+  },
+  "dataSources.card.deleteFailed": {
+    "defaultMessage": "The data source could not be deleted."
+  },
+  "dataSources.card.deleteTitle": {
+    "defaultMessage": "Delete the data source \"{name}\"?"
+  },
+  "dataSources.card.deleted": {
+    "defaultMessage": "Data source \"{name}\" deleted."
+  },
+  "dataSources.card.description": {
+    "defaultMessage": "Where the counts come from. Several sources on one funnel show how far the networks disagree."
+  },
+  "dataSources.card.empty": {
+    "defaultMessage": "No data sources yet."
+  },
+  "dataSources.card.setting": {
+    "defaultMessage": "{key}: {value}"
+  },
+  "dataSources.card.title": {
+    "defaultMessage": "Data sources"
+  },
+  "dataSources.card.via": {
+    "defaultMessage": "Through {connection} ({type})"
+  },
+  "dataSources.dialog.addTitle": {
+    "defaultMessage": "Add a data source"
+  },
+  "dataSources.dialog.code": {
+    "defaultMessage": "Code"
+  },
+  "dataSources.dialog.codeHint": {
+    "defaultMessage": "Lowercase letters and digits, unique within the funnel. Cannot be changed later."
+  },
+  "dataSources.dialog.color": {
+    "defaultMessage": "Colour"
+  },
+  "dataSources.dialog.colorHint": {
+    "defaultMessage": "How the source is drawn on the funnel chart."
+  },
+  "dataSources.dialog.connection": {
+    "defaultMessage": "Connection"
+  },
+  "dataSources.dialog.connectionHint": {
+    "defaultMessage": "A connection of type {type}."
+  },
+  "dataSources.dialog.description": {
+    "defaultMessage": "Description"
+  },
+  "dataSources.dialog.editTitle": {
+    "defaultMessage": "Edit the data source"
+  },
+  "dataSources.dialog.failed": {
+    "defaultMessage": "The data source could not be saved."
+  },
+  "dataSources.dialog.name": {
+    "defaultMessage": "Name"
+  },
+  "dataSources.dialog.noConnections": {
+    "defaultMessage": "No connection of this type yet — add one under Connections."
+  },
+  "dataSources.dialog.randomColor": {
+    "defaultMessage": "Random"
+  },
+  "dataSources.dialog.saved": {
+    "defaultMessage": "Data source \"{name}\" saved."
+  },
+  "dataSources.dialog.subject": {
+    "defaultMessage": "data source"
+  },
+  "dataSources.dialog.type": {
+    "defaultMessage": "Type"
+  },
+  "dateRange.from": {
+    "defaultMessage": "From"
+  },
+  "dateRange.last30": {
+    "defaultMessage": "Last 30 days"
+  },
+  "dateRange.last7": {
+    "defaultMessage": "Last 7 days"
+  },
+  "dateRange.last90": {
+    "defaultMessage": "Last 90 days"
+  },
+  "dateRange.presets": {
+    "defaultMessage": "Range presets"
+  },
+  "dateRange.previousMonth": {
+    "defaultMessage": "Previous month"
+  },
+  "dateRange.thisMonth": {
+    "defaultMessage": "This month"
+  },
+  "dateRange.to": {
+    "defaultMessage": "To"
+  },
+  "funnels.detail.deleteDescription": {
+    "defaultMessage": "Its steps, data sources and every cached count go with it. This cannot be undone."
+  },
+  "funnels.detail.deleteFailed": {
+    "defaultMessage": "The funnel could not be deleted."
+  },
+  "funnels.detail.deleteTitle": {
+    "defaultMessage": "Delete the funnel \"{name}\"?"
+  },
+  "funnels.detail.deleted": {
+    "defaultMessage": "Funnel \"{name}\" deleted."
+  },
+  "funnels.detail.setup": {
+    "defaultMessage": "Setup"
+  },
+  "funnels.detail.tabs": {
+    "defaultMessage": "Funnel tabs"
+  },
+  "funnels.detail.view": {
+    "defaultMessage": "View"
+  },
+  "funnels.dialog.addTitle": {
+    "defaultMessage": "Add a funnel"
+  },
+  "funnels.dialog.code": {
+    "defaultMessage": "Code"
+  },
+  "funnels.dialog.codeHint": {
+    "defaultMessage": "Lowercase letters and digits. Cannot be changed later."
+  },
+  "funnels.dialog.description": {
+    "defaultMessage": "Description"
+  },
+  "funnels.dialog.editTitle": {
+    "defaultMessage": "Edit the funnel"
+  },
+  "funnels.dialog.failed": {
+    "defaultMessage": "The funnel could not be saved."
+  },
+  "funnels.dialog.name": {
+    "defaultMessage": "Name"
+  },
+  "funnels.dialog.saved": {
+    "defaultMessage": "Funnel \"{name}\" saved."
+  },
+  "funnels.list.add": {
+    "defaultMessage": "Add funnel"
+  },
+  "funnels.list.empty": {
+    "defaultMessage": "No funnels yet. Add one, then give it steps and data sources."
+  },
+  "funnels.list.summary": {
+    "defaultMessage": "{steps, plural, one {# step} other {# steps}} · {sources, plural, one {# data source} other {# data sources}}"
+  },
+  "funnels.list.title": {
+    "defaultMessage": "Funnels"
+  },
+  "header.sections": {
+    "defaultMessage": "Sections"
+  },
+  "nav.connections": {
+    "defaultMessage": "Connections"
+  },
+  "nav.dashboard": {
+    "defaultMessage": "Dashboard"
+  },
+  "nav.funnels": {
+    "defaultMessage": "Funnels"
+  },
+  "nav.refreshes": {
+    "defaultMessage": "Refreshes"
+  },
+  "parameters.card.cellLabel": {
+    "defaultMessage": "{source}: {step}"
+  },
+  "parameters.card.description": {
+    "defaultMessage": "What each data source needs to count each step. A change recomputes the source's recent days."
+  },
+  "parameters.card.empty": {
+    "defaultMessage": "Add at least one step and one data source first."
+  },
+  "parameters.card.notSet": {
+    "defaultMessage": "Not measured"
+  },
+  "parameters.card.set": {
+    "defaultMessage": "Measured"
+  },
+  "parameters.card.source": {
+    "defaultMessage": "Data source"
+  },
+  "parameters.card.title": {
+    "defaultMessage": "Step parameters"
+  },
+  "parameters.dialog.clear": {
+    "defaultMessage": "Stop measuring"
+  },
+  "parameters.dialog.clearFailed": {
+    "defaultMessage": "The parameters could not be cleared."
+  },
+  "parameters.dialog.clearHint": {
+    "defaultMessage": "The source's cached counts for this step go with the parameters."
+  },
+  "parameters.dialog.cleared": {
+    "defaultMessage": "The step is no longer measured by this source."
+  },
+  "parameters.dialog.failed": {
+    "defaultMessage": "The parameters could not be saved."
+  },
+  "parameters.dialog.saved": {
+    "defaultMessage": "Parameters saved; the recent days are being recomputed."
+  },
+  "parameters.dialog.title": {
+    "defaultMessage": "{source} → {step}"
+  },
+  "refresh.dialog.from": {
+    "defaultMessage": "From"
+  },
+  "refresh.dialog.submit": {
+    "defaultMessage": "Refresh"
+  },
+  "refresh.dialog.to": {
+    "defaultMessage": "To"
+  },
+  "refreshRun.detail.back": {
+    "defaultMessage": "Back to refreshes"
+  },
+  "refreshRun.detail.connection": {
+    "defaultMessage": "Connection"
+  },
+  "refreshRun.detail.count": {
+    "defaultMessage": "Count"
+  },
+  "refreshRun.detail.dataSource": {
+    "defaultMessage": "Data source"
+  },
+  "refreshRun.detail.day": {
+    "defaultMessage": "Day"
+  },
+  "refreshRun.detail.days": {
+    "defaultMessage": "Days"
+  },
+  "refreshRun.detail.daysLead": {
+    "defaultMessage": "Every step and day this run computed. A later run of the same days takes them over, so an older run may list fewer."
+  },
+  "refreshRun.detail.details": {
+    "defaultMessage": "Run"
+  },
+  "refreshRun.detail.error": {
+    "defaultMessage": "Error"
+  },
+  "refreshRun.detail.finishedAt": {
+    "defaultMessage": "Finished"
+  },
+  "refreshRun.detail.funnel": {
+    "defaultMessage": "Funnel"
+  },
+  "refreshRun.detail.noDays": {
+    "defaultMessage": "No days from this run are on record — it has not run yet, or a later run recomputed them."
+  },
+  "refreshRun.detail.ok": {
+    "defaultMessage": "Counted"
+  },
+  "refreshRun.detail.outcome": {
+    "defaultMessage": "Outcome"
+  },
+  "refreshRun.detail.queuedAt": {
+    "defaultMessage": "Queued"
+  },
+  "refreshRun.detail.startedAt": {
+    "defaultMessage": "Started"
+  },
+  "refreshRun.detail.step": {
+    "defaultMessage": "Step"
+  },
+  "refreshRun.kind.dataSource": {
+    "defaultMessage": "Daily counts"
+  },
+  "refreshRun.kind.metaPixel": {
+    "defaultMessage": "Meta pixel stats"
+  },
+  "refreshRun.status.done": {
+    "defaultMessage": "Done"
+  },
+  "refreshRun.status.failed": {
+    "defaultMessage": "Failed"
+  },
+  "refreshRun.status.queued": {
+    "defaultMessage": "Queued"
+  },
+  "refreshRun.status.running": {
+    "defaultMessage": "Running"
+  },
+  "refreshRun.trigger.change": {
+    "defaultMessage": "After a change"
+  },
+  "refreshRun.trigger.cron": {
+    "defaultMessage": "Scheduled"
+  },
+  "refreshRun.trigger.manual": {
+    "defaultMessage": "Manual"
+  },
+  "refreshRuns.list.anyKind": {
+    "defaultMessage": "Any kind"
+  },
+  "refreshRuns.list.anyStatus": {
+    "defaultMessage": "Any status"
+  },
+  "refreshRuns.list.done": {
+    "defaultMessage": "Done"
+  },
+  "refreshRuns.list.empty": {
+    "defaultMessage": "No refresh runs match."
+  },
+  "refreshRuns.list.failed": {
+    "defaultMessage": "Failed"
+  },
+  "refreshRuns.list.kind": {
+    "defaultMessage": "Kind"
+  },
+  "refreshRuns.list.queued": {
+    "defaultMessage": "Queued"
+  },
+  "refreshRuns.list.range": {
+    "defaultMessage": "{range} · queued {queued}"
+  },
+  "refreshRuns.list.running": {
+    "defaultMessage": "Running"
+  },
+  "refreshRuns.list.status": {
+    "defaultMessage": "Status"
+  },
+  "refreshRuns.list.title": {
+    "defaultMessage": "Refreshes"
+  },
+  "refusal.connectionInUse": {
+    "defaultMessage": "A data source still reads through this connection. Move it first."
+  },
+  "refusal.connectionTypeMismatch": {
+    "defaultMessage": "The connection is not of the type this data source reads through."
+  },
+  "refusal.invalidDate": {
+    "defaultMessage": "Both dates are needed, as YYYY-MM-DD."
+  },
+  "refusal.invalidDateRange": {
+    "defaultMessage": "The range's end lies before its start."
+  },
+  "refusal.invalidOrder": {
+    "defaultMessage": "The order must name every step of the funnel exactly once."
+  },
+  "refusal.item": {
+    "defaultMessage": "item"
+  },
+  "refusal.managedByEnv": {
+    "defaultMessage": "This connection's type and credentials come from the environment (CONNECTION_* variables) and cannot be changed here."
+  },
+  "refusal.notAMetaConnection": {
+    "defaultMessage": "Only a Meta connection has pixel stats to pull."
+  },
+  "refusal.notFound": {
+    "defaultMessage": "This {subject} no longer exists."
+  },
+  "refusal.rangeTooLarge": {
+    "defaultMessage": "The range is too long: at most 366 days at a time."
+  },
+  "refusal.unknown": {
+    "defaultMessage": "The API refused the request ({detail})."
+  },
+  "report.loadFailed": {
+    "defaultMessage": "The report could not be loaded."
+  },
+  "report.notConfigured": {
+    "defaultMessage": "Give the funnel steps and a data source under Setup to see its report."
+  },
+  "report.refresh": {
+    "defaultMessage": "Refresh"
+  },
+  "report.refreshDescription": {
+    "defaultMessage": "Every data source counts every day of the range again, in the background. Meta sources pull the pixel's stats first — Meta serves about the last seven days."
+  },
+  "report.refreshFailed": {
+    "defaultMessage": "The refresh could not be queued."
+  },
+  "report.refreshQueued": {
+    "defaultMessage": "{runs, plural, one {# refresh run} other {# refresh runs}} queued — see Refreshes."
+  },
+  "report.refreshTitle": {
+    "defaultMessage": "Recompute the funnel"
+  },
+  "report.subject": {
+    "defaultMessage": "report"
+  },
+  "routes.back.connections": {
+    "defaultMessage": "Back to connections"
+  },
+  "routes.back.funnels": {
+    "defaultMessage": "Back to funnels"
+  },
+  "routes.back.refreshes": {
+    "defaultMessage": "Back to refreshes"
+  },
+  "sankey.chartLabel": {
+    "defaultMessage": "The funnel: each data source's count per step, over one another"
+  },
+  "sankey.nodeTitle": {
+    "defaultMessage": "{source} — {step}: {count}{estimated, plural, =0 {} other { (not measured; the median of the other sources)}}{partial, plural, =0 {} other { (some days missing)}}"
+  },
+  "sankey.nothingMeasured": {
+    "defaultMessage": "The shown data sources measure none of the steps yet — set their parameters under Setup."
+  },
+  "sankey.nothingShown": {
+    "defaultMessage": "Every data source is hidden — switch one on in the table below."
+  },
+  "sankey.ribbonTitle": {
+    "defaultMessage": "{source} — {from} ({fromCount}) → {to} ({toCount})"
+  },
+  "sankey.step.average": {
+    "defaultMessage": "Average"
+  },
+  "sankey.step.averageOf": {
+    "defaultMessage": "{count} over {sources, plural, one {# source} other {# sources}}"
+  },
+  "sankey.step.max": {
+    "defaultMessage": "Highest"
+  },
+  "sankey.step.min": {
+    "defaultMessage": "Lowest"
+  },
+  "sankey.step.unmeasured": {
+    "defaultMessage": "No data source measures this step yet."
+  },
+  "sankey.step.valueOf": {
+    "defaultMessage": "{count} ({source})"
+  },
+  "sourceMode.label": {
+    "defaultMessage": "{source}: {mode, select, fill {drawn filled} outline {drawn as an outline} other {hidden}} — click to change"
+  },
+  "steps.card.add": {
+    "defaultMessage": "Add step"
+  },
+  "steps.card.deleteDescription": {
+    "defaultMessage": "Every data source's parameters and cached counts for this step go with it."
+  },
+  "steps.card.deleteFailed": {
+    "defaultMessage": "The step could not be deleted."
+  },
+  "steps.card.deleteTitle": {
+    "defaultMessage": "Delete the step \"{name}\"?"
+  },
+  "steps.card.deleted": {
+    "defaultMessage": "Step \"{name}\" deleted."
+  },
+  "steps.card.description": {
+    "defaultMessage": "The user journey, first step at the top. Each data source counts each step its own way."
+  },
+  "steps.card.empty": {
+    "defaultMessage": "No steps yet."
+  },
+  "steps.card.moveDown": {
+    "defaultMessage": "Move down"
+  },
+  "steps.card.moveUp": {
+    "defaultMessage": "Move up"
+  },
+  "steps.card.reorderFailed": {
+    "defaultMessage": "The steps could not be reordered."
+  },
+  "steps.card.subject": {
+    "defaultMessage": "step"
+  },
+  "steps.card.title": {
+    "defaultMessage": "Steps"
+  },
+  "steps.dialog.addTitle": {
+    "defaultMessage": "Add a step"
+  },
+  "steps.dialog.code": {
+    "defaultMessage": "Code"
+  },
+  "steps.dialog.codeHint": {
+    "defaultMessage": "Lowercase letters and digits, unique within the funnel. Cannot be changed later."
+  },
+  "steps.dialog.description": {
+    "defaultMessage": "Description"
+  },
+  "steps.dialog.editTitle": {
+    "defaultMessage": "Edit the step"
+  },
+  "steps.dialog.failed": {
+    "defaultMessage": "The step could not be saved."
+  },
+  "steps.dialog.name": {
+    "defaultMessage": "Name"
+  },
+  "steps.dialog.saved": {
+    "defaultMessage": "Step \"{name}\" saved."
+  }
+}

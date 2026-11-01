@@ -1,0 +1,51 @@
+{{- if .Values.ingress.enabled }}
+{{- $fullname := include "pixelaudit.fullname" . -}}
+{{- $apiHost := required "api.hostname is required" .Values.api.hostname -}}
+{{- $adminHost := required "admin.hostname is required" .Values.admin.hostname -}}
+# Both hostnames on one Ingress: the API and the panel. With ingress.tls
+# one TLS Secret covers both — cert-manager fills it in when
+# ingress.annotations names an issuer, or create it yourself under
+# ingress.tlsSecretName.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullname }}
+  labels:
+    {{- include "pixelaudit.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ $apiHost }}
+        - {{ $adminHost }}
+      secretName: {{ .Values.ingress.tlsSecretName | default (printf "%s-tls" $fullname) }}
+  {{- end }}
+  rules:
+    - host: {{ $apiHost }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullname }}-api
+                port:
+                  name: http
+    - host: {{ $adminHost }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $fullname }}-admin
+                port:
+                  name: http
+{{- end }}

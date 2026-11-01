@@ -1,0 +1,32 @@
+apiVersion: v2
+name: pixelaudit
+description: PixelAudit — the API and the admin panel, for an on-premise Kubernetes install. Monitors the delivery of events to Meta, Google Analytics and Google Ads by comparing funnel step counts across data sources.
+type: application
+# The chart's own version and the application version (the image tag the
+# chart installs by default) are bumped together on a release.
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.28.0-0"
+home: https://github.com/pixel-audit/pixel-audit-app
+sources:
+  - https://github.com/pixel-audit/pixel-audit-app
+keywords:
+  - analytics
+  - meta-pixel
+  - google-analytics
+  - google-ads
+  - monitoring
+annotations:
+  artifacthub.io/license: AGPL-3.0-only
+  artifacthub.io/images: |
+    - name: pixelaudit-api
+      image: ghcr.io/pixel-audit/pixel-audit-app-api:0.1.0
+    - name: pixelaudit-admin
+      image: ghcr.io/pixel-audit/pixel-audit-app-admin:0.1.0
+dependencies:
+  # An in-cluster PostgreSQL for try-outs and small installs. Off by
+  # default: a production install points database.url at its own Postgres.
+  - name: postgresql
+    version: "16.7.27"
+    repository: oci://registry-1.docker.io/bitnamicharts
+    condition: postgresql.enabled

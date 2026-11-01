@@ -1,0 +1,221 @@
+# Tests, builds and publishes. Nothing here deploys: PixelAudit is installed
+# by whoever runs it, with the Helm chart in deploy/.
+#
+# Every push and pull request tests the API (`mix precommit` against a
+# Postgres service), the admin panel (`npm run check`) and the chart
+# (`helm lint` with each example, the rendered manifests through
+# kubeconform), then builds both images. The images are pushed to the
+# GitHub Container Registry — public packages, so the chart needs no pull
+# secret — on a push to main and on a release tag, never from a pull
+# request:
+#
+#   ghcr.io/<owner>/<repo>-api        ghcr.io/<owner>/<repo>-admin
+#   (ghcr.io/pixel-audit/pixel-audit-app-api and -admin for the main repository)
+#     :latest        every push to main
+#     :sha-<short>   every push
+#     :X.Y.Z, :vX.Y.Z   a vX.Y.Z tag
+#
+# A vX.Y.Z tag also packages the chart as version X.Y.Z (appVersion X.Y.Z,
+# so the chart installs the images of the same release) and pushes it to
+# oci://ghcr.io/<owner>/charts/pixelaudit (oci://ghcr.io/pixel-audit/charts/pixelaudit).
+
+name: Test, build, publish
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  test-api:
+    name: API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 15460:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MIX_ENV: test
+      POSTGRES_PORT: "15460"
+    steps:
+      - uses: actions/checkout@v4
+
+      # Erlang and Elixir follow .tool-versions in the repo root.
+      - uses: erlef/setup-beam@v1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            src/api/deps
+            src/api/_build
+          key: mix-${{ runner.os }}-${{ hashFiles('.tool-versions', 'src/api/mix.lock') }}
+          restore-keys: mix-${{ runner.os }}-
+
+      - name: Install dependencies
+        working-directory: src/api
+        run: mix deps.get
+
+      # Compile without warnings, unused deps, formatting, tests.
+      - name: Check
+        working-directory: src/api
+        run: mix precommit
+
+  test-admin:
+    name: Admin panel checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node follows .tool-versions in the repo root.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+          cache-dependency-path: src/admin/package-lock.json
+
+      - name: Install dependencies
+        working-directory: src/admin
+        run: npm ci
+
+      # Types, lint, i18n catalogues and tests.
+      - name: Check
+        working-directory: src/admin
+        run: npm run check
+
+  helm:
+    name: Helm chart
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - name: Install kubeconform
+        env:
+          KUBECONFORM_VERSION: v0.6.7
+        run: |
+          curl -fsSL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" \
+            | tar -xz -C /usr/local/bin kubeconform
+
+      - name: Fetch the chart's dependencies
+        run: helm dependency build deploy
+
+      - name: Lint with every example
+        run: |
+          for values in deploy/examples/*.yaml; do
+            helm lint deploy --strict --values "$values"
+          done
+
+      - name: Render and validate the manifests
+        run: |
+          for values in deploy/examples/*.yaml; do
+            helm template pixelaudit deploy --values "$values" \
+              | kubeconform -strict -ignore-missing-schemas -summary
+          done
+
+  build:
+    name: Build ${{ matrix.component }} image
+    needs: [test-api, test-admin, helm]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [api, admin]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Sign in to the registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # <owner>/<repo>-<component>, lowercase (a GitHub name need not be):
+      # the same rule as the chart's image.repository, so a fork publishes
+      # under its own name.
+      - name: Image name
+        id: name
+        run: echo "image=${REGISTRY}/${REPOSITORY,,}-${{ matrix.component }}" >> "$GITHUB_OUTPUT"
+        env:
+          REPOSITORY: ${{ github.repository }}
+
+      - name: Tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.name.outputs.image }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern=v{{version}}
+            type=sha
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: src/${{ matrix.component }}
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            RELEASE_SHA=${{ github.sha }}
+            RELEASE_TIMESTAMP=${{ github.event.head_commit.timestamp }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,scope=${{ matrix.component }},mode=max
+
+  chart:
+    name: Publish the chart
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - name: Sign in to the registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+
+      # vX.Y.Z -> chart version X.Y.Z and appVersion X.Y.Z, so the chart
+      # installs the images published under the same tag.
+      - name: Package and push
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          helm dependency build deploy
+          helm package deploy --version "$version" --app-version "$version" --destination dist
+          helm push "dist/pixelaudit-${version}.tgz" "oci://${REGISTRY}/${OWNER,,}/charts"

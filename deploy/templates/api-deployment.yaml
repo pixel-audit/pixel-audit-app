@@ -1,0 +1,86 @@
+# The Phoenix API (the image's `web` role). The boot hook Job has migrated
+# the database and applied the CONNECTION_* environment before these pods
+# roll out.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pixelaudit.fullname" . }}-api
+  labels:
+    {{- include "pixelaudit.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      {{- include "pixelaudit.selectorLabels" (dict "root" . "component" "api") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "pixelaudit.selectorLabels" (dict "root" . "component" "api") | nindent 8 }}
+      annotations:
+        # A changed inline secret rolls the pods.
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ include "pixelaudit.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      {{- include "pixelaudit.imagePullSecrets" . | nindent 6 }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: api
+          image: {{ include "pixelaudit.image" (dict "root" . "component" "api") | quote }}
+          imagePullPolicy: {{ include "pixelaudit.imagePullPolicy" . }}
+          args: ["web"]
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            timeoutSeconds: 3
+          env:
+            {{- include "pixelaudit.apiEnv" . | nindent 12 }}
+          {{- include "pixelaudit.apiEnvFrom" . | nindent 10 }}
+          {{- with .Values.api.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            # The release writes nothing, but the Erlang VM wants a tmp.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

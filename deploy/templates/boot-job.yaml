@@ -1,0 +1,83 @@
+# The API image's `boot` role — create the database if needed, run the
+# pending migrations, map the CONNECTION_* environment onto connection rows
+# — as a pre-install/upgrade hook: it completes before the new API pods
+# roll out, and a failure (a bad migration, a malformed CONNECTION_* set)
+# fails the release, rolled back by --atomic, without touching the running
+# pods. It carries the same environment as the API pods, so the connections
+# it writes are the ones the pods then serve.
+#
+# With the in-chart postgresql there is no database before the release's
+# own resources exist, so the first install runs it post-install instead
+# (the API pods restart until it is through) with an init container that
+# waits for Postgres; upgrades are pre-upgrade as usual.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "pixelaudit.fullname" . }}-boot
+  labels:
+    {{- include "pixelaudit.labels" . | nindent 4 }}
+    app.kubernetes.io/component: boot
+  annotations:
+    "helm.sh/hook": {{ if .Values.postgresql.enabled }}post-install,pre-upgrade{{ else }}pre-install,pre-upgrade{{ end }}
+    "helm.sh/hook-weight": "0"
+    # A completed Job is immutable, so the previous run is deleted before a
+    # new one is created; successful runs are cleaned up, failed ones stay
+    # for `kubectl logs`.
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: {{ .Values.api.boot.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "pixelaudit.selectorLabels" (dict "root" . "component" "boot") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "pixelaudit.serviceAccountName" . }}
+      automountServiceAccountToken: false
+      {{- include "pixelaudit.imagePullSecrets" . | nindent 6 }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.postgresql.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: {{ .Values.postgresql.waitImage | quote }}
+          imagePullPolicy: IfNotPresent
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z {{ .Release.Name }}-postgresql 5432; do
+                echo "waiting for {{ .Release.Name }}-postgresql:5432"; sleep 2
+              done
+      {{- end }}
+      containers:
+        - name: boot
+          image: {{ include "pixelaudit.image" (dict "root" . "component" "api") | quote }}
+          imagePullPolicy: {{ include "pixelaudit.imagePullPolicy" . }}
+          args: ["boot"]
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- include "pixelaudit.apiEnv" . | nindent 12 }}
+          {{- include "pixelaudit.apiEnvFrom" . | nindent 10 }}
+          {{- with .Values.api.boot.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

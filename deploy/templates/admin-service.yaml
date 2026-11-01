@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pixelaudit.fullname" . }}-admin
+  labels:
+    {{- include "pixelaudit.labels" . | nindent 4 }}
+    app.kubernetes.io/component: admin
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "pixelaudit.selectorLabels" (dict "root" . "component" "admin") | nindent 4 }}

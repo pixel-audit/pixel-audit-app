@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PixelAudit chart values",
+  "type": "object",
+  "required": ["image", "api", "admin", "database", "secrets", "ingress", "postgresql"],
+  "properties": {
+    "image": {
+      "type": "object",
+      "required": ["registry", "repository"],
+      "properties": {
+        "registry": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 },
+        "tag": { "type": "string" },
+        "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] },
+        "trackLatest": { "type": "boolean" },
+        "pullSecrets": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "nodeSelector": { "type": "object" },
+    "tolerations": { "type": "array" },
+    "affinity": { "type": "object" },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "create": { "type": "boolean" },
+        "name": { "type": "string" },
+        "annotations": { "type": "object" }
+      }
+    },
+    "podSecurityContext": { "type": "object" },
+    "securityContext": { "type": "object" },
+    "api": {
+      "type": "object",
+      "required": ["hostname"],
+      "properties": {
+        "replicaCount": { "type": "integer", "minimum": 0 },
+        "hostname": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+          "description": "The API's public hostname, e.g. pixelaudit-api.example.com"
+        },
+        "port": { "type": "integer", "minimum": 1024, "maximum": 65535 },
+        "poolSize": { "type": "integer", "minimum": 1 },
+        "corsOrigins": { "type": "array", "items": { "type": "string", "pattern": "^https?://" } },
+        "extraEnv": { "type": "array", "items": { "type": "object", "required": ["name"] } },
+        "extraEnvFrom": { "type": "array", "items": { "type": "object" } },
+        "resources": { "type": "object" },
+        "boot": {
+          "type": "object",
+          "properties": {
+            "activeDeadlineSeconds": { "type": "integer", "minimum": 30 },
+            "resources": { "type": "object" }
+          }
+        }
+      }
+    },
+    "admin": {
+      "type": "object",
+      "required": ["hostname"],
+      "properties": {
+        "replicaCount": { "type": "integer", "minimum": 0 },
+        "hostname": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+          "description": "The panel's public hostname, e.g. pixelaudit.example.com"
+        },
+        "port": { "type": "integer", "minimum": 1024, "maximum": 65535 },
+        "resources": { "type": "object" }
+      }
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "url": { "type": "string", "pattern": "^$|^postgres(ql)?://" },
+        "existingSecret": { "type": "string" },
+        "existingSecretKey": { "type": "string", "minLength": 1 }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "properties": {
+        "secretKeyBase": { "type": "string", "pattern": "^$|^.{64,}$" },
+        "secretKey": {
+          "type": "string",
+          "pattern": "^$|^[0-9a-fA-F]{64}$",
+          "description": "64 hex characters: openssl rand -hex 32"
+        },
+        "existingSecret": { "type": "string" }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "className": { "type": "string" },
+        "annotations": { "type": "object" },
+        "tls": { "type": "boolean" },
+        "tlsSecretName": { "type": "string" }
+      }
+    },
+    "postgresql": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "waitImage": { "type": "string", "minLength": 1 },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "username": { "type": "string", "minLength": 1 },
+            "password": { "type": "string", "pattern": "^[A-Za-z0-9._~-]*$" },
+            "database": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}
