@@ -39,7 +39,7 @@ services:
       timeout: 5s
       retries: 10
 
-  clickhouse:
+  clickhouse-sample:
     image: clickhouse/clickhouse-server:latest
     profiles: ["targets"]
     restart: always

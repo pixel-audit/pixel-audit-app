@@ -94,7 +94,7 @@ The Docker services:
 |---|---|---|
 | `postgres` | PostgreSQL for the API | `localhost:15460` |
 | `postgres-sample` (`make targets-up`) | a sample shop database with an `events` table, to point a Postgres query data source at | `localhost:15461` |
-| `clickhouse` (`make targets-up`) | the same events in ClickHouse, for a ClickHouse query data source | `localhost:18123` |
+| `clickhouse-sample` (`make targets-up`) | the same events in ClickHouse, for a ClickHouse query data source | `localhost:18123` |
 
 (The API's port is set in `.foreman`; the panel's in `src/admin/vite.config.ts`.)
 
