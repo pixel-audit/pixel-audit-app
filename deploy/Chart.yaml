@@ -4,8 +4,8 @@ description: PixelAudit — the API and the admin panel in one image, for an on-
 type: application
 # The chart's own version and the application version (the image tag the
 # chart installs by default) are bumped together on a release.
-version: 0.0.3
-appVersion: "0.0.3"
+version: 0.0.4
+appVersion: "0.0.4"
 kubeVersion: ">=1.28.0-0"
 home: https://github.com/pixel-audit/pixel-audit-app
 sources:
@@ -20,4 +20,4 @@ annotations:
   artifacthub.io/license: AGPL-3.0-only
   artifacthub.io/images: |
     - name: pixelaudit
-      image: ghcr.io/pixel-audit/pixel-audit-app:0.0.3
+      image: ghcr.io/pixel-audit/pixel-audit-app:0.0.4
