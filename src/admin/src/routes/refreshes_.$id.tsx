@@ -5,7 +5,8 @@ import { ApiItem } from "@/components/crud/api-item";
 import { okData } from "@/components/crud/api-response";
 import type { Crumb } from "@/components/crumbs";
 import { Page } from "@/components/page";
-import { describeRun, RefreshRunDetail } from "@/components/reporting/refresh-run-detail";
+import { RefreshRunDetail } from "@/components/reporting/refresh-run-detail";
+import { describeRun } from "@/lib/refresh-runs";
 import { useApi } from "@/lib/api";
 
 /** A refresh run's page: its outcome, the whole error, the days it computed. */

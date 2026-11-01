@@ -6,11 +6,8 @@ import { useConnectionTypes } from "@/components/connections/connection-types";
 import { FormDialog } from "@/components/crud/form-dialog";
 import { useApiSave } from "@/components/crud/use-api-mutations";
 import { FormField } from "@/components/form/field";
-import {
-  FieldSpecFields,
-  filledValues,
-  type FieldSpecValues,
-} from "@/components/form/field-spec-fields";
+import { FieldSpecFields, type FieldSpecValues } from "@/components/form/field-spec-fields";
+import { filledValues } from "@/components/form/field-spec-values";
 import { useFormState } from "@/components/form/use-form-state";
 import { InlineWarning } from "@/components/ui/inline-warning";
 import { Input } from "@/components/ui/input";

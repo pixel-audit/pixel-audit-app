@@ -66,7 +66,7 @@ src/
   components/ui/   shadcn/ui, generated — usually don't edit
   api/             generated/ (orval client, never hand-edited) and http.ts (fetch wrapper)
   lib/
-    api.tsx           ApiProvider and useApi()
+    api.ts            useApi() and the client context; api-provider.tsx hands the client down
     config.ts         runtime configuration (public/config.js)
     navigation.ts     navigation tree: top bar, sidebar and breadcrumbs
     date-range.ts     the report's ranges and presets

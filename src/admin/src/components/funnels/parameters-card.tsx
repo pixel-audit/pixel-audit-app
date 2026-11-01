@@ -7,13 +7,10 @@ import { fieldErrors } from "@/components/crud/api-response";
 import { CrudCard } from "@/components/crud/crud-card";
 import { FormDialog } from "@/components/crud/form-dialog";
 import { useApiCommand } from "@/components/crud/use-api-mutations";
-import {
-  FieldSpecFields,
-  filledValues,
-  type FieldSpecValues,
-} from "@/components/form/field-spec-fields";
+import { FieldSpecFields, type FieldSpecValues } from "@/components/form/field-spec-fields";
+import { filledValues } from "@/components/form/field-spec-values";
 import { useDataSourceTypes } from "@/components/funnels/data-source-types";
-import { useFunnelInvalidation } from "@/components/funnels/steps-card";
+import { useFunnelInvalidation } from "@/components/funnels/use-funnel-invalidation";
 import { Button } from "@/components/ui/button";
 import { NonIdealState } from "@/components/ui/non-ideal-state";
 import { useApi } from "@/lib/api";

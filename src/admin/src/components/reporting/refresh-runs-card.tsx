@@ -6,12 +6,9 @@ import type { AdminListRefreshRunsParams, RefreshRun } from "@/api/generated/mod
 import { ApiList } from "@/components/crud/api-list";
 import { CrudCard } from "@/components/crud/crud-card";
 import { ListRow, RowDetail } from "@/components/crud/list-row";
-import { describeRun } from "@/components/reporting/refresh-run-detail";
-import {
-  kindMessages,
-  RefreshRunStatusBadge,
-  triggerMessages,
-} from "@/components/reporting/refresh-run-status";
+import { describeRun } from "@/lib/refresh-runs";
+import { kindMessages, triggerMessages } from "@/components/reporting/refresh-run-messages";
+import { RefreshRunStatusBadge } from "@/components/reporting/refresh-run-status";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,

@@ -17,14 +17,11 @@ import { ListRow, RowActionButton, RowDetail } from "@/components/crud/list-row"
 import { useApiDelete, useApiSave } from "@/components/crud/use-api-mutations";
 import { EntityCombobox } from "@/components/form/entity-combobox";
 import { FormField } from "@/components/form/field";
-import {
-  FieldSpecFields,
-  filledValues,
-  type FieldSpecValues,
-} from "@/components/form/field-spec-fields";
+import { FieldSpecFields, type FieldSpecValues } from "@/components/form/field-spec-fields";
+import { filledValues } from "@/components/form/field-spec-values";
 import { useFormState } from "@/components/form/use-form-state";
 import { dataSourceTypeLabel, useDataSourceTypes } from "@/components/funnels/data-source-types";
-import { useFunnelInvalidation } from "@/components/funnels/steps-card";
+import { useFunnelInvalidation } from "@/components/funnels/use-funnel-invalidation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

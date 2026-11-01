@@ -2,7 +2,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { ApiProvider } from "./lib/api";
+import { ApiProvider } from "./lib/api-provider";
 import { I18nProvider } from "./lib/i18n/provider";
 import { getRouter } from "./router";
 import "./styles.css";

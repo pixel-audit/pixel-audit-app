@@ -14,18 +14,10 @@ import { useFormState } from "@/components/form/use-form-state";
 import { Input } from "@/components/ui/input";
 import { NonIdealState } from "@/components/ui/non-ideal-state";
 import { Textarea } from "@/components/ui/textarea";
+import { useFunnelInvalidation } from "@/components/funnels/use-funnel-invalidation";
 import { useApi } from "@/lib/api";
 import { copy, formatCopy } from "@/lib/i18n/copy";
 import { commonMessages } from "@/lib/i18n/common-messages";
-
-/**
- * What every write to the funnel's setup refreshes: the funnel's page and
- * the list. The page's query is keyed by the funnel's code — its address.
- */
-export function useFunnelInvalidation(funnel: Funnel) {
-  const api = useApi();
-  return [api.getAdminGetFunnelQueryKey(funnel.code), api.getAdminListFunnelsQueryKey()];
-}
 
 /**
  * The funnel's steps in their order: add, edit, delete, and move one up or

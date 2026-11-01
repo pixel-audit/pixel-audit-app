@@ -2,28 +2,17 @@ import { Link } from "@tanstack/react-router";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
 
 import type { RefreshRun, RefreshRunDay } from "@/api/generated/model";
+import { describeRun } from "@/lib/refresh-runs";
 import { ApiList } from "@/components/crud/api-list";
 import { DetailField, DetailsCard } from "@/components/crud/details-card";
 import { PageHeader } from "@/components/page-header";
-import {
-  kindMessages,
-  RefreshRunStatusBadge,
-  triggerMessages,
-} from "@/components/reporting/refresh-run-status";
+import { kindMessages, triggerMessages } from "@/components/reporting/refresh-run-messages";
+import { RefreshRunStatusBadge } from "@/components/reporting/refresh-run-status";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApi } from "@/lib/api";
 import { formatDay, formatRange } from "@/lib/date-range";
 import { cn } from "@/lib/utils";
-
-/** A run's name: its funnel and data source, or its connection. */
-export function describeRun(run: RefreshRun): string {
-  return (
-    run.kind === "data_source" ? [run.funnel?.name, run.data_source?.name] : [run.connection?.name]
-  )
-    .filter((part): part is string => typeof part === "string")
-    .join(" › ");
-}
 
 /**
  * The run's page: what it refreshed and how it went, the whole error as
