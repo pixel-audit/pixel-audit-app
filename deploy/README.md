@@ -154,7 +154,7 @@ The database is the only state. Back it up together with `CREDENTIALS_ENCRYPTION
 helm uninstall pixelaudit --namespace pixelaudit
 ```
 
-Secrets you created stay. So do the chart's own Postgres volume claim and its generated password Secret; delete them yourself when the data is no longer wanted.
+Secrets you created stay. So do the chart's own Postgres volume claim and its generated password Secret; delete them yourself when the data is no longer wanted. With `serviceAccount.create`, the ServiceAccount (a hook) stays too.
 
 ## Try it on kind or minikube
 
@@ -219,9 +219,9 @@ Then open <http://pixelaudit.127.0.0.1.nip.io>.
 | `app.resources` | `{}` | |
 | `app.boot.activeDeadlineSeconds` | `600` | How long the boot Job may take. |
 | `app.boot.resources` | `{}` | |
-| `serviceAccount.create` | `true` | |
-| `serviceAccount.name` | `""` | Empty: the release's full name. |
-| `serviceAccount.annotations` | `{}` | |
+| `serviceAccount.create` | `false` | Create a ServiceAccount for the pods (a pre-install/upgrade hook, ahead of the boot Job; kept on uninstall). Off: the pods run as an existing one. |
+| `serviceAccount.name` | `""` | With `create`: empty is the release's full name. Without: an existing ServiceAccount, empty is the namespace's `default`. |
+| `serviceAccount.annotations` | `{}` | Annotations on the created ServiceAccount. |
 | `podSecurityContext` | non-root, RuntimeDefault seccomp | |
 | `securityContext` | no escalation, all capabilities dropped, read-only root | |
 | `nodeSelector`, `tolerations`, `affinity` | `{}`, `[]`, `{}` | |

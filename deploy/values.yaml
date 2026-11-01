@@ -181,11 +181,20 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 
+# The ServiceAccount every pod runs as — the application, the boot Job and
+# the chart's Postgres. None of them talks to the Kubernetes API (no token
+# is mounted), so by default they run as the namespace's `default` one.
 serviceAccount:
-  # Whether to create a ServiceAccount for the pods (one for all of them).
-  create: true
-  # Its name; empty: the release's full name.
+  # Whether to create a ServiceAccount for the pods (one for all of them),
+  # e.g. to annotate it for a cloud workload identity. It is created as a
+  # pre-install/upgrade hook ahead of the boot Job, which runs before the
+  # release's regular resources exist; being a hook, it stays on uninstall.
+  create: false
+  # Its name. With create: empty is the release's full name. Without
+  # create: an existing ServiceAccount in the release namespace, empty is
+  # the namespace's `default`.
   name: ""
+  # Annotations on the created ServiceAccount.
   annotations: {}
 
 # Every container runs unprivileged: the application as the release's
