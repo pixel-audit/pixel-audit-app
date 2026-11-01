@@ -91,6 +91,19 @@ kubectl -n pixelaudit rollout restart deployment -l app.kubernetes.io/instance=p
 
 `image.trackLatest` overrides `image.tag` and `image.pullPolicy` in one switch; the boot Job and both Deployments always run the same tag.
 
+### The chart from main
+
+Helm charts have no floating `latest`: a chart is always addressed by a version. What CI publishes instead, on every push to `main`, is a **prerelease** of the chart — `X.Y.(Z+1)-main.<run number>`, one patch above the latest release — with `appVersion: latest`, so it runs the `latest` images and pulls them with `Always` on its own. `--devel` makes Helm consider prereleases and pick the newest:
+
+```sh
+helm install pixelaudit oci://ghcr.io/pixel-audit/charts/pixelaudit --devel \
+  --namespace pixelaudit --atomic --values my-values.yaml
+helm upgrade pixelaudit oci://ghcr.io/pixel-audit/charts/pixelaudit --devel \
+  --namespace pixelaudit --reuse-values --atomic            # the newest main build: chart and images together
+```
+
+Without `--devel`, Helm sees only the releases (`X.Y.Z`), which sort above every `X.Y.Z-main.*` of the same patch — so a release always outranks the main builds that led to it. A main build is what `main` was at that moment; the chart's templates and the images move together, which `image.trackLatest` on a release chart cannot promise.
+
 ## Connections from the environment
 
 Connections (a Meta pixel, a BigQuery project, a Postgres or ClickHouse database) can be added in the panel, or defined by `CONNECTION_*` variables that the boot Job maps onto connection rows on every install and upgrade:

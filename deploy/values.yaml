@@ -37,6 +37,11 @@ image:
   #   `helm upgrade` (the boot Job re-runs the migrations) followed by
   #   `kubectl rollout restart deployment -l app.kubernetes.io/instance=<release>`.
   #
+  #   Or install the chart CI builds from main (`helm install --devel`,
+  #   version X.Y.Z-main.<n>): its appVersion is `latest`, so it does the
+  #   same without this switch — and a `helm upgrade --devel` moves the
+  #   chart and the images together.
+  #
   # trackLatest overrides tag and pullPolicy in one switch.
   tag: ""
   pullPolicy: IfNotPresent

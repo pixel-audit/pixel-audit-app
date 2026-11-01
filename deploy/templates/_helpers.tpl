@@ -43,15 +43,18 @@ app.kubernetes.io/component: {{ .component }}
 
 {{/*
 The image tag every container runs: `latest` when image.trackLatest, else
-image.tag, else the chart's appVersion. The boot Job and both Deployments
-go through this and pixelaudit.imagePullPolicy, so they always agree.
+image.tag, else the chart's appVersion — which is `latest` itself in a
+chart CI built from main (X.Y.Z-main.<n>). The boot Job and both
+Deployments go through this and pixelaudit.imagePullPolicy, so they
+always agree.
 */}}
 {{- define "pixelaudit.imageTag" -}}
 {{- if .Values.image.trackLatest -}}latest{{- else -}}{{ .Values.image.tag | default .Chart.AppVersion }}{{- end -}}
 {{- end }}
 
+{{/* Always when the tag is `latest`, however it came to be; else as configured. */}}
 {{- define "pixelaudit.imagePullPolicy" -}}
-{{- if .Values.image.trackLatest -}}Always{{- else -}}{{ .Values.image.pullPolicy }}{{- end -}}
+{{- if eq (include "pixelaudit.imageTag" .) "latest" -}}Always{{- else -}}{{ .Values.image.pullPolicy }}{{- end -}}
 {{- end }}
 
 {{/* <registry>/<repository>-<component>:<tag>; pass (dict "root" . "component" "api"). */}}

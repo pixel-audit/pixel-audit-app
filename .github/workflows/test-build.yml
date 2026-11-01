@@ -15,9 +15,20 @@
 #     :sha-<short>   every push
 #     :X.Y.Z, :vX.Y.Z   a vX.Y.Z tag
 #
-# A vX.Y.Z tag also packages the chart as version X.Y.Z (appVersion X.Y.Z,
-# so the chart installs the images of the same release) and pushes it to
-# oci://ghcr.io/<owner>/charts/pixelaudit (oci://ghcr.io/pixel-audit/charts/pixelaudit).
+# The chart goes to oci://ghcr.io/<owner>/charts/pixelaudit
+# (oci://ghcr.io/pixel-audit/charts/pixelaudit) on the same two occasions:
+#
+#   a vX.Y.Z tag      chart version X.Y.Z, appVersion X.Y.Z — installs the
+#                     images of that release
+#   a push to main    chart version X.Y.(Z+1)-main.<run number> (one patch
+#                     above the latest release tag, or 0.0.1-main.<n> before
+#                     any), appVersion `latest` — installs the `latest`
+#                     images with pullPolicy Always
+#
+# Helm has no floating "latest" for charts: a chart is always addressed by
+# a version. The main builds are prereleases, which `helm install --devel`
+# (and `helm upgrade --devel`) resolves to the newest one, and which the
+# next release outranks by sorting above every X.Y.(Z+1)-main.*.
 
 name: Test, build, publish
 
@@ -193,12 +204,15 @@ jobs:
 
   chart:
     name: Publish the chart
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push'
     needs: [build]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The main build's version is derived from the latest release tag.
+          fetch-depth: 0
 
       - uses: azure/setup-helm@v4
         with:
@@ -207,12 +221,24 @@ jobs:
       - name: Sign in to the registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
 
-      # vX.Y.Z -> chart version X.Y.Z and appVersion X.Y.Z, so the chart
-      # installs the images published under the same tag.
+      # A tag vX.Y.Z -> chart X.Y.Z with appVersion X.Y.Z, the images of
+      # that release. A push to main -> chart X.Y.(Z+1)-main.<run number>
+      # with appVersion `latest`, the images CI has just moved `latest` to
+      # (the chart pulls a `latest` app version with Always).
       - name: Package and push
         env:
           OWNER: ${{ github.repository_owner }}
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          helm package deploy --version "$version" --app-version "$version" --destination dist
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            app_version="$version"
+          else
+            last="$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo v0.0.0)"
+            last="${last#v}"
+            IFS=. read -r major minor patch <<< "$last"
+            version="${major}.${minor}.$((patch + 1))-main.${GITHUB_RUN_NUMBER}"
+            app_version="latest"
+          fi
+          echo "chart ${version}, appVersion ${app_version}"
+          helm package deploy --version "$version" --app-version "$app_version" --destination dist
           helm push "dist/pixelaudit-${version}.tgz" "oci://${REGISTRY}/${OWNER,,}/charts"
