@@ -23,10 +23,3 @@ annotations:
       image: ghcr.io/pixel-audit/pixel-audit-app-api:0.1.0
     - name: pixelaudit-admin
       image: ghcr.io/pixel-audit/pixel-audit-app-admin:0.1.0
-dependencies:
-  # An in-cluster PostgreSQL for try-outs and small installs. Off by
-  # default: a production install points database.url at its own Postgres.
-  - name: postgresql
-    version: "16.7.27"
-    repository: oci://registry-1.docker.io/bitnamicharts
-    condition: postgresql.enabled

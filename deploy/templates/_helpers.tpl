@@ -68,74 +68,86 @@ imagePullSecrets:
 {{- end }}
 {{- end }}
 
+{{/* The two hostnames, required everywhere. */}}
+{{- define "pixelaudit.apiHost" -}}
+{{- required "hosts.api is required" .Values.hosts.api -}}
+{{- end }}
+
+{{- define "pixelaudit.adminHost" -}}
+{{- required "hosts.admin is required" .Values.hosts.admin -}}
+{{- end }}
+
 {{/* The scheme both hostnames are served under. */}}
 {{- define "pixelaudit.scheme" -}}
-{{- if .Values.ingress.tls -}}https{{- else -}}http{{- end -}}
+{{- if .Values.hosts.tls -}}https{{- else -}}http{{- end -}}
 {{- end }}
 
-{{/* The Secret the chart renders for the API, holding what was given inline. */}}
-{{- define "pixelaudit.apiSecretName" -}}
-{{- printf "%s-api" (include "pixelaudit.fullname" .) -}}
+{{/* The TLS Secret the Ingress or the Gateway serves, when none is named. */}}
+{{- define "pixelaudit.defaultTlsSecretName" -}}
+{{- printf "%s-tls" (include "pixelaudit.fullname" .) -}}
 {{- end }}
 
-{{- define "pixelaudit.renderApiSecret" -}}
-{{- if or .Values.database.url .Values.secrets.secretKeyBase .Values.secrets.secretKey -}}true{{- end -}}
+{{/* The chart's own Postgres: its Service, its password Secret. */}}
+{{- define "pixelaudit.postgresName" -}}
+{{- printf "%s-postgres" (include "pixelaudit.fullname" .) -}}
 {{- end }}
 
-{{/* The Secret the SECRET_KEY_BASE and SECRET_KEY are read from. */}}
-{{- define "pixelaudit.secretsSecretName" -}}
-{{- .Values.secrets.existingSecret | default (include "pixelaudit.apiSecretName" .) -}}
+{{- define "pixelaudit.postgresPasswordSecretName" -}}
+{{- .Values.database.internal.passwordSecret.name | default (include "pixelaudit.postgresName" .) -}}
+{{- end }}
+
+{{/* Whether the chart runs its own Postgres; refuses both or neither. */}}
+{{- define "pixelaudit.internalDatabase" -}}
+{{- if and .Values.database.internal.enabled .Values.database.external.secretName -}}
+{{- fail "set either database.external.secretName or database.internal.enabled, not both" -}}
+{{- else if .Values.database.internal.enabled -}}
+true
+{{- else if not .Values.database.external.secretName -}}
+{{- fail "a database is required: database.external.secretName (a Secret holding DATABASE_URL) or database.internal.enabled" -}}
+{{- end -}}
 {{- end }}
 
 {{/*
 The API's environment, shared by the boot Job and the API Deployment so
 both see the same database, keys and CONNECTION_* variables. DATABASE_URL
-comes from, in this order: database.url (the chart's Secret),
-database.existingSecret, or the in-chart postgresql (built from its auth
-values, the password read from the subchart's Secret).
+comes from the external Secret, or is built for the chart's own Postgres
+with the password read from its Secret; the two keys from secrets.secretName.
 */}}
 {{- define "pixelaudit.apiEnv" -}}
+{{- $secrets := required "secrets.secretName is required: a Secret holding SECRET_KEY_BASE and SECRET_KEY" .Values.secrets.secretName -}}
 - name: PORT
   value: {{ .Values.api.port | quote }}
 - name: HOSTNAME
-  value: {{ required "api.hostname is required" .Values.api.hostname | quote }}
+  value: {{ include "pixelaudit.apiHost" . | quote }}
 - name: DATABASE_POOL_SIZE
   value: {{ .Values.api.poolSize | quote }}
 - name: CORS_ORIGINS
   value: {{ include "pixelaudit.corsOrigins" . | quote }}
-{{- if .Values.database.url }}
-- name: DATABASE_URL
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "pixelaudit.apiSecretName" . }}
-      key: DATABASE_URL
-{{- else if .Values.database.existingSecret }}
-- name: DATABASE_URL
-  valueFrom:
-    secretKeyRef:
-      name: {{ .Values.database.existingSecret }}
-      key: {{ .Values.database.existingSecretKey }}
-{{- else if .Values.postgresql.enabled }}
+{{- if include "pixelaudit.internalDatabase" . }}
 - name: POSTGRES_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: {{ .Release.Name }}-postgresql
-      key: password
+      name: {{ include "pixelaudit.postgresPasswordSecretName" . }}
+      key: {{ .Values.database.internal.passwordSecret.key }}
 - name: DATABASE_URL
-  value: {{ printf "postgres://%s:$(POSTGRES_PASSWORD)@%s-postgresql:5432/%s" .Values.postgresql.auth.username .Release.Name .Values.postgresql.auth.database | quote }}
+  value: {{ printf "postgres://%s:$(POSTGRES_PASSWORD)@%s:5432/%s" .Values.database.internal.username (include "pixelaudit.postgresName" .) .Values.database.internal.database | quote }}
 {{- else }}
-{{- fail "a database is required: set database.url, database.existingSecret, or postgresql.enabled" }}
+- name: DATABASE_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.database.external.secretName }}
+      key: {{ .Values.database.external.secretKey }}
 {{- end }}
 - name: SECRET_KEY_BASE
   valueFrom:
     secretKeyRef:
-      name: {{ include "pixelaudit.secretsSecretName" . }}
-      key: SECRET_KEY_BASE
+      name: {{ $secrets }}
+      key: {{ .Values.secrets.keys.secretKeyBase }}
 - name: SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ include "pixelaudit.secretsSecretName" . }}
-      key: SECRET_KEY
+      name: {{ $secrets }}
+      key: {{ .Values.secrets.keys.secretKey }}
 {{- with .Values.api.extraEnv }}
 {{ toYaml . }}
 {{- end }}
@@ -143,7 +155,7 @@ values, the password read from the subchart's Secret).
 
 {{/* The panel's origin, then whatever api.corsOrigins adds. */}}
 {{- define "pixelaudit.corsOrigins" -}}
-{{- $origins := list (printf "%s://%s" (include "pixelaudit.scheme" .) (required "admin.hostname is required" .Values.admin.hostname)) -}}
+{{- $origins := list (printf "%s://%s" (include "pixelaudit.scheme" .) (include "pixelaudit.adminHost" .)) -}}
 {{- range .Values.api.corsOrigins }}{{ $origins = append $origins . }}{{ end -}}
 {{- join "," $origins -}}
 {{- end }}

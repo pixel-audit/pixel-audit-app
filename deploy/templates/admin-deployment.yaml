@@ -58,7 +58,7 @@ spec:
             - name: PORT
               value: {{ .Values.admin.port | quote }}
             - name: API_URL
-              value: {{ printf "%s://%s" (include "pixelaudit.scheme" .) (required "api.hostname is required" .Values.api.hostname) | quote }}
+              value: {{ printf "%s://%s" (include "pixelaudit.scheme" .) (include "pixelaudit.apiHost" .) | quote }}
           {{- with .Values.admin.resources }}
           resources:
             {{- toYaml . | nindent 12 }}

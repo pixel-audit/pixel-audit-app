@@ -1,0 +1,46 @@
+{{- if and .Values.gateway.enabled (not .Values.gateway.existing.name) }}
+{{- $fullname := include "pixelaudit.fullname" . -}}
+{{- $className := required "gateway.className is required when the chart creates the Gateway (or name gateway.existing)" .Values.gateway.className -}}
+{{- $tlsSecret := .Values.gateway.tlsSecretName | default (include "pixelaudit.defaultTlsSecretName" .) -}}
+# The Gateway the two HTTPRoutes attach to: a listener per hostname on
+# port 80 and, with hosts.tls, on 443 serving one TLS Secret for both —
+# cert-manager fills it in when gateway.annotations names an issuer, or
+# create it yourself under gateway.tlsSecretName. Needs the Gateway API
+# CRDs and a controller for gateway.className in the cluster.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $fullname }}
+  labels:
+    {{- include "pixelaudit.labels" . | nindent 4 }}
+  {{- with .Values.gateway.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ $className }}
+  listeners:
+    {{- range $component, $host := dict "api" (include "pixelaudit.apiHost" .) "admin" (include "pixelaudit.adminHost" .) }}
+    - name: {{ $component }}-http
+      protocol: HTTP
+      port: 80
+      hostname: {{ $host | quote }}
+      allowedRoutes:
+        namespaces:
+          from: Same
+    {{- if $.Values.hosts.tls }}
+    - name: {{ $component }}-https
+      protocol: HTTPS
+      port: 443
+      hostname: {{ $host | quote }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ $tlsSecret }}
+      allowedRoutes:
+        namespaces:
+          from: Same
+    {{- end }}
+    {{- end }}
+{{- end }}

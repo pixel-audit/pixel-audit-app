@@ -1,38 +1,40 @@
-# A minimal production-shaped install: your own Postgres, TLS from
-# cert-manager, one Meta connection defined by a Secret you create first:
+# A production-shaped install: your managed Postgres, an Ingress with TLS
+# from cert-manager, one Meta connection. Every secret is a Secret you
+# create first:
 #
+#   kubectl create namespace pixelaudit
+#   kubectl -n pixelaudit create secret generic pixelaudit-keys \
+#     --from-literal=SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
+#     --from-literal=SECRET_KEY="$(openssl rand -hex 32)"
+#   kubectl -n pixelaudit create secret generic pixelaudit-database \
+#     --from-literal=DATABASE_URL='postgres://pixelaudit:...@postgres.example.com:5432/pixelaudit?sslmode=require'
 #   kubectl -n pixelaudit create secret generic pixelaudit-connections \
 #     --from-literal=CONNECTION_fb_TYPE=meta-api \
 #     --from-literal=CONNECTION_fb_PIXEL_ID=123456789012345 \
 #     --from-literal=CONNECTION_fb_ACCESS_TOKEN=EAA...
 #
-# and the two keys (or put them inline under `secrets`):
-#
-#   kubectl -n pixelaudit create secret generic pixelaudit-keys \
-#     --from-literal=SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
-#     --from-literal=SECRET_KEY="$(openssl rand -hex 32)"
-#
 #   helm install pixelaudit oci://ghcr.io/pixel-audit/charts/pixelaudit \
-#     --namespace pixelaudit --create-namespace --atomic \
-#     --values values-minimal.yaml
+#     --namespace pixelaudit --atomic --values values-minimal.yaml
+
+hosts:
+  api: pixelaudit-api.example.com
+  admin: pixelaudit.example.com
+  tls: true
+
+secrets:
+  secretName: pixelaudit-keys
+
+database:
+  external:
+    secretName: pixelaudit-database
 
 api:
-  hostname: pixelaudit-api.example.com
   extraEnvFrom:
     - secretRef:
         name: pixelaudit-connections
 
-admin:
-  hostname: pixelaudit.example.com
-
-database:
-  url: postgres://pixelaudit:change-me@postgres.example.com:5432/pixelaudit?sslmode=require
-
-secrets:
-  existingSecret: pixelaudit-keys
-
 ingress:
+  enabled: true
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
-  tls: true

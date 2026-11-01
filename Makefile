@@ -120,10 +120,13 @@ admin-check:
 # The Helm chart (deploy/): lint, and a render of the two example values
 # files checked against the Kubernetes schemas when kubeconform is installed.
 helm-lint:
-	helm lint ./deploy --values ./deploy/examples/values-minimal.yaml
-	helm lint ./deploy --values ./deploy/examples/values-all-in-one.yaml
+	@for values in ./deploy/examples/*.yaml; do \
+	    helm lint ./deploy --strict --values "$$values" || exit 1; \
+	done
 	@if command -v kubeconform >/dev/null 2>&1; then \
-	    helm template pixelaudit ./deploy --values ./deploy/examples/values-minimal.yaml | kubeconform -strict -ignore-missing-schemas; \
+	    for values in ./deploy/examples/*.yaml; do \
+	        helm template pixelaudit ./deploy --values "$$values" | kubeconform -strict -ignore-missing-schemas || exit 1; \
+	    done; \
 	else \
 	    echo "kubeconform not installed — skipping the schema check"; \
 	fi

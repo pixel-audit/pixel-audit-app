@@ -1,11 +1,23 @@
 PixelAudit {{ .Chart.AppVersion }} is installed as release {{ .Release.Name }} in {{ .Release.Namespace }}.
 
-  Admin panel:  {{ include "pixelaudit.scheme" . }}://{{ .Values.admin.hostname }}
-  API:          {{ include "pixelaudit.scheme" . }}://{{ .Values.api.hostname }}
-  OpenAPI:      {{ include "pixelaudit.scheme" . }}://{{ .Values.api.hostname }}/openapi/admin.json
+  Admin panel:  {{ include "pixelaudit.scheme" . }}://{{ .Values.hosts.admin }}
+  API:          {{ include "pixelaudit.scheme" . }}://{{ .Values.hosts.api }}
+  OpenAPI:      {{ include "pixelaudit.scheme" . }}://{{ .Values.hosts.api }}/openapi/admin.json
+{{- if .Values.ingress.enabled }}
+
+Exposed by the Ingress {{ include "pixelaudit.fullname" . }}.
+{{- else if .Values.gateway.enabled }}
+
+Exposed by HTTPRoutes through the Gateway {{ .Values.gateway.existing.name | default (include "pixelaudit.fullname" .) }}.
+{{- else }}
+
+Nothing exposes the two hostnames yet (ingress.enabled and gateway.enabled
+are both off): the Services {{ include "pixelaudit.fullname" . }}-api and
+{{ include "pixelaudit.fullname" . }}-admin are reachable inside the cluster only.
+{{- end }}
 
 The API has no authentication: keep both hostnames behind your network
-boundary (VPN, IP allow-list on the ingress, or an authenticating proxy).
+boundary (VPN, IP allow-list on the ingress or gateway, or an authenticating proxy).
 
 The boot Job ({{ include "pixelaudit.fullname" . }}-boot) ran the migrations
 and applied the CONNECTION_* variables before the API pods rolled out.
@@ -17,13 +29,14 @@ No CONNECTION_* variables were given: add connections in the panel, or
 through a Secret referenced by api.extraEnvFrom (see the chart's README).
 {{- end }}
 
-Back up the database together with SECRET_KEY: the connection credentials
-are encrypted with it, and a database restored without it cannot read them.
-{{- if .Values.postgresql.enabled }}
+Back up the database together with the SECRET_KEY in {{ .Values.secrets.secretName }}:
+the connection credentials are encrypted with it, and a database restored
+without it cannot read them.
+{{- if include "pixelaudit.internalDatabase" . }}
 
-The in-chart PostgreSQL ({{ .Release.Name }}-postgresql) holds all the state;
-it is meant for a try-out or a small install. For production, point
-database.url at a Postgres you back up.
+The chart's own PostgreSQL ({{ include "pixelaudit.postgresName" . }}) holds all the
+state on its volume claim; the claim and its password Secret stay on
+uninstall. Back the database up yourself.
 {{- end }}
 
 {{- if .Values.image.trackLatest }}

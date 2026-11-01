@@ -2,7 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "PixelAudit chart values",
   "type": "object",
-  "required": ["image", "api", "admin", "database", "secrets", "ingress", "postgresql"],
+  "required": ["image", "hosts", "secrets", "database", "ingress", "gateway", "api", "admin"],
+  "$defs": {
+    "hostname": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$"
+    },
+    "k8sName": { "type": "string", "pattern": "^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" }
+  },
   "properties": {
     "image": {
       "type": "object",
@@ -16,30 +24,116 @@
         "pullSecrets": { "type": "array", "items": { "type": "string", "minLength": 1 } }
       }
     },
-    "nodeSelector": { "type": "object" },
-    "tolerations": { "type": "array" },
-    "affinity": { "type": "object" },
-    "serviceAccount": {
+    "hosts": {
       "type": "object",
+      "required": ["api", "admin"],
       "properties": {
-        "create": { "type": "boolean" },
-        "name": { "type": "string" },
-        "annotations": { "type": "object" }
-      }
-    },
-    "podSecurityContext": { "type": "object" },
-    "securityContext": { "type": "object" },
-    "api": {
-      "type": "object",
-      "required": ["hostname"],
-      "properties": {
-        "replicaCount": { "type": "integer", "minimum": 0 },
-        "hostname": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+        "api": {
+          "$ref": "#/$defs/hostname",
           "description": "The API's public hostname, e.g. pixelaudit-api.example.com"
         },
+        "admin": {
+          "$ref": "#/$defs/hostname",
+          "description": "The panel's public hostname, e.g. pixelaudit.example.com"
+        },
+        "tls": { "type": "boolean" }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "required": ["secretName"],
+      "properties": {
+        "secretName": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The Secret holding SECRET_KEY_BASE and SECRET_KEY"
+        },
+        "keys": {
+          "type": "object",
+          "properties": {
+            "secretKeyBase": { "type": "string", "minLength": 1 },
+            "secretKey": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "external": {
+          "type": "object",
+          "properties": {
+            "secretName": { "$ref": "#/$defs/k8sName" },
+            "secretKey": { "type": "string", "minLength": 1 }
+          }
+        },
+        "internal": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "image": {
+              "type": "object",
+              "properties": {
+                "repository": { "type": "string", "minLength": 1 },
+                "tag": {
+                  "type": "string",
+                  "pattern": "^(1[89]|[2-9][0-9])([.-].*)?$",
+                  "description": "PostgreSQL 18 or later"
+                },
+                "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+              }
+            },
+            "storage": {
+              "type": "object",
+              "properties": {
+                "size": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?(Ei|Pi|Ti|Gi|Mi|Ki|E|P|T|G|M|k)?$" },
+                "storageClassName": { "type": "string" }
+              }
+            },
+            "database": { "type": "string", "pattern": "^[a-z_][a-z0-9_]*$" },
+            "username": { "type": "string", "pattern": "^[a-z_][a-z0-9_]*$" },
+            "passwordSecret": {
+              "type": "object",
+              "properties": {
+                "name": { "$ref": "#/$defs/k8sName" },
+                "key": { "type": "string", "minLength": 1 }
+              }
+            },
+            "resources": { "type": "object" },
+            "waitImage": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "className": { "type": "string" },
+        "annotations": { "type": "object" },
+        "tlsSecretName": { "$ref": "#/$defs/k8sName" }
+      }
+    },
+    "gateway": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "className": { "$ref": "#/$defs/k8sName" },
+        "annotations": { "type": "object" },
+        "tlsSecretName": { "$ref": "#/$defs/k8sName" },
+        "existing": {
+          "type": "object",
+          "properties": {
+            "name": { "$ref": "#/$defs/k8sName" },
+            "namespace": { "$ref": "#/$defs/k8sName" }
+          }
+        }
+      }
+    },
+    "api": {
+      "type": "object",
+      "properties": {
+        "replicaCount": { "type": "integer", "minimum": 0 },
         "port": { "type": "integer", "minimum": 1024, "maximum": 65535 },
         "poolSize": { "type": "integer", "minimum": 1 },
         "corsOrigins": { "type": "array", "items": { "type": "string", "pattern": "^https?://" } },
@@ -57,63 +151,24 @@
     },
     "admin": {
       "type": "object",
-      "required": ["hostname"],
       "properties": {
         "replicaCount": { "type": "integer", "minimum": 0 },
-        "hostname": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
-          "description": "The panel's public hostname, e.g. pixelaudit.example.com"
-        },
         "port": { "type": "integer", "minimum": 1024, "maximum": 65535 },
         "resources": { "type": "object" }
       }
     },
-    "database": {
+    "nodeSelector": { "type": "object" },
+    "tolerations": { "type": "array" },
+    "affinity": { "type": "object" },
+    "serviceAccount": {
       "type": "object",
       "properties": {
-        "url": { "type": "string", "pattern": "^$|^postgres(ql)?://" },
-        "existingSecret": { "type": "string" },
-        "existingSecretKey": { "type": "string", "minLength": 1 }
+        "create": { "type": "boolean" },
+        "name": { "type": "string" },
+        "annotations": { "type": "object" }
       }
     },
-    "secrets": {
-      "type": "object",
-      "properties": {
-        "secretKeyBase": { "type": "string", "pattern": "^$|^.{64,}$" },
-        "secretKey": {
-          "type": "string",
-          "pattern": "^$|^[0-9a-fA-F]{64}$",
-          "description": "64 hex characters: openssl rand -hex 32"
-        },
-        "existingSecret": { "type": "string" }
-      }
-    },
-    "ingress": {
-      "type": "object",
-      "properties": {
-        "enabled": { "type": "boolean" },
-        "className": { "type": "string" },
-        "annotations": { "type": "object" },
-        "tls": { "type": "boolean" },
-        "tlsSecretName": { "type": "string" }
-      }
-    },
-    "postgresql": {
-      "type": "object",
-      "properties": {
-        "enabled": { "type": "boolean" },
-        "waitImage": { "type": "string", "minLength": 1 },
-        "auth": {
-          "type": "object",
-          "properties": {
-            "username": { "type": "string", "minLength": 1 },
-            "password": { "type": "string", "pattern": "^[A-Za-z0-9._~-]*$" },
-            "database": { "type": "string", "minLength": 1 }
-          }
-        }
-      }
-    }
+    "podSecurityContext": { "type": "object" },
+    "securityContext": { "type": "object" }
   }
 }

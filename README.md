@@ -156,8 +156,10 @@ CI (`.github/workflows/test-build.yml`) tests both components and publishes
 the images to the GitHub Container Registry: `latest` on every push to
 `main`, `X.Y.Z` on a `vX.Y.Z` tag, which also publishes the Helm chart. The
 chart in `deploy/` installs the API, its boot Job and the panel on any
-Kubernetes; its README covers the values, the database, the secrets and the
-two ways to pick an image version (a release, or tracking `latest`).
+Kubernetes, with your managed Postgres or its own PostgreSQL 18 on a
+volume, exposed through an Ingress or the Gateway API (both optional),
+every secret read from a Secret you create; its README covers the values
+and the two ways to pick an image version (a release, or tracking `latest`).
 
 ## Licence
 

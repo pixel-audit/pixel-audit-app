@@ -1,0 +1,35 @@
+# Like values-minimal.yaml, exposed through the Gateway API instead of an
+# Ingress: the chart creates a Gateway of the given class with a listener
+# per hostname (http, and https with the certificate cert-manager issues
+# for it) and an HTTPRoute per hostname. Needs the Gateway API CRDs and a
+# controller for the class (Envoy Gateway, Cilium, Istio, nginx-gateway…).
+#
+# To attach to a Gateway that already exists instead, leave `className`
+# empty and name it under `existing` — its listeners must admit routes
+# from the release's namespace for these hostnames.
+
+hosts:
+  api: pixelaudit-api.example.com
+  admin: pixelaudit.example.com
+  tls: true
+
+secrets:
+  secretName: pixelaudit-keys
+
+database:
+  external:
+    secretName: pixelaudit-database
+
+api:
+  extraEnvFrom:
+    - secretRef:
+        name: pixelaudit-connections
+
+gateway:
+  enabled: true
+  className: envoy
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  # existing:
+  #   name: shared-gateway
+  #   namespace: gateways

@@ -6,7 +6,7 @@
 # pods. It carries the same environment as the API pods, so the connections
 # it writes are the ones the pods then serve.
 #
-# With the in-chart postgresql there is no database before the release's
+# With the chart's own Postgres there is no database before the release's
 # own resources exist, so the first install runs it post-install instead
 # (the API pods restart until it is through) with an init container that
 # waits for Postgres; upgrades are pre-upgrade as usual.
@@ -18,7 +18,7 @@ metadata:
     {{- include "pixelaudit.labels" . | nindent 4 }}
     app.kubernetes.io/component: boot
   annotations:
-    "helm.sh/hook": {{ if .Values.postgresql.enabled }}post-install,pre-upgrade{{ else }}pre-install,pre-upgrade{{ end }}
+    "helm.sh/hook": {{ if include "pixelaudit.internalDatabase" . }}post-install,pre-upgrade{{ else }}pre-install,pre-upgrade{{ end }}
     "helm.sh/hook-weight": "0"
     # A completed Job is immutable, so the previous run is deleted before a
     # new one is created; successful runs are cleaned up, failed ones stay
@@ -40,10 +40,10 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.postgresql.enabled }}
+      {{- if include "pixelaudit.internalDatabase" . }}
       initContainers:
         - name: wait-for-postgres
-          image: {{ .Values.postgresql.waitImage | quote }}
+          image: {{ .Values.database.internal.waitImage | quote }}
           imagePullPolicy: IfNotPresent
           {{- with .Values.securityContext }}
           securityContext:
@@ -53,8 +53,8 @@ spec:
             - sh
             - -c
             - |
-              until nc -z {{ .Release.Name }}-postgresql 5432; do
-                echo "waiting for {{ .Release.Name }}-postgresql:5432"; sleep 2
+              until nc -z {{ include "pixelaudit.postgresName" . }} 5432; do
+                echo "waiting for {{ include "pixelaudit.postgresName" . }}:5432"; sleep 2
               done
       {{- end }}
       containers:

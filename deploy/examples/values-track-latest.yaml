@@ -12,23 +12,25 @@
 image:
   trackLatest: true
 
+hosts:
+  api: pixelaudit-api.example.com
+  admin: pixelaudit.example.com
+  tls: true
+
+secrets:
+  secretName: pixelaudit-keys
+
+database:
+  external:
+    secretName: pixelaudit-database
+
 api:
-  hostname: pixelaudit-api.example.com
   extraEnvFrom:
     - secretRef:
         name: pixelaudit-connections
 
-admin:
-  hostname: pixelaudit.example.com
-
-database:
-  url: postgres://pixelaudit:change-me@postgres.example.com:5432/pixelaudit?sslmode=require
-
-secrets:
-  existingSecret: pixelaudit-keys
-
 ingress:
+  enabled: true
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
-  tls: true

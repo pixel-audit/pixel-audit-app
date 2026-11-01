@@ -1,34 +1,30 @@
-# Everything in the cluster, nothing external: the Bitnami PostgreSQL
-# subchart holds the database, the ingress is plain http, the keys are
-# inline. For a try-out on kind or minikube, not for production (replace
-# the placeholder secrets before using it anywhere that matters).
+# Everything in the cluster, nothing external: the chart's own PostgreSQL 18
+# on a volume (its password generated and kept), a plain-http Ingress. For
+# a try-out on kind or minikube, not for production. The only Secret to
+# create first is the keys:
 #
-#   helm dependency build deploy      # once: fetches the postgresql subchart
-#   helm install pixelaudit deploy --namespace pixelaudit --create-namespace \
-#     --atomic --values deploy/examples/values-all-in-one.yaml
+#   kubectl create namespace pixelaudit
+#   kubectl -n pixelaudit create secret generic pixelaudit-keys \
+#     --from-literal=SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
+#     --from-literal=SECRET_KEY="$(openssl rand -hex 32)"
+#   helm install pixelaudit deploy --namespace pixelaudit --atomic \
+#     --values deploy/examples/values-all-in-one.yaml
 
-api:
-  hostname: pixelaudit-api.127.0.0.1.nip.io
-
-admin:
-  hostname: pixelaudit.127.0.0.1.nip.io
-
-secrets:
-  # openssl rand -base64 64 | tr -d '\n'
-  secretKeyBase: replace-me-with-sixty-four-or-more-characters-from-openssl-rand-base64-64
-  # openssl rand -hex 32
-  secretKey: 0f1e2d3c4b5a69788796a5b4c3d2e1f00112233445566778899aabbccddeeff0
-
-ingress:
-  className: nginx
+hosts:
+  api: pixelaudit-api.127.0.0.1.nip.io
+  admin: pixelaudit.127.0.0.1.nip.io
   tls: false
 
-postgresql:
-  enabled: true
-  auth:
-    username: pixelaudit
-    password: pixelaudit-dev
-    database: pixelaudit
-  primary:
-    persistence:
+secrets:
+  secretName: pixelaudit-keys
+
+database:
+  internal:
+    enabled: true
+    storage:
       size: 2Gi
+      # storageClassName: standard
+
+ingress:
+  enabled: true
+  className: nginx
