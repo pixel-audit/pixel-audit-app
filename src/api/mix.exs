@@ -49,8 +49,6 @@ defmodule PixelAudit.Api.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
-      # Browser origins of the admin panel's dev server and deployments.
-      {:corsica, "~> 2.1"},
       # The OpenAPI document the admin panel's client is generated from.
       {:open_api_spex, "~> 3.21"},
       # Background jobs: the hourly Meta pixel pull, the nightly recomputation

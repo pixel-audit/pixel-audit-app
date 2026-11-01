@@ -131,7 +131,7 @@ helm-lint:
 	    echo "kubeconform not installed — skipping the schema check"; \
 	fi
 
-# The two images, built locally the way CI builds them.
-images:
-	docker build -t pixelaudit-api ./src/api
-	docker build -t pixelaudit-admin ./src/admin
+# The image — the API with the panel built in — built locally the way CI
+# builds it, from the Dockerfile at the repository root.
+image:
+	docker build -t pixelaudit .

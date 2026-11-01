@@ -4,13 +4,12 @@
 # Every push and pull request tests the API (`mix precommit` against a
 # Postgres service), the admin panel (`npm run check`) and the chart
 # (`helm lint` with each example, the rendered manifests through
-# kubeconform), then builds both images. The images are pushed to the
-# GitHub Container Registry — public packages, so the chart needs no pull
-# secret — on a push to main and on a release tag, never from a pull
-# request:
+# kubeconform), then builds the image — the API with the panel built in,
+# from the Dockerfile at the repository root. It is pushed to the GitHub
+# Container Registry — a public package, so the chart needs no pull secret
+# — on a push to main and on a release tag, never from a pull request:
 #
-#   ghcr.io/<owner>/<repo>-api        ghcr.io/<owner>/<repo>-admin
-#   (ghcr.io/pixel-audit/pixel-audit-app-api and -admin for the main repository)
+#   ghcr.io/<owner>/<repo>   (ghcr.io/pixel-audit/pixel-audit-app)
 #     :latest        every push to main
 #     :sha-<short>   every push
 #     :X.Y.Z, :vX.Y.Z   a vX.Y.Z tag
@@ -137,14 +136,13 @@ jobs:
           done
 
   build:
-    name: Build ${{ matrix.component }} image
+    name: Build the image
     needs: [test-api, test-admin, helm]
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        component: [api, admin]
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v7
 
@@ -158,12 +156,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # <owner>/<repo>-<component>, lowercase (a GitHub name need not be):
-      # the same rule as the chart's image.repository, so a fork publishes
-      # under its own name.
+      # <owner>/<repo>, lowercase (a GitHub name need not be): the same rule
+      # as the chart's image.repository, so a fork publishes under its own.
       - name: Image name
         id: name
-        run: echo "image=${REGISTRY}/${REPOSITORY,,}-${{ matrix.component }}" >> "$GITHUB_OUTPUT"
+        run: echo "image=${REGISTRY}/${REPOSITORY,,}" >> "$GITHUB_OUTPUT"
         env:
           REPOSITORY: ${{ github.repository }}
 
@@ -181,15 +178,15 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: src/${{ matrix.component }}
+          context: .
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             RELEASE_SHA=${{ github.sha }}
             RELEASE_TIMESTAMP=${{ github.event.head_commit.timestamp }}
-          cache-from: type=gha,scope=${{ matrix.component }}
-          cache-to: type=gha,scope=${{ matrix.component }},mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   chart:
     name: Publish the chart

@@ -11,10 +11,9 @@ config :pixelaudit_api,
   namespace: PixelAudit.Api,
   ecto_repos: [PixelAudit.Api.Repo],
   generators: [timestamp_type: :utc_datetime, binary_id: true],
-  # Where the panel is served — the one browser origin allowed to call the
-  # API out of the box. config/dev.exs and CORS_ORIGINS (config/runtime.exs)
-  # extend the list.
-  cors_origins: [],
+  # Where this program's source is offered (AGPL §13): the panel's foot
+  # links there. SOURCE_URL in config/runtime.exs for a deployment's own fork.
+  source_url: "https://github.com/pixel-audit/pixel-audit-app",
   # The longest one connector call (Meta, BigQuery, a SQL query) may take.
   connector_timeout_ms: 60_000,
   # A manual or scheduled refresh covers at most this many days at once.

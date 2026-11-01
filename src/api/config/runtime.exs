@@ -21,18 +21,10 @@ end
 config :pixelaudit_api, PixelAudit.ApiWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
-# Browser origins allowed to call the API (CORS), comma-separated — e.g.
-# CORS_ORIGINS=https://pixelaudit.example.com
-# Optional: without it dev falls back to the list in config/dev.exs and
-# other environments allow no cross-origin calls.
-if cors_origins = System.get_env("CORS_ORIGINS") do
-  origins =
-    cors_origins
-    |> String.split(",")
-    |> Enum.map(&String.trim/1)
-    |> Enum.reject(&(&1 == ""))
-
-  config :pixelaudit_api, :cors_origins, origins
+# Where this program's source is offered: the panel's foot links there
+# (AGPL §13). A fork sets its own repository.
+if source_url = System.get_env("SOURCE_URL") do
+  config :pixelaudit_api, :source_url, source_url
 end
 
 # CREDENTIALS_ENCRYPTION_KEY: the key the connection credentials are

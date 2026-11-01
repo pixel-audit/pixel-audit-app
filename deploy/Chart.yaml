@@ -1,6 +1,6 @@
 apiVersion: v2
 name: pixelaudit
-description: PixelAudit — the API and the admin panel, for an on-premise Kubernetes install. Monitors the delivery of events to Meta, Google Analytics and Google Ads by comparing funnel step counts across data sources.
+description: PixelAudit — the API and the admin panel in one image, for an on-premise Kubernetes install. Monitors the delivery of events to Meta, Google Analytics and Google Ads by comparing funnel step counts across data sources.
 type: application
 # The chart's own version and the application version (the image tag the
 # chart installs by default) are bumped together on a release.
@@ -19,7 +19,5 @@ keywords:
 annotations:
   artifacthub.io/license: AGPL-3.0-only
   artifacthub.io/images: |
-    - name: pixelaudit-api
-      image: ghcr.io/pixel-audit/pixel-audit-app-api:0.0.1
-    - name: pixelaudit-admin
-      image: ghcr.io/pixel-audit/pixel-audit-app-admin:0.0.1
+    - name: pixelaudit
+      image: ghcr.io/pixel-audit/pixel-audit-app:0.0.1

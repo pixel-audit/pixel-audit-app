@@ -1,0 +1,44 @@
+# Everything not copied into the image is still sent to the Docker daemon as
+# the build context — keep the heavy and the local-only paths out of it.
+# Only src/admin and src/api are copied (see the Dockerfile).
+
+.git
+!.git/HEAD
+!.git/refs
+
+deploy
+docker
+docs
+specs
+.github
+*.md
+Makefile
+Procfile
+docker-compose.yml
+.env
+.env.*
+.tool-versions
+.foreman
+
+# Installed and built inside the image
+src/admin/node_modules
+src/admin/dist
+src/admin/.tanstack
+src/admin/.vscode
+src/admin/*.md
+src/admin/*.log
+
+# Mix artifacts — fetched and compiled inside the image
+src/api/_build
+src/api/deps
+src/api/*.ez
+src/api/cover
+src/api/doc
+src/api/test
+src/api/tmp
+src/api/.elixir_ls
+src/api/.formatter.exs
+src/api/*.md
+src/api/erl_crash.dump
+src/api/Dockerfile
+src/api/.dockerignore

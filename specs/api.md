@@ -59,8 +59,16 @@ response body is a named schema module under
 - `POST /funnels/:id/refresh` and `POST /connections/:id/refresh` answer
   `202` with the refresh runs they enqueued; the work is done by Oban.
 
-## CORS
+## The panel, from the same origin
 
-Browser origins allowed to call the API come from `:cors_origins`
-(`config/dev.exs` for the panel's dev server, `CORS_ORIGINS` in production).
-The panel sends its build's commit as `x-pixelaudit-release-sha`.
+The API serves the panel too (`PixelAudit.ApiWeb.PanelController`): the
+image copies the panel's build into `priv/static`, Plug.Static serves its
+hashed assets, `favicon.ico` and `robots.txt` (which disallows every
+crawler), `/config.js` is rendered from the environment (`apiUrl` empty —
+the panel calls `/api/...` on its own origin — and `sourceUrl` from
+`SOURCE_URL`), and every path no route claims answers `index.html` with an
+`X-Robots-Tag: noindex` header, so the panel's router takes over from the
+address. An unknown `/api/...` path stays a JSON 404. There is no CORS:
+in development the panel's dev server proxies `/api`, `/openapi`,
+`/health` and `/config.js` to the API. The panel sends its build's commit
+as `x-pixelaudit-release-sha`.

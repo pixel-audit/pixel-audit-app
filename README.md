@@ -15,8 +15,10 @@ Two components in a monorepo:
 | API | `src/api` | Elixir / Phoenix, Ecto, Oban, OpenAPI (`open_api_spex`) |
 | Admin panel | `src/admin` | Vite, React, TypeScript, TanStack Router/Query, Tailwind, orval |
 
-Deployment: two Docker images and a Helm chart for an on-premise Kubernetes
-(`deploy/`). Licence: GNU AGPL v3 (`LICENSE`).
+In production they are one image: the `Dockerfile` at the root builds the
+panel and the API and has Phoenix serve the panel's build next to the API,
+under one hostname. Deployment: that image and a Helm chart for an
+on-premise Kubernetes (`deploy/`). Licence: GNU AGPL v3 (`LICENSE`).
 
 ## Prerequisites
 
@@ -86,7 +88,7 @@ and starts the API and the panel from the `Procfile` via foreman:
 | App | Path | URL |
 |---|---|---|
 | Phoenix API | `src/api` | <http://localhost:16000> (OpenAPI: `/openapi/admin.json`) |
-| Admin panel | `src/admin` | <http://localhost:16001> |
+| Admin panel | `src/admin` | <http://localhost:16001> — its dev server proxies `/api`, `/openapi`, `/health` and `/config.js` to the API, so the panel calls its own origin here as in the image |
 
 The Docker services:
 
@@ -155,24 +157,32 @@ API on demand) and type-checks the panel.
 ## Deployment
 
 CI (`.github/workflows/test-build.yml`) tests both components and publishes
-the images to the GitHub Container Registry: `latest` on every push to
-`main`, `X.Y.Z` on a `vX.Y.Z` tag, which also publishes the Helm chart. The
-chart in `deploy/` installs the API, its boot Job and the panel on any
+the image (`ghcr.io/pixel-audit/pixel-audit-app`) to the GitHub Container
+Registry: `latest` on every push to `main`, `X.Y.Z` on a `vX.Y.Z` tag,
+which also publishes the Helm chart. `make image` builds the same image
+locally. The chart in `deploy/` installs it with its boot Job on any
 Kubernetes, with your managed Postgres or its own PostgreSQL 18 on a
-volume, exposed through an Ingress or the Gateway API (both optional),
-every secret read from a Secret you create; its README covers the values
-and the two ways to pick an image version (a release, or tracking `latest`).
+volume, exposed under one hostname through an Ingress or the Gateway API
+(both optional), every secret read from a Secret you create; its README
+covers the values and the two ways to pick an image version (a release,
+or tracking `latest`).
+
+The panel is not for search engines: the image serves a `robots.txt` that
+disallows everything, the panel's page carries a `noindex` meta tag and
+the server adds the matching header.
 
 ## Licence
 
 PixelAudit is free software under the GNU Affero General Public License,
-version 3 (`LICENSE`). The panel's footer links to the source, as §13 of
+version 3 (`LICENSE`). The panel's sidebar links to the source, as §13 of
 the licence asks of a program used over a network; a deployment points that
-link at its own repository with `SOURCE_URL`.
+link at its own repository with `SOURCE_URL`, which the API renders into
+the panel's `/config.js`.
 
 ## Layout
 
 ```
+Dockerfile       the one image: the panel built, the API compiled, the panel served by it
 src/api          the Phoenix API — CLAUDE.md there says where code goes
 src/admin        the panel — CLAUDE.md there has the conventions
 deploy           the Helm chart and its README

@@ -1,15 +1,15 @@
-# The Phoenix API (the image's `web` role). The boot hook Job has migrated
-# the database and applied the CONNECTION_* environment before these pods
-# roll out.
+# The application (the image's `web` role): the Phoenix API, which also
+# serves the admin panel. The boot hook Job has migrated the database and
+# applied the CONNECTION_* environment before these pods roll out.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "pixelaudit.fullname" . }}-api
+  name: {{ include "pixelaudit.fullname" . }}
   labels:
     {{- include "pixelaudit.labels" . | nindent 4 }}
-    app.kubernetes.io/component: api
+    app.kubernetes.io/component: app
 spec:
-  replicas: {{ .Values.api.replicaCount }}
+  replicas: {{ .Values.app.replicaCount }}
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -17,11 +17,11 @@ spec:
       maxSurge: 1
   selector:
     matchLabels:
-      {{- include "pixelaudit.selectorLabels" (dict "root" . "component" "api") | nindent 6 }}
+      {{- include "pixelaudit.selectorLabels" (dict "root" . "component" "app") | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "pixelaudit.selectorLabels" (dict "root" . "component" "api") | nindent 8 }}
+        {{- include "pixelaudit.selectorLabels" (dict "root" . "component" "app") | nindent 8 }}
     spec:
       serviceAccountName: {{ include "pixelaudit.serviceAccountName" . }}
       automountServiceAccountToken: false
@@ -31,8 +31,8 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: api
-          image: {{ include "pixelaudit.image" (dict "root" . "component" "api") | quote }}
+        - name: app
+          image: {{ include "pixelaudit.image" . | quote }}
           imagePullPolicy: {{ include "pixelaudit.imagePullPolicy" . }}
           args: ["web"]
           {{- with .Values.securityContext }}
@@ -41,7 +41,7 @@ spec:
           {{- end }}
           ports:
             - name: http
-              containerPort: {{ .Values.api.port }}
+              containerPort: {{ .Values.app.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -56,9 +56,9 @@ spec:
             initialDelaySeconds: 5
             timeoutSeconds: 3
           env:
-            {{- include "pixelaudit.apiEnv" . | nindent 12 }}
-          {{- include "pixelaudit.apiEnvFrom" . | nindent 10 }}
-          {{- with .Values.api.resources }}
+            {{- include "pixelaudit.appEnv" . | nindent 12 }}
+          {{- include "pixelaudit.appEnvFrom" . | nindent 10 }}
+          {{- with .Values.app.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}

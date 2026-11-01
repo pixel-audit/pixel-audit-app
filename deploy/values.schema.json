@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "PixelAudit chart values",
   "type": "object",
-  "required": ["image", "hosts", "secrets", "database", "ingress", "gateway", "api", "admin"],
+  "required": ["image", "hostname", "secrets", "database", "ingress", "gateway", "app"],
   "$defs": {
     "hostname": {
       "type": "string",
@@ -24,21 +24,12 @@
         "pullSecrets": { "type": "array", "items": { "type": "string", "minLength": 1 } }
       }
     },
-    "hosts": {
-      "type": "object",
-      "required": ["api", "admin"],
-      "properties": {
-        "api": {
-          "$ref": "#/$defs/hostname",
-          "description": "The API's public hostname, e.g. pixelaudit-api.example.com"
-        },
-        "admin": {
-          "$ref": "#/$defs/hostname",
-          "description": "The panel's public hostname, e.g. pixelaudit.example.com"
-        },
-        "tls": { "type": "boolean" }
-      }
+    "hostname": {
+      "$ref": "#/$defs/hostname",
+      "description": "The public hostname, e.g. pixelaudit.example.com"
     },
+    "tls": { "type": "boolean" },
+    "sourceUrl": { "type": "string", "pattern": "^https?://" },
     "secrets": {
       "type": "object",
       "required": ["secretName"],
@@ -130,13 +121,12 @@
         }
       }
     },
-    "api": {
+    "app": {
       "type": "object",
       "properties": {
         "replicaCount": { "type": "integer", "minimum": 0 },
         "port": { "type": "integer", "minimum": 1024, "maximum": 65535 },
         "poolSize": { "type": "integer", "minimum": 1 },
-        "corsOrigins": { "type": "array", "items": { "type": "string", "pattern": "^https?://" } },
         "extraEnv": { "type": "array", "items": { "type": "object", "required": ["name"] } },
         "extraEnvFrom": { "type": "array", "items": { "type": "object" } },
         "resources": { "type": "object" },
@@ -147,14 +137,6 @@
             "resources": { "type": "object" }
           }
         }
-      }
-    },
-    "admin": {
-      "type": "object",
-      "properties": {
-        "replicaCount": { "type": "integer", "minimum": 0 },
-        "port": { "type": "integer", "minimum": 1024, "maximum": 65535 },
-        "resources": { "type": "object" }
       }
     },
     "nodeSelector": { "type": "object" },

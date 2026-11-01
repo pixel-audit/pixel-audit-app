@@ -1,9 +1,9 @@
-# The API image's `boot` role — create the database if needed, run the
+# The image's `boot` role — create the database if needed, run the
 # pending migrations, map the CONNECTION_* environment onto connection rows
 # — as a pre-install/upgrade hook: it completes before the new API pods
 # roll out, and a failure (a bad migration, a malformed CONNECTION_* set)
 # fails the release, rolled back by --atomic, without touching the running
-# pods. It carries the same environment as the API pods, so the connections
+# pods. It carries the same environment as the app pods, so the connections
 # it writes are the ones the pods then serve.
 #
 # With the chart's own Postgres there is no database before the release's
@@ -26,7 +26,7 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   backoffLimit: 0
-  activeDeadlineSeconds: {{ .Values.api.boot.activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ .Values.app.boot.activeDeadlineSeconds }}
   template:
     metadata:
       labels:
@@ -59,7 +59,7 @@ spec:
       {{- end }}
       containers:
         - name: boot
-          image: {{ include "pixelaudit.image" (dict "root" . "component" "api") | quote }}
+          image: {{ include "pixelaudit.image" . | quote }}
           imagePullPolicy: {{ include "pixelaudit.imagePullPolicy" . }}
           args: ["boot"]
           {{- with .Values.securityContext }}
@@ -67,9 +67,9 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- include "pixelaudit.apiEnv" . | nindent 12 }}
-          {{- include "pixelaudit.apiEnvFrom" . | nindent 10 }}
-          {{- with .Values.api.boot.resources }}
+            {{- include "pixelaudit.appEnv" . | nindent 12 }}
+          {{- include "pixelaudit.appEnvFrom" . | nindent 10 }}
+          {{- with .Values.app.boot.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}

@@ -5,6 +5,11 @@ defmodule PixelAudit.ApiWeb.Router do
   # without authentication: PixelAudit is deployed behind a network
   # boundary (see specs/api.md at the repository root). The OpenAPI document
   # at /openapi/admin.json is what the panel's client is generated from.
+  #
+  # The panel itself is served from here too (PanelController): its build
+  # sits in priv/static, /config.js is rendered from the environment, and
+  # every other path answers the panel's index.html so its own router takes
+  # over. One origin, no CORS.
 
   pipeline :health do
     plug :accepts, ["json"]
@@ -13,6 +18,10 @@ defmodule PixelAudit.ApiWeb.Router do
   pipeline :admin_api do
     plug :accepts, ["json"]
     plug OpenApiSpex.Plug.PutApiSpec, module: PixelAudit.ApiWeb.OpenApi.AdminSpec
+  end
+
+  pipeline :panel do
+    plug :accepts, ["html", "js"]
   end
 
   scope "/", PixelAudit.ApiWeb do
@@ -76,5 +85,12 @@ defmodule PixelAudit.ApiWeb.Router do
       get "/refresh-runs/:id", RefreshRunController, :show
       get "/refresh-runs/:id/days", RefreshRunController, :days
     end
+  end
+
+  scope "/", PixelAudit.ApiWeb do
+    pipe_through :panel
+    get "/config.js", PanelController, :config
+    # Last: whatever no route above claimed is a panel address.
+    get "/*path", PanelController, :index
   end
 end

@@ -1,16 +1,15 @@
 /**
- * Runtime configuration — the values from public/config.js, which index.html
- * loads before the bundle. See that file for what each value is and how the
- * Docker image sets them.
+ * Runtime configuration — the values of /config.js, which index.html loads
+ * before the bundle. The API renders it (PanelController) from its
+ * environment: in the image directly, in development through the dev
+ * server's proxy, so nothing is baked into the build.
  *
- * Read once at startup. A value that is missing or empty — the file did not
- * load, or a deployment set nothing — falls back to the local development
- * default, the same one public/config.js carries, so the app always starts
- * and in development needs no configuration at all.
+ * Read once at startup. A value that is missing or empty — the script did
+ * not load — falls back to the default here, so the app always starts.
  */
 
 export interface RuntimeConfig {
-  apiUrl: string;
+  /** Where this program's source is offered (AGPL §13): the sidebar's foot links there. */
   sourceUrl: string;
 }
 
@@ -20,17 +19,15 @@ declare global {
   }
 }
 
-/** The local development stack (Procfile, docker-compose.yml) — mirrors public/config.js. */
-const DEVELOPMENT: RuntimeConfig = {
-  apiUrl: "http://localhost:16000",
+const DEFAULTS: RuntimeConfig = {
   sourceUrl: "https://github.com/pixel-audit/pixel-audit-app",
 };
 
 function readConfig(): RuntimeConfig {
   const raw = window.PIXELAUDIT_CONFIG ?? {};
-  const config = { ...DEVELOPMENT };
+  const config = { ...DEFAULTS };
 
-  for (const key of Object.keys(DEVELOPMENT) as (keyof RuntimeConfig)[]) {
+  for (const key of Object.keys(DEFAULTS) as (keyof RuntimeConfig)[]) {
     const value = raw[key];
 
     if (typeof value === "string" && value !== "") {

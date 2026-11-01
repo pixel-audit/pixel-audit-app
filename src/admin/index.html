@@ -14,10 +14,14 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap"
     />
 
-    <!-- Runtime configuration (the API address) — a plain, blocking script
-         so it has run before the bundle (a deferred module, which Vite
-         hoists into the head below this) starts. The values are read at
-         page load, not baked in at build time. See public/config.js. -->
+    <!-- Not for search engines: the panel is an internal tool. robots.txt
+         says the same to crawlers that read it. -->
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- Runtime configuration, rendered by the API from its environment —
+         a plain, blocking script so it has run before the bundle (a
+         deferred module, which Vite hoists into the head below this)
+         starts. See src/lib/config.ts. -->
     <script src="/config.js"></script>
 
     <!-- The placeholder until the breadcrumb bar names the page: the trail,

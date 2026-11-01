@@ -30,7 +30,20 @@ export default defineConfig({
   // Dev on 16001 — right above the API (16000); the API is on 16000.
   // Monorepo apps stick to the 14000+ range. Preview (the built dist/) is
   // deliberately on 36001 so it does not collide with the dev servers from `make up`.
-  server: { host: true, port: 16001 },
+  // The API is the panel's own origin: every call goes to /api/... on the
+  // page's host. In development the panel's dev server forwards those
+  // paths — and the runtime configuration the API renders — to the
+  // Phoenix server on 16000, so the same code runs here and in the image.
+  server: {
+    host: true,
+    port: 16001,
+    proxy: Object.fromEntries(
+      ["/api", "/openapi", "/health", "/config.js"].map((path) => [
+        path,
+        { target: "http://localhost:16000", changeOrigin: false },
+      ]),
+    ),
+  },
   preview: { host: true, port: 36001 },
   build: { outDir: "dist", sourcemap: true },
   test: {

@@ -1,20 +1,21 @@
 # PixelAudit — values for an on-premise install.
 #
-# One release installs the API (with its boot Job: migrations and the
-# CONNECTION_* environment applied before the API pods roll out) and the
-# admin panel, each under its own hostname. The only state is the Postgres
-# database: a managed one of yours (database.external) or the chart's own
-# PostgreSQL 18 on a persistent volume (database.internal).
+# One release installs the application — the API, which also serves the
+# admin panel, one image under one hostname — with its boot Job
+# (migrations and the CONNECTION_* environment applied before the pods roll
+# out). The only state is the Postgres database: a managed one of yours
+# (database.external) or the chart's own PostgreSQL 18 on a persistent
+# volume (database.internal).
 #
 # Secrets are never written in values: the chart reads them from Secrets
 # you create (secrets.secretName, database.external.secretName).
 #
 # Nothing is exposed to the network by default: switch on `ingress` or
-# `gateway` (Gateway API) to publish the two hostnames.
+# `gateway` (Gateway API) to publish the hostname.
 #
-# What has to be set: hosts.api, hosts.admin, secrets.secretName, one of
+# What has to be set: hostname, secrets.secretName, one of
 # database.external.secretName / database.internal.enabled, and one way of
-# exposing the hostnames. deploy/examples/ has a values file for each shape.
+# exposing the hostname. deploy/examples/ has a values file for each shape.
 
 image:
   # The images CI publishes to the GitHub Container Registry: public
@@ -22,8 +23,8 @@ image:
   # <organisation>/<repository> the code lives under (pixel-audit/pixel-audit-app);
   # a fork publishes under its own.
   registry: ghcr.io
-  # Images are <registry>/<repository>-api and <registry>/<repository>-admin,
-  # i.e. ghcr.io/pixel-audit/pixel-audit-app-api and ghcr.io/pixel-audit/pixel-audit-app-admin.
+  # The image is <registry>/<repository>: ghcr.io/pixel-audit/pixel-audit-app,
+  # the API and the panel together.
   repository: pixel-audit/pixel-audit-app
   # Which version to run — two ways:
   #
@@ -35,7 +36,7 @@ image:
   #   moves on every push to main, with pullPolicy Always so every pod
   #   start fetches the current one. A newer `latest` is picked up by
   #   `helm upgrade` (the boot Job re-runs the migrations) followed by
-  #   `kubectl rollout restart deployment -l app.kubernetes.io/instance=<release>`.
+  #   `kubectl rollout restart deployment/<release>`.
   #
   # trackLatest overrides tag and pullPolicy in one switch.
   tag: ""
@@ -45,16 +46,17 @@ image:
   # private registry or a private fork (`kubectl create secret docker-registry ...`).
   pullSecrets: []
 
-# The two public hostnames. Required whether or not anything exposes them:
-# the API is told its own (HOSTNAME), the panel where the API is (API_URL),
-# and the API which browser origin to allow (the panel's).
-hosts:
-  api: ""
-  admin: ""
-  # Whether the hostnames are served over https — by the Ingress or the
-  # Gateway below, or by whatever you put in front. Decides the scheme of
-  # API_URL and of the allowed origin.
-  tls: true
+# The public hostname the panel and the API (under /api) are served at.
+# Required whether or not anything exposes it: the application is told
+# its own hostname (HOSTNAME).
+hostname: ""
+# Whether the hostname is served over https — by the Ingress or the Gateway
+# below, or by whatever you put in front.
+tls: true
+
+# Where this program's source is offered (AGPL §13): the panel's foot links
+# there. A fork points it at its own repository.
+sourceUrl: https://github.com/pixel-audit/pixel-audit-app
 
 # The Secret holding the API's two secrets. Required. Create it with
 #   kubectl create secret generic pixelaudit-keys \
@@ -147,26 +149,23 @@ gateway:
     name: ""
     namespace: ""
 
-api:
+app:
   replicaCount: 1
   # The port the container listens on (PORT).
   port: 4000
-  # Size of the API's connection pool to its database (DATABASE_POOL_SIZE).
+  # Size of the connection pool to the database (DATABASE_POOL_SIZE).
   poolSize: 10
-  # Browser origins allowed to call the API (CORS_ORIGINS), on top of the
-  # admin panel's own origin, which is always allowed.
-  corsOrigins: []
-  # Extra environment for the API pods and the boot Job — the place for
-  # CONNECTION_* variables, from a Secret you create (api.extraEnvFrom) or
-  # inline for the non-secret ones (api.extraEnv); see the README.
+  # Extra environment for the pods and the boot Job — the place for
+  # CONNECTION_* variables, from a Secret you create (app.extraEnvFrom) or
+  # inline for the non-secret ones (app.extraEnv); see the README.
   extraEnv: []
   #  - name: CONNECTION_shop_TYPE
   #    value: postgres
   extraEnvFrom: []
   #  - secretRef:
   #      name: pixelaudit-connections
-  # CPU and memory for the API pods; none by default. As idle the API takes
-  # about 100Mi; a refresh of a wide range may take a few hundred more.
+  # CPU and memory for the pods; none by default. Idle, the application
+  # takes about 100Mi; a refresh of a wide range may take a few hundred more.
   resources: {}
   #  requests: { cpu: 50m, memory: 128Mi }
   #  limits: { cpu: "1", memory: 512Mi }
@@ -176,16 +175,6 @@ api:
     activeDeadlineSeconds: 600
     # CPU and memory for the Job's pod; none by default.
     resources: {}
-
-admin:
-  replicaCount: 1
-  # The port nginx listens on (PORT).
-  port: 8080
-  # CPU and memory for the panel's pods; none by default. nginx serving a
-  # static build idles at a few Mi.
-  resources: {}
-  #  requests: { cpu: 5m, memory: 16Mi }
-  #  limits: { cpu: 100m, memory: 64Mi }
 
 # Where the pods may run.
 nodeSelector: {}
@@ -199,9 +188,9 @@ serviceAccount:
   name: ""
   annotations: {}
 
-# Every container runs unprivileged: the API as the release's `nobody`,
-# nginx (the panel) as its unprivileged user, Postgres as its own. These
-# apply to the API and panel pods; the Postgres pod has its own.
+# Every container runs unprivileged: the application as the release's
+# `nobody`, Postgres as its own user. These apply to the application's
+# pods; the Postgres pod has its own.
 podSecurityContext:
   runAsNonRoot: true
   seccompProfile:
@@ -210,6 +199,5 @@ securityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop: ["ALL"]
-  # The API writes nothing to its filesystem; nginx needs its cache and pid
-  # directories writable, which the panel's Deployment mounts as emptyDirs.
+  # The application writes nothing to its filesystem.
   readOnlyRootFilesystem: true

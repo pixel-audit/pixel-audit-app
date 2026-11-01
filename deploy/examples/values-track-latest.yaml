@@ -4,7 +4,7 @@
 #
 #   helm upgrade pixelaudit oci://ghcr.io/pixel-audit/charts/pixelaudit \
 #     --namespace pixelaudit --reuse-values --atomic
-#   kubectl -n pixelaudit rollout restart deployment -l app.kubernetes.io/instance=pixelaudit
+#   kubectl -n pixelaudit rollout restart deployment/pixelaudit
 #
 # (the upgrade re-runs the boot Job, so a migration that came with the new
 # images is applied before the restart).
@@ -12,10 +12,8 @@
 image:
   trackLatest: true
 
-hosts:
-  api: pixelaudit-api.example.com
-  admin: pixelaudit.example.com
-  tls: true
+hostname: pixelaudit.example.com
+tls: true
 
 secrets:
   secretName: pixelaudit-keys
@@ -24,7 +22,7 @@ database:
   external:
     secretName: pixelaudit-database
 
-api:
+app:
   extraEnvFrom:
     - secretRef:
         name: pixelaudit-connections

@@ -6,8 +6,10 @@ connections; the refresh runs.
 
 The app is a single-page application (SPA) that talks to the PixelAudit API
 (`src/api` at the repo root; see `specs/api.md`) through an orval-generated
-client in `src/api/generated`. There is no sign-in: the API has no
-authentication and is deployed behind a network boundary.
+client in `src/api/generated`, at `/api/...` on its own origin: the API
+serves the panel's build, so there is one host and no CORS. There is no
+sign-in: the API has no authentication and is deployed behind a network
+boundary.
 
 ## Requirements
 
@@ -21,9 +23,9 @@ npm run dev          # http://localhost:16001
 ```
 
 In the monorepo the app is normally started together with the API via
-`make up` in the repo root (see the root README). The API address is
-runtime configuration (`public/config.js`, read by `src/lib/config.ts`);
-the development default points at the local stack.
+`make up` in the repo root (see the root README). The dev server proxies
+`/api`, `/openapi`, `/health` and `/config.js` to the API on port 16000,
+so the panel calls the API the same way it does in the image.
 
 ## Scripts
 
@@ -67,7 +69,7 @@ src/
   api/             generated/ (orval client, never hand-edited) and http.ts (fetch wrapper)
   lib/
     api.ts            useApi() and the client context; api-provider.tsx hands the client down
-    config.ts         runtime configuration (public/config.js)
+    config.ts         runtime configuration (/config.js, rendered by the API)
     navigation.ts     navigation tree: top bar, sidebar and breadcrumbs
     date-range.ts     the report's ranges and presets
     sankey.ts         the report → sankey nodes and flows (pure, tested)
@@ -80,9 +82,9 @@ are in [CLAUDE.md](CLAUDE.md).
 
 ## Deploy
 
-`npm run build` produces a static `dist/`. The hosting **must** rewrite
-unknown paths to `index.html` — without that, entering `/funnels` directly
-returns a 404 (in nginx: `try_files $uri /index.html;`).
-
-The Docker image (nginx) serves `dist/` and writes `/config.js` on every
-start from `API_URL` and `SOURCE_URL`, so one build serves any environment.
+`npm run build` produces a static `dist/`, which the repository's single
+Docker image (the `Dockerfile` at the repo root) builds and copies into
+the API's `priv/static`. Phoenix serves the hashed assets as files, renders
+`/config.js` from its environment (`SOURCE_URL`) and answers every other
+path with `index.html`, so the panel's own router takes over from the
+address. There is no separate panel image.

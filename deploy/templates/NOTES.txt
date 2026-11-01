@@ -1,32 +1,32 @@
 PixelAudit {{ .Chart.AppVersion }} is installed as release {{ .Release.Name }} in {{ .Release.Namespace }}.
 
-  Admin panel:  {{ include "pixelaudit.scheme" . }}://{{ .Values.hosts.admin }}
-  API:          {{ include "pixelaudit.scheme" . }}://{{ .Values.hosts.api }}
-  OpenAPI:      {{ include "pixelaudit.scheme" . }}://{{ .Values.hosts.api }}/openapi/admin.json
+  Admin panel:  {{ include "pixelaudit.scheme" . }}://{{ .Values.hostname }}
+  API:          {{ include "pixelaudit.scheme" . }}://{{ .Values.hostname }}/api/admin/v1
+  OpenAPI:      {{ include "pixelaudit.scheme" . }}://{{ .Values.hostname }}/openapi/admin.json
 {{- if .Values.ingress.enabled }}
 
 Exposed by the Ingress {{ include "pixelaudit.fullname" . }}.
 {{- else if .Values.gateway.enabled }}
 
-Exposed by HTTPRoutes through the Gateway {{ .Values.gateway.existing.name | default (include "pixelaudit.fullname" .) }}.
+Exposed by an HTTPRoute through the Gateway {{ .Values.gateway.existing.name | default (include "pixelaudit.fullname" .) }}.
 {{- else }}
 
-Nothing exposes the two hostnames yet (ingress.enabled and gateway.enabled
-are both off): the Services {{ include "pixelaudit.fullname" . }}-api and
-{{ include "pixelaudit.fullname" . }}-admin are reachable inside the cluster only.
+Nothing exposes the hostname yet (ingress.enabled and gateway.enabled are
+both off): the Service {{ include "pixelaudit.fullname" . }} is reachable inside
+the cluster only.
 {{- end }}
 
-The API has no authentication: keep both hostnames behind your network
+The API has no authentication: keep the hostname behind your network
 boundary (VPN, IP allow-list on the ingress or gateway, or an authenticating proxy).
 
 The boot Job ({{ include "pixelaudit.fullname" . }}-boot) ran the migrations
-and applied the CONNECTION_* variables before the API pods rolled out.
-{{- if .Values.api.extraEnvFrom }}
-Connections come from the Secret(s) under api.extraEnvFrom; after changing
+and applied the CONNECTION_* variables before the pods rolled out.
+{{- if .Values.app.extraEnvFrom }}
+Connections come from the Secret(s) under app.extraEnvFrom; after changing
 them, `helm upgrade` re-runs the boot Job so the rows follow.
 {{- else }}
 No CONNECTION_* variables were given: add connections in the panel, or
-through a Secret referenced by api.extraEnvFrom (see the chart's README).
+through a Secret referenced by app.extraEnvFrom (see the chart's README).
 {{- end }}
 
 Back up the database together with the CREDENTIALS_ENCRYPTION_KEY in {{ .Values.secrets.secretName }}:
@@ -41,14 +41,14 @@ uninstall. Back the database up yourself.
 
 {{- if .Values.image.trackLatest }}
 
-Images: the `latest` tag (image.trackLatest), moved by every push to main.
+Image: the `latest` tag (image.trackLatest), moved by every push to main.
 To pick up a newer one:
   helm upgrade {{ .Release.Name }} <chart> --namespace {{ .Release.Namespace }} --reuse-values --atomic
-  kubectl -n {{ .Release.Namespace }} rollout restart deployment -l app.kubernetes.io/instance={{ .Release.Name }}
+  kubectl -n {{ .Release.Namespace }} rollout restart deployment/{{ include "pixelaudit.fullname" . }}
 {{- else }}
 
-Images: {{ include "pixelaudit.imageTag" . }} (image.tag, else the chart's appVersion).
+Image: {{ include "pixelaudit.image" . }} (image.tag, else the chart's appVersion).
 {{- end }}
 
 Status:  kubectl -n {{ .Release.Namespace }} get pods -l app.kubernetes.io/instance={{ .Release.Name }}
-Logs:    kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "pixelaudit.fullname" . }}-api
+Logs:    kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "pixelaudit.fullname" . }}

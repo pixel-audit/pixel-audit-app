@@ -26,7 +26,7 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
-{{/* Labels of one component's pods: pass (dict "root" . "component" "api"). */}}
+{{/* Labels of one component's pods: pass (dict "root" . "component" "app"). */}}
 {{- define "pixelaudit.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "pixelaudit.name" .root }}
 app.kubernetes.io/instance: {{ .root.Release.Name }}
@@ -43,8 +43,8 @@ app.kubernetes.io/component: {{ .component }}
 
 {{/*
 The image tag every container runs: `latest` when image.trackLatest, else
-image.tag, else the chart's appVersion. The boot Job and both Deployments
-go through this and pixelaudit.imagePullPolicy, so they always agree.
+image.tag, else the chart's appVersion. The boot Job and the Deployment go
+through this and pixelaudit.imagePullPolicy, so they always agree.
 */}}
 {{- define "pixelaudit.imageTag" -}}
 {{- if .Values.image.trackLatest -}}latest{{- else -}}{{ .Values.image.tag | default .Chart.AppVersion }}{{- end -}}
@@ -54,9 +54,9 @@ go through this and pixelaudit.imagePullPolicy, so they always agree.
 {{- if .Values.image.trackLatest -}}Always{{- else -}}{{ .Values.image.pullPolicy }}{{- end -}}
 {{- end }}
 
-{{/* <registry>/<repository>-<component>:<tag>; pass (dict "root" . "component" "api"). */}}
+{{/* <registry>/<repository>:<tag> — the one image, API and panel together. */}}
 {{- define "pixelaudit.image" -}}
-{{- printf "%s/%s-%s:%s" .root.Values.image.registry .root.Values.image.repository .component (include "pixelaudit.imageTag" .root) -}}
+{{- printf "%s/%s:%s" .Values.image.registry .Values.image.repository (include "pixelaudit.imageTag" .) -}}
 {{- end }}
 
 {{- define "pixelaudit.imagePullSecrets" -}}
@@ -68,18 +68,14 @@ imagePullSecrets:
 {{- end }}
 {{- end }}
 
-{{/* The two hostnames, required everywhere. */}}
-{{- define "pixelaudit.apiHost" -}}
-{{- required "hosts.api is required" .Values.hosts.api -}}
+{{/* The one hostname, required everywhere. */}}
+{{- define "pixelaudit.hostname" -}}
+{{- required "hostname is required" .Values.hostname -}}
 {{- end }}
 
-{{- define "pixelaudit.adminHost" -}}
-{{- required "hosts.admin is required" .Values.hosts.admin -}}
-{{- end }}
-
-{{/* The scheme both hostnames are served under. */}}
+{{/* The scheme the hostname is served under. */}}
 {{- define "pixelaudit.scheme" -}}
-{{- if .Values.hosts.tls -}}https{{- else -}}http{{- end -}}
+{{- if .Values.tls -}}https{{- else -}}http{{- end -}}
 {{- end }}
 
 {{/* The TLS Secret the Ingress or the Gateway serves, when none is named. */}}
@@ -108,21 +104,22 @@ true
 {{- end }}
 
 {{/*
-The API's environment, shared by the boot Job and the API Deployment so
-both see the same database, keys and CONNECTION_* variables. DATABASE_URL
-comes from the external Secret, or is built for the chart's own Postgres
-with the password read from its Secret; the two secrets from secrets.secretName.
+The application's environment, shared by the boot Job and the Deployment
+so both see the same database, secrets and CONNECTION_* variables.
+DATABASE_URL comes from the external Secret, or is built for the chart's
+own Postgres with the password read from its Secret; the two secrets from
+secrets.secretName.
 */}}
-{{- define "pixelaudit.apiEnv" -}}
+{{- define "pixelaudit.appEnv" -}}
 {{- $secrets := required "secrets.secretName is required: a Secret holding WEB_SECRET_KEY_BASE and CREDENTIALS_ENCRYPTION_KEY" .Values.secrets.secretName -}}
 - name: PORT
-  value: {{ .Values.api.port | quote }}
+  value: {{ .Values.app.port | quote }}
 - name: HOSTNAME
-  value: {{ include "pixelaudit.apiHost" . | quote }}
+  value: {{ include "pixelaudit.hostname" . | quote }}
+- name: SOURCE_URL
+  value: {{ .Values.sourceUrl | quote }}
 - name: DATABASE_POOL_SIZE
-  value: {{ .Values.api.poolSize | quote }}
-- name: CORS_ORIGINS
-  value: {{ include "pixelaudit.corsOrigins" . | quote }}
+  value: {{ .Values.app.poolSize | quote }}
 {{- if include "pixelaudit.internalDatabase" . }}
 - name: POSTGRES_PASSWORD
   valueFrom:
@@ -148,20 +145,13 @@ with the password read from its Secret; the two secrets from secrets.secretName.
     secretKeyRef:
       name: {{ $secrets }}
       key: {{ .Values.secrets.keys.credentialsEncryptionKey }}
-{{- with .Values.api.extraEnv }}
+{{- with .Values.app.extraEnv }}
 {{ toYaml . }}
 {{- end }}
 {{- end }}
 
-{{/* The panel's origin, then whatever api.corsOrigins adds. */}}
-{{- define "pixelaudit.corsOrigins" -}}
-{{- $origins := list (printf "%s://%s" (include "pixelaudit.scheme" .) (include "pixelaudit.adminHost" .)) -}}
-{{- range .Values.api.corsOrigins }}{{ $origins = append $origins . }}{{ end -}}
-{{- join "," $origins -}}
-{{- end }}
-
-{{- define "pixelaudit.apiEnvFrom" -}}
-{{- with .Values.api.extraEnvFrom }}
+{{- define "pixelaudit.appEnvFrom" -}}
+{{- with .Values.app.extraEnvFrom }}
 envFrom:
 {{ toYaml . | indent 2 }}
 {{- end }}

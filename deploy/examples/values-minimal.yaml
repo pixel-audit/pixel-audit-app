@@ -16,10 +16,8 @@
 #   helm install pixelaudit oci://ghcr.io/pixel-audit/charts/pixelaudit \
 #     --namespace pixelaudit --atomic --values values-minimal.yaml
 
-hosts:
-  api: pixelaudit-api.example.com
-  admin: pixelaudit.example.com
-  tls: true
+hostname: pixelaudit.example.com
+tls: true
 
 secrets:
   secretName: pixelaudit-keys
@@ -28,7 +26,7 @@ database:
   external:
     secretName: pixelaudit-database
 
-api:
+app:
   extraEnvFrom:
     - secretRef:
         name: pixelaudit-connections

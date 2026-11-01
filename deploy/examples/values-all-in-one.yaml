@@ -10,10 +10,8 @@
 #   helm install pixelaudit deploy --namespace pixelaudit --atomic \
 #     --values deploy/examples/values-all-in-one.yaml
 
-hosts:
-  api: pixelaudit-api.127.0.0.1.nip.io
-  admin: pixelaudit.127.0.0.1.nip.io
-  tls: false
+hostname: pixelaudit.127.0.0.1.nip.io
+tls: false
 
 secrets:
   secretName: pixelaudit-keys

@@ -1,0 +1,2 @@
+# The panel's hashed assets land here in the image (Dockerfile); kept so
+# Plug.Static's `only` list finds the directory in development too.

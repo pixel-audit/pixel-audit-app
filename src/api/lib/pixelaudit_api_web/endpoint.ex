@@ -37,12 +37,6 @@ defmodule PixelAudit.ApiWeb.Endpoint do
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 
-  # The admin panel calls from its own origin. Origins come from the
-  # `:cors_origins` config (config/dev.exs, CORS_ORIGINS in config/runtime.exs);
-  # a request from any other origin gets no CORS headers and the browser
-  # refuses it.
-  plug PixelAudit.ApiWeb.Cors
-
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],

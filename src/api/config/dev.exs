@@ -35,10 +35,6 @@ config :pixelaudit_api,
        :credentials_encryption_key,
        "0f1e2d3c4b5a69788796a5b4c3d2e1f00112233445566778899aabbccddeeff0"
 
-# The panel's dev server — allowed to call the API from the browser (CORS).
-# The port matches src/admin/vite.config.ts.
-config :pixelaudit_api, :cors_origins, ["http://localhost:16001"]
-
 # Rebuild the OpenAPI document on every request. The default cache keeps
 # the first built spec for the VM's lifetime — surviving code reloading, so
 # `make openapi-generate` against a running dev server would see a stale

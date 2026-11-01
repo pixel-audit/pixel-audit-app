@@ -17,7 +17,10 @@ defmodule PixelAudit.ApiWeb do
   those modules here.
   """
 
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+  # What Plug.Static serves out of priv/static: the panel's build (the
+  # hashed files under assets/) and the two root files. index.html and
+  # config.js are served by PanelController, not as files.
+  def static_paths, do: ~w(assets favicon.ico robots.txt)
 
   def router do
     quote do

@@ -1,11 +1,8 @@
 {{- if .Values.ingress.enabled }}
 {{- $fullname := include "pixelaudit.fullname" . -}}
-{{- $apiHost := include "pixelaudit.apiHost" . -}}
-{{- $adminHost := include "pixelaudit.adminHost" . -}}
-# Both hostnames on one Ingress: the API and the panel. With hosts.tls one
-# TLS Secret covers both — cert-manager fills it in when
-# ingress.annotations names an issuer, or create it yourself under
-# ingress.tlsSecretName.
+# The one hostname — the panel and, under /api, the API — on one Ingress.
+# With tls the TLS Secret comes from cert-manager, when ingress.annotations
+# names an issuer, or from you under ingress.tlsSecretName.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -20,32 +17,21 @@ spec:
   {{- with .Values.ingress.className }}
   ingressClassName: {{ . }}
   {{- end }}
-  {{- if .Values.hosts.tls }}
+  {{- if .Values.tls }}
   tls:
     - hosts:
-        - {{ $apiHost }}
-        - {{ $adminHost }}
+        - {{ include "pixelaudit.hostname" . }}
       secretName: {{ .Values.ingress.tlsSecretName | default (include "pixelaudit.defaultTlsSecretName" .) }}
   {{- end }}
   rules:
-    - host: {{ $apiHost }}
+    - host: {{ include "pixelaudit.hostname" . }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: {{ $fullname }}-api
-                port:
-                  name: http
-    - host: {{ $adminHost }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ $fullname }}-admin
+                name: {{ $fullname }}
                 port:
                   name: http
 {{- end }}
