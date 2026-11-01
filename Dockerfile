@@ -52,10 +52,12 @@ RUN npm ci
 
 COPY src/admin/ ./
 # The release this build is — CI's build args; unset in a local build. The
-# bundle reads them as VITE_RELEASE_*, and the sidebar's foot shows the commit.
+# bundle reads them as VITE_RELEASE_*, and the sidebar's foot shows the tag
+# (a build from a vX.Y.Z tag) or else the commit.
 ARG RELEASE_SHA
+ARG RELEASE_TAG
 ARG RELEASE_TIMESTAMP
-ENV VITE_RELEASE_SHA=$RELEASE_SHA VITE_RELEASE_TIMESTAMP=$RELEASE_TIMESTAMP
+ENV VITE_RELEASE_SHA=$RELEASE_SHA VITE_RELEASE_TAG=$RELEASE_TAG VITE_RELEASE_TIMESTAMP=$RELEASE_TIMESTAMP
 RUN npm run build
 
 # ---- The API, with the panel inside ---------------------------------------
@@ -105,8 +107,9 @@ FROM ${RUNNER_IMAGE} AS final
 
 # The release this image is, for whoever asks the running container.
 ARG RELEASE_SHA
+ARG RELEASE_TAG
 ARG RELEASE_TIMESTAMP
-ENV RELEASE_SHA=$RELEASE_SHA RELEASE_TIMESTAMP=$RELEASE_TIMESTAMP
+ENV RELEASE_SHA=$RELEASE_SHA RELEASE_TAG=$RELEASE_TAG RELEASE_TIMESTAMP=$RELEASE_TIMESTAMP
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends libstdc++6 openssl libncurses6 locales ca-certificates \

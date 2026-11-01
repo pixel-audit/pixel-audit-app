@@ -182,8 +182,11 @@ jobs:
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # RELEASE_TAG is the vX.Y.Z tag a release is built from, empty on a
+          # branch; the sidebar's foot shows it in place of the commit.
           build-args: |
             RELEASE_SHA=${{ github.sha }}
+            RELEASE_TAG=${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
             RELEASE_TIMESTAMP=${{ github.event.head_commit.timestamp }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

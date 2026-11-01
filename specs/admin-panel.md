@@ -30,9 +30,10 @@ is a route escaped from its list (`funnels_.$id.tsx`). Every item's address is i
 Beside the fold toggle, in a box of fixed height so the toggle never
 moves: "PixelAudit — free software under the GNU AGPL v3.", where the name
 links to the source (`sourceUrl`, AGPL §13) and, in a built release, the
-short commit the build was made from (`VITE_RELEASE_SHA`, CI's build
-argument) follows the name and links to the commit. A local dev build
-shows no commit.
+build follows the name: the `vX.Y.Z` tag it was made from
+(`VITE_RELEASE_TAG`, CI's build argument on a tag build), linked to the
+release on GitHub, or else the short commit (`VITE_RELEASE_SHA`), linked
+to the commit. A local dev build shows neither.
 
 ## Locales
 

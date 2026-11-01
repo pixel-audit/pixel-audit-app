@@ -7,15 +7,17 @@ import { RELEASE } from "@/lib/release";
  * One sentence beside the sidebar's fold toggle, in a box of fixed height
  * so the toggle never moves: "PixelAudit — free software under the GNU
  * AGPL v3.", where the name links to the source and, in a built release,
- * the short commit the build was made from follows the name and links to
- * it. The box clips rather than grows, so the text may wrap to its second
- * line while the sidebar animates and nothing else shifts.
+ * the build follows the name: the tag it was made from (v0.0.4), linked to
+ * the release, or else the short commit, linked to it. The box clips
+ * rather than grows, so the text may wrap to its second line while the
+ * sidebar animates and nothing else shifts.
  *
  * PixelAudit is AGPL-3.0 software, and §13 of the licence asks a program
  * used over a network to offer its source to those who use it — the link
  * is that offer, pointed at the deployment's own repository through
- * `sourceUrl` (public/config.js). The commit is CI's (`VITE_RELEASE_SHA`,
- * the image's build argument); a local dev build carries none.
+ * `sourceUrl` (public/config.js). The commit and tag are CI's
+ * (`VITE_RELEASE_SHA`, `VITE_RELEASE_TAG`, the image's build arguments); a
+ * local dev build carries neither.
  */
 export function SidebarAbout() {
   const intl = useIntl();
@@ -25,19 +27,34 @@ export function SidebarAbout() {
       <a href={config.sourceUrl} target="_blank" rel="noreferrer" className={linkClass}>
         {intl.formatMessage(messages.name)}
       </a>
-      {RELEASE.sha !== null && (
+      {RELEASE.tag !== null ? (
         <>
           {" "}
           <a
-            href={`${config.sourceUrl}/commit/${RELEASE.sha}`}
+            href={`${config.sourceUrl}/releases/tag/${RELEASE.tag}`}
             target="_blank"
             rel="noreferrer"
             className={`font-mono ${linkClass}`}
-            title={RELEASE.sha}
+            title={RELEASE.sha ?? undefined}
           >
-            {RELEASE.sha.slice(0, 7)}
+            {RELEASE.tag}
           </a>
         </>
+      ) : (
+        RELEASE.sha !== null && (
+          <>
+            {" "}
+            <a
+              href={`${config.sourceUrl}/commit/${RELEASE.sha}`}
+              target="_blank"
+              rel="noreferrer"
+              className={`font-mono ${linkClass}`}
+              title={RELEASE.sha}
+            >
+              {RELEASE.sha.slice(0, 7)}
+            </a>
+          </>
+        )
       )}{" "}
       {intl.formatMessage(messages.licence)}
     </p>
