@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { funnelLayout, ribbonPath, stepStats, type ShownSource } from "@/lib/sankey";
 
 const HEIGHT = 300;
+const LABELS_HEIGHT = 20;
 const FILL_OPACITY = 0.3;
 
 /**
@@ -22,6 +23,12 @@ const FILL_OPACITY = 0.3;
  * sources disagree on it — the lowest and the highest count, with who
  * says so, and the average. Hovering a node or a ribbon names its source
  * and count.
+ *
+ * The chart's box is always there, at its fixed height, whatever is shown:
+ * when every source is hidden, or the shown ones measure nothing, the
+ * message sits in the box. The box is what the width is measured on, and
+ * a box that came and went would be measured as nothing when it left —
+ * and never again once it came back.
  */
 export function FunnelSankey({ report, shown }: { report: Report; shown: ShownSource[] }) {
   const intl = useIntl();
@@ -32,140 +39,151 @@ export function FunnelSankey({ report, shown }: { report: Report; shown: ShownSo
     const element = containerRef.current;
     if (!element) return;
     const observer = new ResizeObserver(([entry]) => {
-      if (entry) setWidth(Math.floor(entry.contentRect.width));
+      if (entry && entry.contentRect.width > 0) setWidth(Math.floor(entry.contentRect.width));
     });
     observer.observe(element);
     setWidth(Math.floor(element.getBoundingClientRect().width));
     return () => observer.disconnect();
   }, []);
 
-  if (shown.length === 0) {
-    return <NonIdealState>{intl.formatMessage(messages.nothingShown)}</NonIdealState>;
-  }
+  const layout =
+    width > 0 && shown.length > 0 ? funnelLayout(report, shown, { width, height: HEIGHT }) : null;
 
-  const layout = width > 0 ? funnelLayout(report, shown, { width, height: HEIGHT }) : null;
-
-  if (layout && layout.nodes.length === 0) {
-    return <NonIdealState>{intl.formatMessage(messages.nothingMeasured)}</NonIdealState>;
-  }
+  const empty =
+    shown.length === 0
+      ? messages.nothingShown
+      : layout && layout.nodes.length === 0
+        ? messages.nothingMeasured
+        : null;
 
   return (
     <TooltipProvider delayDuration={100}>
       <div className="space-y-3">
         {/* The step names: HTML over the chart, so each can carry a tooltip. */}
-        <div ref={containerRef} className="relative w-full">
-          <div className="relative h-5">
-            {layout?.columns.map((column, index) => {
-              const first = index === 0;
-              const last = index === layout.columns.length - 1;
-              const stats = stepStats(report, column.step.id);
-              // The first name starts at its column, the last ends at its;
-              // the ones between are centred over theirs.
-              const position = first
-                ? { left: column.x0 }
-                : last
-                  ? { right: width - column.x1 }
-                  : { left: (column.x0 + column.x1) / 2, transform: "translateX(-50%)" };
-              return (
-                <Tooltip key={column.step.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      className="absolute top-0 cursor-help text-xs font-medium whitespace-nowrap text-foreground underline decoration-dotted underline-offset-2"
-                      style={position}
-                    >
-                      {column.step.name}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    {stats ? (
-                      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 tabular-nums">
-                        <dt>{intl.formatMessage(messages.min)}</dt>
-                        <dd>
-                          {intl.formatMessage(messages.valueOf, {
-                            count: intl.formatNumber(stats.min.count),
-                            source: stats.min.source.name,
-                          })}
-                        </dd>
-                        <dt>{intl.formatMessage(messages.max)}</dt>
-                        <dd>
-                          {intl.formatMessage(messages.valueOf, {
-                            count: intl.formatNumber(stats.max.count),
-                            source: stats.max.source.name,
-                          })}
-                        </dd>
-                        <dt>{intl.formatMessage(messages.average)}</dt>
-                        <dd>
-                          {intl.formatMessage(messages.averageOf, {
-                            count: intl.formatNumber(Math.round(stats.average)),
-                            sources: stats.sources,
-                          })}
-                        </dd>
-                      </dl>
-                    ) : (
-                      intl.formatMessage(messages.unmeasuredStep)
-                    )}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
+        <div
+          ref={containerRef}
+          className="relative w-full"
+          style={{ height: LABELS_HEIGHT + HEIGHT }}
+        >
+          <div className="relative" style={{ height: LABELS_HEIGHT }}>
+            {empty === null &&
+              layout?.columns.map((column, index) => {
+                const first = index === 0;
+                const last = index === layout.columns.length - 1;
+                const stats = stepStats(report, column.step.id);
+                // The first name starts at its column, the last ends at its;
+                // the ones between are centred over theirs.
+                const position = first
+                  ? { left: column.x0 }
+                  : last
+                    ? { right: width - column.x1 }
+                    : { left: (column.x0 + column.x1) / 2, transform: "translateX(-50%)" };
+                return (
+                  <Tooltip key={column.step.id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="absolute top-0 cursor-help text-xs font-medium whitespace-nowrap text-foreground underline decoration-dotted underline-offset-2"
+                        style={position}
+                      >
+                        {column.step.name}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      {stats ? (
+                        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 tabular-nums">
+                          <dt>{intl.formatMessage(messages.min)}</dt>
+                          <dd>
+                            {intl.formatMessage(messages.valueOf, {
+                              count: intl.formatNumber(stats.min.count),
+                              source: stats.min.source.name,
+                            })}
+                          </dd>
+                          <dt>{intl.formatMessage(messages.max)}</dt>
+                          <dd>
+                            {intl.formatMessage(messages.valueOf, {
+                              count: intl.formatNumber(stats.max.count),
+                              source: stats.max.source.name,
+                            })}
+                          </dd>
+                          <dt>{intl.formatMessage(messages.average)}</dt>
+                          <dd>
+                            {intl.formatMessage(messages.averageOf, {
+                              count: intl.formatNumber(Math.round(stats.average)),
+                              sources: stats.sources,
+                            })}
+                          </dd>
+                        </dl>
+                      ) : (
+                        intl.formatMessage(messages.unmeasuredStep)
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
           </div>
-          {layout && (
-            <svg
-              width={width}
-              height={HEIGHT}
-              role="img"
-              aria-label={intl.formatMessage(messages.chartLabel)}
-              className="block"
-            >
-              {/* Ribbons under the nodes. */}
-              {layout.ribbons.map((ribbon) => (
-                <path
-                  key={`${ribbon.source.id}:${ribbon.from.id}:${ribbon.to.id}`}
-                  d={ribbonPath(ribbon)}
-                  fill={ribbon.mode === "fill" ? ribbon.source.color : "none"}
-                  fillOpacity={FILL_OPACITY}
-                  stroke={ribbon.source.color}
-                  strokeOpacity={ribbon.mode === "outline" ? 0.9 : 0}
-                  strokeWidth={1.5}
-                >
-                  <title>
-                    {intl.formatMessage(messages.ribbonTitle, {
-                      source: ribbon.source.name,
-                      from: ribbon.from.name,
-                      to: ribbon.to.name,
-                      fromCount: intl.formatNumber(ribbon.fromCount),
-                      toCount: intl.formatNumber(ribbon.toCount),
-                    })}
-                  </title>
-                </path>
-              ))}
-              {layout.nodes.map((node) => (
-                <rect
-                  key={`${node.source.id}:${node.step.id}`}
-                  x={node.x0}
-                  y={node.y0}
-                  width={node.x1 - node.x0}
-                  height={Math.max(node.y1 - node.y0, 1)}
-                  rx={2}
-                  fill={node.mode === "fill" && !node.estimated ? node.source.color : "none"}
-                  fillOpacity={0.85}
-                  stroke={node.source.color}
-                  strokeWidth={node.mode === "outline" || node.estimated ? 1.5 : 0}
-                  strokeDasharray={node.estimated ? "3 2" : undefined}
-                >
-                  <title>
-                    {intl.formatMessage(messages.nodeTitle, {
-                      source: node.source.name,
-                      step: node.step.name,
-                      count: intl.formatNumber(node.count),
-                      estimated: node.estimated ? 1 : 0,
-                      partial: node.partial ? 1 : 0,
-                    })}
-                  </title>
-                </rect>
-              ))}
-            </svg>
+          {empty !== null ? (
+            <div className="flex items-center justify-center" style={{ height: HEIGHT }}>
+              <NonIdealState>{intl.formatMessage(empty)}</NonIdealState>
+            </div>
+          ) : (
+            layout && (
+              <svg
+                width={width}
+                height={HEIGHT}
+                role="img"
+                aria-label={intl.formatMessage(messages.chartLabel)}
+                className="block"
+              >
+                {/* Ribbons under the nodes. */}
+                {layout.ribbons.map((ribbon) => (
+                  <path
+                    key={`${ribbon.source.id}:${ribbon.from.id}:${ribbon.to.id}`}
+                    d={ribbonPath(ribbon)}
+                    fill={ribbon.mode === "fill" ? ribbon.source.color : "none"}
+                    fillOpacity={FILL_OPACITY}
+                    stroke={ribbon.source.color}
+                    strokeOpacity={ribbon.mode === "outline" ? 0.9 : 0}
+                    strokeWidth={1.5}
+                  >
+                    <title>
+                      {intl.formatMessage(messages.ribbonTitle, {
+                        source: ribbon.source.name,
+                        from: ribbon.from.name,
+                        to: ribbon.to.name,
+                        fromCount: intl.formatNumber(ribbon.fromCount),
+                        toCount: intl.formatNumber(ribbon.toCount),
+                      })}
+                    </title>
+                  </path>
+                ))}
+                {layout.nodes.map((node) => (
+                  <rect
+                    key={`${node.source.id}:${node.step.id}`}
+                    x={node.x0}
+                    y={node.y0}
+                    width={node.x1 - node.x0}
+                    height={Math.max(node.y1 - node.y0, 1)}
+                    rx={2}
+                    fill={node.mode === "fill" && !node.estimated ? node.source.color : "none"}
+                    fillOpacity={0.85}
+                    stroke={node.source.color}
+                    strokeWidth={node.mode === "outline" || node.estimated ? 1.5 : 0}
+                    strokeDasharray={node.estimated ? "3 2" : undefined}
+                  >
+                    <title>
+                      {intl.formatMessage(messages.nodeTitle, {
+                        source: node.source.name,
+                        step: node.step.name,
+                        count: intl.formatNumber(node.count),
+                        estimated: node.estimated ? 1 : 0,
+                        partial: node.partial ? 1 : 0,
+                      })}
+                    </title>
+                  </rect>
+                ))}
+              </svg>
+            )
           )}
         </div>
       </div>
