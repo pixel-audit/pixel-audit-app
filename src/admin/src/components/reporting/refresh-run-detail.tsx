@@ -6,9 +6,6 @@ import { describeRun } from "@/lib/refresh-runs";
 import { ApiList } from "@/components/crud/api-list";
 import { DetailField, DetailsCard } from "@/components/crud/details-card";
 import { PageHeader } from "@/components/page-header";
-import { kindMessages, triggerMessages } from "@/components/reporting/refresh-run-messages";
-import { RefreshRunStatusBadge } from "@/components/reporting/refresh-run-status";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApi } from "@/lib/api";
 import { formatDay, formatRange } from "@/lib/date-range";
@@ -35,13 +32,6 @@ export function RefreshRunDetail({ run }: { run: RefreshRun }) {
     <div className="space-y-8">
       <PageHeader
         title={describeRun(run)}
-        badges={
-          <>
-            <Badge variant="secondary">{intl.formatMessage(kindMessages[run.kind])}</Badge>
-            <Badge variant="outline">{intl.formatMessage(triggerMessages[run.trigger])}</Badge>
-            <RefreshRunStatusBadge status={run.status} />
-          </>
-        }
         description={formatRange(intl, { date_from: run.date_from, date_to: run.date_to })}
       />
 

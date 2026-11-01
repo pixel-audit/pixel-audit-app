@@ -170,9 +170,6 @@
   "connections.detail.lastCheck": {
     "defaultMessage": "Last check"
   },
-  "connections.detail.managed": {
-    "defaultMessage": "From environment"
-  },
   "connections.detail.managedDetail": {
     "defaultMessage": "The CONNECTION_{name}_* environment variables, applied by the boot role."
   },
@@ -808,9 +805,6 @@
   },
   "variables.detail.deleted": {
     "defaultMessage": "Variable \"{key}\" deleted."
-  },
-  "variables.detail.managed": {
-    "defaultMessage": "From environment"
   },
   "variables.detail.managedDetail": {
     "defaultMessage": "VARIABLE_{key}_VALUE in the environment, applied by the boot role."

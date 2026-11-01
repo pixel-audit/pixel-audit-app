@@ -5,8 +5,6 @@ import { defineMessage, defineMessages, useIntl } from "react-intl";
 
 import type { Connection } from "@/api/generated/model";
 import { ConnectionDialog } from "@/components/connections/connection-dialog";
-import { ConnectionStatusBadge } from "@/components/connections/connection-status";
-import { connectionTypeLabel, useConnectionTypes } from "@/components/connections/connection-types";
 import { ActionButton } from "@/components/crud/action-button";
 import { errorDetail, refusal } from "@/components/crud/api-response";
 import { ConfirmDeleteDialog } from "@/components/crud/confirm-delete-dialog";
@@ -14,7 +12,6 @@ import { TabsNav } from "@/components/crud/tabs-nav";
 import { useApiCommand, useApiDelete } from "@/components/crud/use-api-mutations";
 import { PageHeader } from "@/components/page-header";
 import { RefreshDialog } from "@/components/reporting/refresh-dialog";
-import { Badge } from "@/components/ui/badge";
 import { useApi } from "@/lib/api";
 import { copy, formatCopy } from "@/lib/i18n/copy";
 import { commonMessages } from "@/lib/i18n/common-messages";
@@ -35,7 +32,6 @@ export function ConnectionDetail({
   const api = useApi();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const types = useConnectionTypes();
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -102,15 +98,6 @@ export function ConnectionDetail({
     <div className="space-y-6">
       <PageHeader
         title={connection.name}
-        badges={
-          <>
-            <Badge variant="secondary">{connectionTypeLabel(types, connection.type)}</Badge>
-            {connection.managed_by_env && (
-              <Badge variant="secondary">{intl.formatMessage(messages.managed)}</Badge>
-            )}
-            <ConnectionStatusBadge connection={connection} />
-          </>
-        }
         description={connection.description ?? undefined}
         actions={
           <>
@@ -188,7 +175,6 @@ export function ConnectionDetail({
 
 const messages = {
   ...defineMessages({
-    managed: { id: "connections.detail.managed", defaultMessage: "From environment" },
     check: { id: "connections.detail.check", defaultMessage: "Check connection" },
     refresh: { id: "connections.detail.refresh", defaultMessage: "Pull pixel stats" },
     credentials: { id: "connections.detail.credentials", defaultMessage: "Credentials" },

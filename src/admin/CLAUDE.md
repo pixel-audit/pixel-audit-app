@@ -24,7 +24,7 @@ out again:
 | Why a disabled button is disabled (tooltip on hover)        | `WhyDisabled` (`crud/why-disabled.tsx`)                                                 |
 | API list through loading/error/empty                        | `ApiList` (`crud/api-list.tsx`)                                                         |
 | One API item (by the address's id) through the same states  | `ApiItem` (`crud/api-item.tsx`)                                                         |
-| An item's page: title, badges and the Edit / Delete actions | `PageHeader` (`components/page-header.tsx`) + `ActionButton` (`crud/action-button.tsx`) |
+| An item's page: title and the Edit / Delete actions         | `PageHeader` (`components/page-header.tsx`) + `ActionButton` (`crud/action-button.tsx`) |
 | An item's fields as a labelled grid                         | `DetailsCard`, `DetailField` (`crud/details-card.tsx`)                                  |
 | A list row that leads to the item's page                    | `ListRow` with `link` (`linkOptions(...)`)                                              |
 | API create-or-update with 422 field errors                  | `useApiSave` (`crud/use-api-mutations.ts`)                                              |

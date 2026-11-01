@@ -9,7 +9,6 @@ import { ConfirmDeleteDialog } from "@/components/crud/confirm-delete-dialog";
 import { DetailField, DetailsCard } from "@/components/crud/details-card";
 import { useApiDelete } from "@/components/crud/use-api-mutations";
 import { PageHeader } from "@/components/page-header";
-import { Badge } from "@/components/ui/badge";
 import { VariableDialog } from "@/components/variables/variable-dialog";
 import { useApi } from "@/lib/api";
 import { commonMessages } from "@/lib/i18n/common-messages";
@@ -33,11 +32,6 @@ export function VariableDetail({ variable }: { variable: Variable }) {
     <div className="space-y-8">
       <PageHeader
         title={<code className="font-mono">{variable.key}</code>}
-        badges={
-          variable.managed_by_env && (
-            <Badge variant="secondary">{intl.formatMessage(messages.managed)}</Badge>
-          )
-        }
         description={variable.description ?? undefined}
         actions={
           <>
@@ -81,7 +75,6 @@ export function VariableDetail({ variable }: { variable: Variable }) {
 
 const messages = {
   ...defineMessages({
-    managed: { id: "variables.detail.managed", defaultMessage: "From environment" },
     value: { id: "variables.detail.value", defaultMessage: "Value" },
     source: { id: "variables.detail.source", defaultMessage: "Defined by" },
     deleteDescription: {
