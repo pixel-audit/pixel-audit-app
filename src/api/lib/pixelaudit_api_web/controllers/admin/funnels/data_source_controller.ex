@@ -106,4 +106,28 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.DataSourceController do
       send_resp(conn, :no_content, "")
     end
   end
+
+  operation(:reorder,
+    operation_id: "admin.reorderFunnelDataSources",
+    summary: "Put the data sources in the given order",
+    description:
+      "The order the report lists them in. `data_source_ids` must name every data source of the funnel exactly once (422 invalid_order).",
+    parameters: [funnel_id: @funnel_parameter],
+    request_body: {"Order", "application/json", Schemas.DataSourceOrderParams},
+    responses: [
+      ok:
+        {"The data sources in their new order", "application/json", Schemas.DataSourcesResponse},
+      unprocessable_entity: {"Invalid order", "application/json", Schemas.Error},
+      not_found: {"Not found", "application/json", Schemas.Error}
+    ]
+  )
+
+  def reorder(conn, %{"funnel_id" => funnel_id}) do
+    with {:ok, funnel} <- fetch_resource(fn -> Funnels.get_funnel!(funnel_id) end),
+         {:ok, data_sources} <-
+           Funnels.reorder_data_sources(funnel, conn.body_params["data_source_ids"]) do
+      Logger.info("admin.funnel.data_sources reordered funnel=#{funnel.id}")
+      render(conn, :index, data_sources: data_sources)
+    end
+  end
 end

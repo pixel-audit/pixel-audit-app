@@ -11,10 +11,13 @@ random — the panel draws it in), each of which carries, per step, the
 no parameters for a data source is not measured by it and shows blank in
 the report.
 
-Steps are appended at the end and reordered by sending every step's id in
-the wanted order (`PUT /funnels/:id/steps/order`; a list that is not every
-step exactly once is `422 invalid_order`). Deleting a step compacts the
-positions.
+Steps and data sources are both ordered by `position`, from 0. Each is
+appended at the end and reordered by sending every id in the wanted order
+(`PUT /funnels/:id/steps/order` with `step_ids`,
+`PUT /funnels/:id/data-sources/order` with `data_source_ids`; a list that
+is not every one exactly once is `422 invalid_order`). Deleting one
+compacts the positions. The report's table lists the data sources in that
+order.
 
 ## Data source types
 

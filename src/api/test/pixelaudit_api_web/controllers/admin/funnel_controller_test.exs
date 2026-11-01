@@ -16,6 +16,30 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
     assert [%{"key" => "sql", "kind" => "sql", "required" => true}] = pg["parameters"]
   end
 
+  test "reorders the data sources", %{conn: conn} do
+    funnel = funnel_fixture()
+    connection = connection_fixture(:postgres)
+    shop = data_source_fixture(funnel, connection, :postgres_query, %{name: "Shop"})
+    warehouse = data_source_fixture(funnel, connection, :postgres_query, %{name: "Warehouse"})
+    order_path = "#{@base}/#{funnel.id}/data-sources/order"
+
+    %{"data" => reordered} =
+      conn
+      |> put(order_path, %{"data_source_ids" => [warehouse.id, shop.id]})
+      |> json_response(200)
+
+    assert Enum.map(reordered, &{&1["name"], &1["position"]}) == [{"Warehouse", 0}, {"Shop", 1}]
+    assert Enum.map(reordered, & &1["connection"]["id"]) == [connection.id, connection.id]
+
+    %{"data" => shown} = conn |> get("#{@base}/#{funnel.id}") |> json_response(200)
+    assert Enum.map(shown["data_sources"], & &1["name"]) == ["Warehouse", "Shop"]
+
+    assert %{"errors" => %{"detail" => "invalid_order"}} =
+             conn
+             |> put(order_path, %{"data_source_ids" => [shop.id]})
+             |> json_response(422)
+  end
+
   test "builds a funnel: steps, data source, parameters, report, refresh", %{conn: conn} do
     %{"data" => funnel} =
       conn |> post(@base, %{"name" => "Checkout"}) |> json_response(201)

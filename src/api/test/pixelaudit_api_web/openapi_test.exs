@@ -11,7 +11,7 @@ defmodule PixelAudit.ApiWeb.OpenApiTest do
       for {_path, item} <- spec["paths"], {_method, op} <- item, is_map(op), do: op["operationId"]
 
     assert length(operation_ids) == length(Enum.uniq(operation_ids))
-    assert length(operation_ids) == 34
+    assert length(operation_ids) == 35
     assert Enum.all?(operation_ids, &String.starts_with?(&1, "admin."))
 
     assert Map.has_key?(spec["components"]["schemas"], "Report")

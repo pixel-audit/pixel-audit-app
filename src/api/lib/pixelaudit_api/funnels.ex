@@ -77,7 +77,7 @@ defmodule PixelAudit.Api.Funnels do
   def delete_step(%Step{} = step) do
     Repo.transaction(fn ->
       {:ok, step} = Repo.delete(step)
-      compact_positions(step.funnel_id)
+      compact_positions(Step, step.funnel_id)
       step
     end)
   end
@@ -86,32 +86,40 @@ defmodule PixelAudit.Api.Funnels do
   Puts the steps in the given order. `step_ids` must name every step of the
   funnel exactly once, otherwise `{:error, :invalid_order}`.
   """
-  def reorder_steps(%Funnel{id: funnel_id}, step_ids) when is_list(step_ids) do
-    current = Repo.all(from s in Step, where: s.funnel_id == ^funnel_id, select: s.id)
+  def reorder_steps(%Funnel{id: funnel_id}, step_ids), do: reorder(Step, funnel_id, step_ids)
 
-    if Enum.sort(current) == Enum.sort(step_ids) and
-         length(step_ids) == length(Enum.uniq(step_ids)) do
+  ## Positions — steps and data sources are both ordered by `position`, from 0
+
+  # Puts the funnel's rows of `schema` in the given order; `ids` must name
+  # every row exactly once. Answers the rows in their new order.
+  defp reorder(schema, funnel_id, ids) when is_list(ids) do
+    current = Repo.all(from r in schema, where: r.funnel_id == ^funnel_id, select: r.id)
+
+    if Enum.sort(current) == Enum.sort(ids) and length(ids) == length(Enum.uniq(ids)) do
       Repo.transaction(fn ->
-        step_ids
+        ids
         |> Enum.with_index()
         |> Enum.each(fn {id, position} ->
-          Repo.update_all(from(s in Step, where: s.id == ^id), set: [position: position])
+          Repo.update_all(from(r in schema, where: r.id == ^id), set: [position: position])
         end)
 
-        Repo.all(from s in Step, where: s.funnel_id == ^funnel_id, order_by: s.position)
+        Repo.all(from r in schema, where: r.funnel_id == ^funnel_id, order_by: r.position)
       end)
     else
       {:error, :invalid_order}
     end
   end
 
-  def reorder_steps(_funnel, _other), do: {:error, :invalid_order}
+  defp reorder(_schema, _funnel_id, _other), do: {:error, :invalid_order}
 
-  defp compact_positions(funnel_id) do
-    Repo.all(from s in Step, where: s.funnel_id == ^funnel_id, order_by: s.position, select: s.id)
+  # After a delete: the remaining rows' positions are 0, 1, 2… again.
+  defp compact_positions(schema, funnel_id) do
+    Repo.all(
+      from r in schema, where: r.funnel_id == ^funnel_id, order_by: r.position, select: r.id
+    )
     |> Enum.with_index()
     |> Enum.each(fn {id, position} ->
-      Repo.update_all(from(s in Step, where: s.id == ^id), set: [position: position])
+      Repo.update_all(from(r in schema, where: r.id == ^id), set: [position: position])
     end)
   end
 
@@ -166,7 +174,24 @@ defmodule PixelAudit.Api.Funnels do
     end
   end
 
-  def delete_data_source(%DataSource{} = data_source), do: Repo.delete(data_source)
+  def delete_data_source(%DataSource{} = data_source) do
+    Repo.transaction(fn ->
+      {:ok, data_source} = Repo.delete(data_source)
+      compact_positions(DataSource, data_source.funnel_id)
+      data_source
+    end)
+  end
+
+  @doc """
+  Puts the data sources in the given order — the order the report lists
+  them in. `ids` must name every data source of the funnel exactly once,
+  otherwise `{:error, :invalid_order}`.
+  """
+  def reorder_data_sources(%Funnel{id: funnel_id}, ids) do
+    with {:ok, data_sources} <- reorder(DataSource, funnel_id, ids) do
+      {:ok, Repo.preload(data_sources, [:connection, :step_parameters])}
+    end
+  end
 
   defp check_connection_type(changeset) do
     type = Ecto.Changeset.get_field(changeset, :type)

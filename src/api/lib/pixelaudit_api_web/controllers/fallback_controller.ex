@@ -30,7 +30,8 @@ defmodule PixelAudit.ApiWeb.FallbackController do
     :connection_type_mismatch,
     # Only a Meta connection has pixel stats to refresh.
     :not_a_meta_connection,
-    # `step_ids` did not name every step of the funnel exactly once.
+    # `step_ids` / `data_source_ids` did not name every step / data source
+    # of the funnel exactly once.
     :invalid_order,
     :missing_date,
     :invalid_date,

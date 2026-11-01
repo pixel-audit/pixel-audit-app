@@ -1,4 +1,4 @@
-import { Pencil, Shuffle, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Pencil, Shuffle, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
 
@@ -14,7 +14,7 @@ import { ConfirmDeleteDialog } from "@/components/crud/confirm-delete-dialog";
 import { CrudCard } from "@/components/crud/crud-card";
 import { FormDialog } from "@/components/crud/form-dialog";
 import { ListRow, RowActionButton, RowDetail } from "@/components/crud/list-row";
-import { useApiDelete, useApiSave } from "@/components/crud/use-api-mutations";
+import { useApiCommand, useApiDelete, useApiSave } from "@/components/crud/use-api-mutations";
 import { EntityCombobox } from "@/components/form/entity-combobox";
 import { FormField } from "@/components/form/field";
 import { FieldSpecFields, type FieldSpecValues } from "@/components/form/field-spec-fields";
@@ -38,15 +38,36 @@ import { useApi } from "@/lib/api";
 import { copy, formatCopy } from "@/lib/i18n/copy";
 import { commonMessages } from "@/lib/i18n/common-messages";
 
-/** The funnel's data sources: where each step's counts are read from. */
+/**
+ * The funnel's data sources in their order — the order the report's table
+ * lists them in: add, edit, delete, and move one up or down (the whole
+ * order is sent, so two quick moves never cross).
+ */
 export function DataSourcesCard({ funnel }: { funnel: Funnel }) {
   const intl = useIntl();
   const api = useApi();
   const types = useDataSourceTypes();
   const connectionTypes = useConnectionTypes();
+  const invalidate = useFunnelInvalidation(funnel);
   const [editing, setEditing] = useState<DataSource | null>(null);
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<DataSource | null>(null);
+
+  const reorder = api.useAdminReorderFunnelDataSources();
+  const { run, pending } = useApiCommand();
+
+  const move = (source: DataSource, by: -1 | 1) => {
+    const ids = funnel.data_sources.map((s) => s.id);
+    const index = ids.indexOf(source.id);
+    const other = index + by;
+    if (other < 0 || other >= ids.length) return;
+    [ids[index], ids[other]] = [ids[other]!, ids[index]!];
+    void run(() => reorder.mutateAsync({ funnelId: funnel.id, data: { data_source_ids: ids } }), {
+      failed: (result) =>
+        formatCopy(intl, refusal(result, copy(messages.reorderFailed), messages.subject)),
+      invalidate,
+    });
+  };
 
   const remove = api.useAdminDeleteFunnelDataSource();
   const { destroy, pending: deletePending } = useApiDelete<DataSource>({
@@ -70,7 +91,7 @@ export function DataSourcesCard({ funnel }: { funnel: Funnel }) {
           <NonIdealState>{intl.formatMessage(messages.empty)}</NonIdealState>
         ) : (
           <ul className="space-y-2">
-            {funnel.data_sources.map((source) => (
+            {funnel.data_sources.map((source, index) => (
               <ListRow
                 key={source.id}
                 leading={
@@ -88,6 +109,18 @@ export function DataSourcesCard({ funnel }: { funnel: Funnel }) {
                 }
                 actions={
                   <>
+                    <RowActionButton
+                      icon={ArrowUp}
+                      label={intl.formatMessage(messages.moveUp)}
+                      disabled={index === 0 || pending}
+                      onClick={() => move(source, -1)}
+                    />
+                    <RowActionButton
+                      icon={ArrowDown}
+                      label={intl.formatMessage(messages.moveDown)}
+                      disabled={index === funnel.data_sources.length - 1 || pending}
+                      onClick={() => move(source, 1)}
+                    />
                     <RowActionButton
                       icon={Pencil}
                       label={intl.formatMessage(commonMessages.edit)}
@@ -417,6 +450,12 @@ const messages = {
     },
     add: { id: "dataSources.card.add", defaultMessage: "Add data source" },
     empty: { id: "dataSources.card.empty", defaultMessage: "No data sources yet." },
+    moveUp: { id: "dataSources.card.moveUp", defaultMessage: "Move up" },
+    moveDown: { id: "dataSources.card.moveDown", defaultMessage: "Move down" },
+    reorderFailed: {
+      id: "dataSources.card.reorderFailed",
+      defaultMessage: "The data sources could not be reordered.",
+    },
     deleteDescription: {
       id: "dataSources.card.deleteDescription",
       defaultMessage: "Its step parameters and cached counts go with it.",

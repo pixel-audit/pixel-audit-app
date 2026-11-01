@@ -30,9 +30,11 @@ import type {
   ConnectionResponse,
   ConnectionTypesResponse,
   ConnectionsResponse,
+  DataSourceOrderParams,
   DataSourceParams,
   DataSourceResponse,
   DataSourceTypesResponse,
+  DataSourcesResponse,
   Error,
   FunnelParams,
   FunnelResponse,
@@ -601,6 +603,149 @@ export const useAdminCreateFunnelDataSource = <
   TContext
 > => {
   return useMutation(getAdminCreateFunnelDataSourceMutationOptions(options), queryClient);
+};
+
+export type adminReorderFunnelDataSourcesResponse200 = {
+  data: DataSourcesResponse;
+  status: 200;
+};
+
+export type adminReorderFunnelDataSourcesResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminReorderFunnelDataSourcesResponse422 = {
+  data: Error;
+  status: 422;
+};
+
+export type adminReorderFunnelDataSourcesResponseSuccess =
+  adminReorderFunnelDataSourcesResponse200 & {
+    headers: Headers;
+  };
+export type adminReorderFunnelDataSourcesResponseError = (
+  adminReorderFunnelDataSourcesResponse404 | adminReorderFunnelDataSourcesResponse422
+) & {
+  headers: Headers;
+};
+
+export type adminReorderFunnelDataSourcesResponse =
+  adminReorderFunnelDataSourcesResponseSuccess | adminReorderFunnelDataSourcesResponseError;
+
+export const getAdminReorderFunnelDataSourcesUrl = (funnelId: string) => {
+  return `/api/admin/v1/funnels/${funnelId}/data-sources/order`;
+};
+
+/**
+ * The order the report lists them in. `data_source_ids` must name every data source of the funnel exactly once (422 invalid_order).
+ * @summary Put the data sources in the given order
+ */
+export const adminReorderFunnelDataSources = async (
+  funnelId: string,
+  dataSourceOrderParams?: DataSourceOrderParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminReorderFunnelDataSourcesResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<adminReorderFunnelDataSourcesResponse>(
+    getAdminReorderFunnelDataSourcesUrl(funnelId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+      body: JSON.stringify(dataSourceOrderParams),
+    },
+  );
+};
+
+export const getAdminReorderFunnelDataSourcesMutationKey = () =>
+  ["adminReorderFunnelDataSources"] as const;
+
+export const getAdminReorderFunnelDataSourcesMutationOptions = <
+  TError = Error,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminReorderFunnelDataSources>>,
+    TError,
+    AdminReorderFunnelDataSourcesMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminReorderFunnelDataSources>>,
+  TError,
+  AdminReorderFunnelDataSourcesMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAdminReorderFunnelDataSourcesMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminReorderFunnelDataSources>>,
+    AdminReorderFunnelDataSourcesMutationVariables
+  > = (props) => {
+    const { funnelId, data } = props ?? {};
+
+    return adminReorderFunnelDataSources(funnelId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminReorderFunnelDataSourcesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminReorderFunnelDataSources>>
+>;
+export type AdminReorderFunnelDataSourcesMutationBody = DataSourceOrderParams | undefined;
+export type AdminReorderFunnelDataSourcesMutationError = Error;
+export type AdminReorderFunnelDataSourcesMutationVariables = {
+  funnelId: string;
+  data?: DataSourceOrderParams;
+};
+
+/**
+ * @summary Put the data sources in the given order
+ */
+export const useAdminReorderFunnelDataSources = <TError = Error, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof adminReorderFunnelDataSources>>,
+      TError,
+      AdminReorderFunnelDataSourcesMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof adminReorderFunnelDataSources>>,
+  TError,
+  AdminReorderFunnelDataSourcesMutationVariables,
+  TContext
+> => {
+  return useMutation(getAdminReorderFunnelDataSourcesMutationOptions(options), queryClient);
 };
 
 export type adminDeleteFunnelStepParametersResponse204 = {

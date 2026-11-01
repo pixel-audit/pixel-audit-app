@@ -72,6 +72,7 @@ defmodule PixelAudit.ApiWeb.Router do
       delete "/:funnel_id/steps/:id", StepController, :delete
 
       post "/:funnel_id/data-sources", DataSourceController, :create
+      put "/:funnel_id/data-sources/order", DataSourceController, :reorder
       put "/:funnel_id/data-sources/:id", DataSourceController, :update
       delete "/:funnel_id/data-sources/:id", DataSourceController, :delete
 

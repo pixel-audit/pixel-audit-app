@@ -317,6 +317,15 @@
   "dataSources.card.empty": {
     "defaultMessage": "No data sources yet."
   },
+  "dataSources.card.moveDown": {
+    "defaultMessage": "Move down"
+  },
+  "dataSources.card.moveUp": {
+    "defaultMessage": "Move up"
+  },
+  "dataSources.card.reorderFailed": {
+    "defaultMessage": "The data sources could not be reordered."
+  },
   "dataSources.card.setting": {
     "defaultMessage": "{key}: {value}"
   },

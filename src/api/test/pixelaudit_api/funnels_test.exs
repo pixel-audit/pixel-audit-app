@@ -36,6 +36,31 @@ defmodule PixelAudit.Api.FunnelsTest do
   end
 
   describe "data sources" do
+    test "are appended in order, reordered, and compacted on delete" do
+      funnel = funnel_fixture()
+      connection = connection_fixture(:postgres)
+      a = data_source_fixture(funnel, connection, :postgres_query, %{name: "a"})
+      b = data_source_fixture(funnel, connection, :postgres_query, %{name: "b"})
+      c = data_source_fixture(funnel, connection, :postgres_query, %{name: "c"})
+      assert [a.position, b.position, c.position] == [0, 1, 2]
+
+      {:ok, sources} = Funnels.reorder_data_sources(funnel, [c.id, a.id, b.id])
+      assert Enum.map(sources, &{&1.name, &1.position}) == [{"c", 0}, {"a", 1}, {"b", 2}]
+      assert Enum.all?(sources, &(&1.connection.id == connection.id))
+
+      assert {:error, :invalid_order} = Funnels.reorder_data_sources(funnel, [a.id, b.id])
+
+      assert {:error, :invalid_order} =
+               Funnels.reorder_data_sources(funnel, [a.id, b.id, c.id, c.id])
+
+      assert {:error, :invalid_order} = Funnels.reorder_data_sources(funnel, nil)
+
+      {:ok, _} = Funnels.delete_data_source(Funnels.get_data_source!(funnel, a.id))
+
+      assert Enum.map(Funnels.get_funnel!(funnel.id).data_sources, &{&1.name, &1.position}) ==
+               [{"c", 0}, {"b", 1}]
+    end
+
     test "need a connection of the type's connection type" do
       funnel = funnel_fixture()
       postgres = connection_fixture(:postgres)
