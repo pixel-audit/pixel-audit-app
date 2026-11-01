@@ -7,6 +7,6 @@
  */
 
 /**
- * The non-secret credential values.
+ * The non-secret credential values; a URL with its password hidden.
  */
 export type ConnectionCredentialsPreview = { [key: string]: string };

@@ -11,7 +11,7 @@ defmodule PixelAudit.Api.FieldSpec do
   `PixelAudit.ApiWeb.OpenApi.Schemas.FieldSpec`).
   """
 
-  @type kind :: :string | :text | :secret | :select | :sql
+  @type kind :: :string | :text | :secret | :url | :select | :sql
 
   @type t :: %{
           key: String.t(),
@@ -97,7 +97,32 @@ defmodule PixelAudit.Api.FieldSpec do
     }
   end
 
-  @doc "Which of the declared fields are secrets, by key."
-  @spec secret_keys([t()]) :: [String.t()]
-  def secret_keys(specs), do: for(%{kind: :secret, key: key} <- specs, do: key)
+  @doc """
+  The values as the API shows them: a `:secret` is left out, a `:url` is
+  shown with its password hidden (`postgres://user:***@host/db`), the
+  rest as stored.
+  """
+  @spec preview([t()], map()) :: map()
+  def preview(specs, values) do
+    kinds = Map.new(specs, &{&1.key, &1.kind})
+
+    for {key, value} <- values, kinds[key] != :secret, into: %{} do
+      if kinds[key] == :url, do: {key, redact_url(value)}, else: {key, value}
+    end
+  end
+
+  @doc "A URL with its password, when it has one, replaced by `***`."
+  @spec redact_url(String.t()) :: String.t()
+  def redact_url(url) when is_binary(url) do
+    case URI.parse(url) do
+      %URI{userinfo: info} = uri when is_binary(info) ->
+        case String.split(info, ":", parts: 2) do
+          [user, _password] -> URI.to_string(%{uri | userinfo: user <> ":***"})
+          [_user] -> url
+        end
+
+      _ ->
+        url
+    end
+  end
 end

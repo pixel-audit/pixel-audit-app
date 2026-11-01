@@ -101,7 +101,7 @@ CONNECTION_<id>_TYPE = meta | bigquery | postgres | clickhouse
 CONNECTION_<id>_<PARAM> = ...
 ```
 
-`<id>` is the connection's code — lowercase letters and digits — and `<PARAM>` one of the type's credentials: `ACCESS_TOKEN`, `PIXEL_ID`, `API_VERSION` for `meta`; `CREDENTIALS_JSON` (the service account's key file, as JSON or base64 of it), `PROJECT_ID`, `LOCATION` for `bigquery`; `DATABASE_URL` for `postgres`; `URL`, `DATABASE`, `USERNAME`, `PASSWORD` for `clickhouse`. Put them in a Secret and hand it to the application through `app.extraEnvFrom`:
+`<id>` is the connection's code — lowercase letters and digits — and `<PARAM>` one of the type's credentials: `ACCESS_TOKEN`, `PIXEL_ID`, `API_VERSION` for `meta`; `CREDENTIALS_JSON` (the service account's key file, as JSON or base64 of it), `PROJECT_ID`, `LOCATION` for `bigquery`; `URL` for `postgres` (`postgres://user:password@host:5432/database`) and for `clickhouse` (`http://user:password@host:8123/database`, the HTTP interface). Put them in a Secret and hand it to the application through `app.extraEnvFrom`:
 
 ```sh
 kubectl -n pixelaudit create secret generic pixelaudit-connections \

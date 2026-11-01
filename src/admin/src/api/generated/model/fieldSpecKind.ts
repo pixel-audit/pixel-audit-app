@@ -6,12 +6,16 @@
  * OpenAPI spec version: 1.0.0
  */
 
+/**
+ * A `secret` is never returned; a `url` is returned with its password hidden.
+ */
 export type FieldSpecKind = (typeof FieldSpecKind)[keyof typeof FieldSpecKind];
 
 export const FieldSpecKind = {
   string: "string",
   text: "text",
   secret: "secret",
+  url: "url",
   select: "select",
   sql: "sql",
 } as const;

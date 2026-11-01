@@ -28,10 +28,9 @@ defmodule PixelAudit.Api.Fixtures do
       "project_id" => "pa-project"
     }
 
-  def credentials_for(:postgres), do: %{"database_url" => test_database_url()}
+  def credentials_for(:postgres), do: %{"url" => test_database_url()}
 
-  def credentials_for(:clickhouse),
-    do: %{"url" => "http://localhost:18123", "database" => "shop", "username" => "sample"}
+  def credentials_for(:clickhouse), do: %{"url" => "http://sample:sample@localhost:18123/shop"}
 
   def connection_fixture(type \\ :postgres, attrs \\ %{}) do
     code = attrs[:code] || "c#{System.unique_integer([:positive])}"

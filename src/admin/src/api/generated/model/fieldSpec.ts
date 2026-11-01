@@ -16,6 +16,7 @@ export interface FieldSpec {
   /** @nullable */
   description: string | null;
   key: string;
+  /** A `secret` is never returned; a `url` is returned with its password hidden. */
   kind: FieldSpecKind;
   label: string;
   /** @nullable */

@@ -29,13 +29,12 @@ defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionJSON do
     %{id: connection.id, code: connection.code, name: connection.name, type: connection.type}
   end
 
-  # The credentials never leave the API: which keys are set, and the
-  # values of the ones the connector does not call secret.
+  # The credentials never leave the API whole: which keys are set, and the
+  # values as `FieldSpec.preview/2` shows them — no secret, a URL without
+  # its password.
   defp data(%Connection{} = connection) do
     credentials = connection.credentials || %{}
-
-    secret_keys =
-      Connector.for_type(connection.type).credential_params() |> FieldSpec.secret_keys()
+    specs = Connector.for_type(connection.type).credential_params()
 
     %{
       id: connection.id,
@@ -45,7 +44,7 @@ defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionJSON do
       type: connection.type,
       managed_by_env: connection.managed_by_env,
       credential_keys: credentials |> Map.keys() |> Enum.sort(),
-      credentials_preview: Map.drop(credentials, secret_keys),
+      credentials_preview: FieldSpec.preview(specs, credentials),
       last_checked_at: connection.last_checked_at,
       last_check_status: connection.last_check_status,
       last_check_error: connection.last_check_error,

@@ -15,10 +15,9 @@ defmodule PixelAudit.Api.Connections.EnvSyncTest do
       "CONNECTION_bq_CREDENTIALS_JSON" => "{}",
       "CONNECTION_bq_PROJECT_ID" => "proj",
       "CONNECTION_shop_TYPE" => "postgres",
-      "CONNECTION_shop_DATABASE_URL" => "postgres://u:p@h/db",
+      "CONNECTION_shop_URL" => "postgres://u:p@h/db",
       "CONNECTION_ch_TYPE" => "clickhouse",
-      "CONNECTION_ch_URL" => "http://ch:8123",
-      "CONNECTION_ch_PASSWORD" => "secret",
+      "CONNECTION_ch_URL" => "http://default:secret@ch:8123",
       "UNRELATED" => "x"
     }
 
@@ -43,12 +42,7 @@ defmodule PixelAudit.Api.Connections.EnvSyncTest do
 
     ch = Connections.get_connection_by_code("ch")
 
-    assert ch.credentials == %{
-             "url" => "http://ch:8123",
-             "password" => "secret",
-             "database" => "default",
-             "username" => "default"
-           }
+    assert ch.credentials == %{"url" => "http://default:secret@ch:8123"}
   end
 
   test "updates an existing connection's type and credentials, keeping its name" do
@@ -67,14 +61,14 @@ defmodule PixelAudit.Api.Connections.EnvSyncTest do
     assert updated.name == "The shop"
     assert updated.description == "d"
     assert updated.managed_by_env
-    refute Map.has_key?(updated.credentials, "database_url")
+    assert updated.credentials == %{"url" => "http://ch:8123"}
   end
 
   test "releases a managed connection that left the environment, without deleting it" do
     {:ok, _} =
       EnvSync.run(%{
         "CONNECTION_a_TYPE" => "postgres",
-        "CONNECTION_a_DATABASE_URL" => "postgres://h/d"
+        "CONNECTION_a_URL" => "postgres://h/d"
       })
 
     assert Connections.get_connection_by_code("a").managed_by_env
@@ -86,7 +80,7 @@ defmodule PixelAudit.Api.Connections.EnvSyncTest do
   test "refuses the whole set on one bad definition and writes nothing" do
     env = %{
       "CONNECTION_ok_TYPE" => "postgres",
-      "CONNECTION_ok_DATABASE_URL" => "postgres://h/d",
+      "CONNECTION_ok_URL" => "postgres://h/d",
       "CONNECTION_bad_TYPE" => "mysql",
       "CONNECTION_fb_TYPE" => "meta",
       "CONNECTION_fb_PIXEL_ID" => "1",

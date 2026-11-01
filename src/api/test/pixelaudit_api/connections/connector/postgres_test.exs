@@ -6,7 +6,7 @@ defmodule PixelAudit.Api.Connections.Connector.PostgresTest do
   alias PixelAudit.Api.Connections.Connector.Postgres
 
   test "runs a query with bound dates against a real Postgres" do
-    credentials = %{"database_url" => test_database_url()}
+    credentials = %{"url" => test_database_url()}
 
     assert {:ok, [[42]]} =
              Postgres.query(credentials, "SELECT 42 WHERE $1::date <= $2::date", [
@@ -24,7 +24,7 @@ defmodule PixelAudit.Api.Connections.Connector.PostgresTest do
   test "reports a SQL error" do
     assert {:error, "PostgreSQL: " <> message} =
              Postgres.query(
-               %{"database_url" => test_database_url()},
+               %{"url" => test_database_url()},
                "SELECT * FROM no_such_table",
                []
              )
@@ -33,7 +33,7 @@ defmodule PixelAudit.Api.Connections.Connector.PostgresTest do
   end
 
   test "refuses a URL that is not Postgres" do
-    assert {:error, message} = Postgres.query(%{"database_url" => "mysql://h/d"}, "SELECT 1", [])
+    assert {:error, message} = Postgres.query(%{"url" => "mysql://h/d"}, "SELECT 1", [])
     assert message =~ "postgres://"
   end
 

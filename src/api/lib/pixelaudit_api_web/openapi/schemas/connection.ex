@@ -6,8 +6,9 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.Connection do
   OpenApiSpex.schema(%{
     title: "Connection",
     description:
-      "A connection to an external system. Credentials are never returned: " <>
-        "`credential_keys` says which are set, `credentials_preview` carries the non-secret ones.",
+      "A connection to an external system. Credentials are never returned whole: " <>
+        "`credential_keys` says which are set, `credentials_preview` carries the non-secret " <>
+        "ones, a URL among them with its password hidden.",
     type: :object,
     properties: %{
       id: %Schema{type: :string, format: :uuid},
@@ -24,7 +25,7 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.Connection do
       credentials_preview: %Schema{
         type: :object,
         additionalProperties: %Schema{type: :string},
-        description: "The non-secret credential values."
+        description: "The non-secret credential values; a URL with its password hidden."
       },
       last_checked_at: %Schema{type: :string, format: :"date-time", nullable: true},
       last_check_status: %Schema{type: :string, enum: ["ok", "error"], nullable: true},

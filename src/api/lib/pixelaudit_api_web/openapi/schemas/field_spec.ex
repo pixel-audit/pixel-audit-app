@@ -12,7 +12,11 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.FieldSpec do
     properties: %{
       key: %Schema{type: :string},
       label: %Schema{type: :string},
-      kind: %Schema{type: :string, enum: ["string", "text", "secret", "select", "sql"]},
+      kind: %Schema{
+        type: :string,
+        enum: ["string", "text", "secret", "url", "select", "sql"],
+        description: "A `secret` is never returned; a `url` is returned with its password hidden."
+      },
       required: %Schema{type: :boolean},
       default: %Schema{type: :string, nullable: true},
       options: %Schema{type: :array, items: %Schema{type: :string}, nullable: true},

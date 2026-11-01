@@ -151,8 +151,8 @@ Query execution is per data-source type (§2.5.2), on top of the connection's cl
 |---|---|---|---|
 | `meta_api` | `meta-api` | `ACCESS_TOKEN` (secret, req.), `PIXEL_ID` (req.), `API_VERSION` (default `v25.0`) | `Req` against `https://graph.facebook.com/{version}` |
 | `bigquery` | `bigquery` | `CREDENTIALS_JSON` (secret, req.; service-account JSON, raw or base64), `PROJECT_ID` (req.), `LOCATION` (opt.) | `Goth` for the token, `Req` against `bigquery.googleapis.com/bigquery/v2/projects/{p}/queries` (`jobs.query` with named parameters, `useLegacySql: false`, poll `getQueryResults` when not complete) |
-| `postgres` | `postgres` | `DATABASE_URL` (secret, req.) | `Postgrex` started per query (`Postgrex.start_link` from the parsed URL, `Postgrex.query/4`, then stop) — no Ecto repo, so an arbitrary number of connections needs no supervision tree changes |
-| `clickhouse` | `clickhouse` | `URL` (req., `http(s)://host:8123`), `DATABASE` (default `default`), `USERNAME`, `PASSWORD` (secret) | `ch` (Plausible's ClickHouse client) started per query, or plain `Req` on the HTTP interface — **Decision:** `ch`, for typed parameters |
+| `postgres` | `postgres` | `URL` (req., `postgres://user:password@host:5432/database`) | `Postgrex` started per query (`Postgrex.start_link` from the parsed URL, `Postgrex.query/4`, then stop) — no Ecto repo, so an arbitrary number of connections needs no supervision tree changes |
+| `clickhouse` | `clickhouse` | `URL` (req., `http(s)://user:password@host:8123/database`) | `ch` (Plausible's ClickHouse client) started per query, or plain `Req` on the HTTP interface — **Decision:** `ch`, for typed parameters |
 
 `check/1`: Meta → `GET /{pixel_id}?fields=id,name`; BigQuery → `SELECT 1`; Postgres → `SELECT 1`; ClickHouse → `SELECT 1`.
 
@@ -294,7 +294,7 @@ Sidebar sections: Funnels, Connections, Refreshes (from `lib/navigation.ts`, ico
 - `src/api/Dockerfile`: memoria's, roles `web`/`boot`. `src/admin/Dockerfile`: memoria's, `config.js` with `apiUrl`.
 - `Procfile`: `api: cd ./src/api && mix phx.server`, `admin: cd ./src/admin && npm run dev`. `.foreman`: `port: 16000`.
 - `Makefile` targets (names as memoria): `setup` (docker-up, postgres-wait, api-setup = `mix deps.get && mix boot`, admin-setup), `boot` (`cd src/api && mix boot` — re-runs env sync after editing `.env`), `up` (docker-up, orphans-kill on 16000/16001, deps-check, `foreman start`), `down`, `clean`, `openapi-generate` (starts the API on demand like memoria's, then `npm run api:generate` + `npm run typecheck`), `check` (`mix precommit` + `npm run check` + `helm-lint`), `helm-lint` (§4b), `targets-up`/`targets-down` for the sample databases, `e2e*` left for phase 5.
-- `.env.example` with one connection of each type (`CONNECTION_shop_TYPE=postgres`, `CONNECTION_shop_DATABASE_URL=…`, `CONNECTION_fb_TYPE=meta-api`, …); foreman loads `.env` so `make boot` and `make up` see it.
+- `.env.example` with one connection of each type (`CONNECTION_shop_TYPE=postgres`, `CONNECTION_shop_URL=…`, `CONNECTION_fb_TYPE=meta-api`, …); foreman loads `.env` so `make boot` and `make up` see it.
 - CI: `test-build.yml` — `mix test` with a Postgres service, `npm run check`, `helm lint` + `helm template` of `deploy/`, then the two images to GHCR tagged by commit and by `code-<tree sha>` as memoria does, plus a semver tag (`v1.2.3`) on a git tag, and the chart packaged and pushed as an OCI artifact (`oci://ghcr.io/<owner>/charts/pixelaudit`) on the same tag. **No deploy job**: the project is installed by whoever runs it (§4b).
 
 ---

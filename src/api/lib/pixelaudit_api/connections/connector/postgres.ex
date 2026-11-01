@@ -24,9 +24,9 @@ defmodule PixelAudit.Api.Connections.Connector.Postgres do
   @impl true
   def credential_params do
     [
-      field("database_url",
-        label: "Database URL",
-        kind: :secret,
+      field("url",
+        label: "URL",
+        kind: :url,
         required: true,
         description: "postgres://user:password@host:5432/database — add ?sslmode=require for TLS."
       )
@@ -54,7 +54,7 @@ defmodule PixelAudit.Api.Connections.Connector.Postgres do
     Process.flag(:trap_exit, true)
     timeout = Application.fetch_env!(:pixelaudit_api, :connector_timeout_ms)
 
-    with {:ok, opts} <- connection_options(credentials["database_url"]) do
+    with {:ok, opts} <- connection_options(credentials["url"]) do
       opts =
         Keyword.merge(opts,
           pool_size: 1,

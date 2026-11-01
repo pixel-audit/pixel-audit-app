@@ -1,7 +1,12 @@
 import { useEffect } from "react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
 
-import type { Connection, ConnectionParams, ConnectionParamsType } from "@/api/generated/model";
+import type {
+  Connection,
+  ConnectionParams,
+  ConnectionParamsType,
+  FieldSpec,
+} from "@/api/generated/model";
 import { useConnectionTypes } from "@/components/connections/connection-types";
 import { FormDialog } from "@/components/crud/form-dialog";
 import { useApiSave } from "@/components/crud/use-api-mutations";
@@ -38,14 +43,20 @@ const blank = (): Form => ({
   credentials: {},
 });
 
-const fromConnection = (connection: Connection): Form => ({
+const fromConnection = (connection: Connection, specs: FieldSpec[]): Form => ({
   code: connection.code,
   name: connection.name,
   description: connection.description ?? "",
   type: connection.type,
-  // The non-secret values are shown; a secret's box starts empty and keeps
-  // the stored value unless filled in.
-  credentials: { ...connection.credentials_preview },
+  // The plain values are shown; a secret's or a URL's box starts empty
+  // (the preview carries the URL with its password hidden, not a value to
+  // send back) and keeps the stored value unless filled in.
+  credentials: Object.fromEntries(
+    Object.entries(connection.credentials_preview).filter(([key]) => {
+      const kind = specs.find((spec) => spec.key === key)?.kind;
+      return kind !== "secret" && kind !== "url";
+    }),
+  ),
 });
 
 /**
@@ -72,9 +83,11 @@ export function ConnectionDialog({
   const editing = connection !== undefined;
   const managed = connection?.managed_by_env === true;
 
+  const storedSpecs = types.find((t) => t.type === connection?.type)?.credentials;
+
   useEffect(() => {
-    if (open) reset(connection ? fromConnection(connection) : blank());
-  }, [open, connection, reset]);
+    if (open) reset(connection ? fromConnection(connection, storedSpecs ?? []) : blank());
+  }, [open, connection, storedSpecs, reset]);
 
   const { errors, setErrors, saving, save } = useApiSave<
     ConnectionParams,
@@ -200,6 +213,7 @@ export function ConnectionDialog({
               errors={errors}
               errorPrefix="credentials"
               setKeys={connection?.type === form.type ? connection.credential_keys : []}
+              shown={connection?.type === form.type ? connection.credentials_preview : undefined}
               idPrefix="connection-credential"
             />
           )}

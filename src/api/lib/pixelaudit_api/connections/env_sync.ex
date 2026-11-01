@@ -9,7 +9,7 @@ defmodule PixelAudit.Api.Connections.EnvSync do
 
   `<id>` is the connection's code, `[a-z0-9]+` and case-sensitive, so it
   is written in lowercase in the variable's name and cannot hold `_` — which
-  makes `CONNECTION_shop_DATABASE_URL` unambiguous. `<PARAM>` is one of the
+  makes `CONNECTION_shop_URL` unambiguous. `<PARAM>` is one of the
   type's credential keys, uppercased (`ACCESS_TOKEN` for `access_token`).
 
   A connection whose code exists is updated: type and credentials replaced,

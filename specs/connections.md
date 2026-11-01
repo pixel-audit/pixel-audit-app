@@ -8,8 +8,8 @@ code. Four types, one connector module each
 |---|---|---|---|
 | `meta` | `meta` | `access_token` (secret), `pixel_id`, `api_version` (default `v25.0`) | Req against `graph.facebook.com` |
 | `bigquery` | `bigquery` | `credentials_json` (secret; the service account key, JSON or base64), `project_id`, `location` | Goth for the token, Req against the BigQuery REST API (`jobs.query`, named parameters) |
-| `postgres` | `postgres` | `database_url` (secret; `?sslmode=` honoured) | Postgrex, one connection per query |
-| `clickhouse` | `clickhouse` | `url`, `database`, `username`, `password` (secret) | `ch` over the HTTP interface, one connection per query |
+| `postgres` | `postgres` | `url` (`postgres://user:password@host:5432/database`; `?sslmode=` honoured) | Postgrex, one connection per query |
+| `clickhouse` | `clickhouse` | `url` (`http(s)://user:password@host:8123/database`; user and database default to `default`) | `ch` over the HTTP interface, one connection per query |
 
 Each connector declares its credentials as `PixelAudit.Api.FieldSpec`s.
 One declaration drives three things: the validation of what the API
@@ -29,7 +29,8 @@ key `CREDENTIALS_ENCRYPTION_KEY` — 64 hex characters, fixed in dev and
 test, required in production. (Phoenix's own `WEB_SECRET_KEY_BASE`
 plays no part in this; it signs the framework's tokens and cookies.) The
 map never leaves the API: responses carry
-`credential_keys` and `credentials_preview` (the non-secret values), the
+`credential_keys` and `credentials_preview` (the non-secret values, a
+URL among them with its password hidden), the
 schema's `Inspect` skips the field, and the request logger filters
 `credentials`. Losing the key makes every stored credential unreadable, so
 it is backed up with the database. Rotation: add a `V2` cipher as the
@@ -43,7 +44,7 @@ rows — what the `boot` role does after migrating (`mix boot`,
 
 - `CONNECTION_<id>_TYPE` names the type (the env names above); `<id>` is
   the code, lowercase so it fits a variable name and free of `_`, which
-  keeps `CONNECTION_shop_DATABASE_URL` unambiguous.
+  keeps `CONNECTION_shop_URL` unambiguous.
 - `CONNECTION_<id>_<PARAM>` is a credential, `<PARAM>` the key upper-cased.
 - The whole set is validated first — an unknown type, an unknown
   parameter, a missing required one — and nothing is written when any of

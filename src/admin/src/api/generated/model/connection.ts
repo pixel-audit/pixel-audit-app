@@ -10,13 +10,13 @@ import type { ConnectionLastCheckStatus } from "./connectionLastCheckStatus.ts";
 import type { ConnectionTypeProperty } from "./connectionTypeProperty.ts";
 
 /**
- * A connection to an external system. Credentials are never returned: `credential_keys` says which are set, `credentials_preview` carries the non-secret ones.
+ * A connection to an external system. Credentials are never returned whole: `credential_keys` says which are set, `credentials_preview` carries the non-secret ones, a URL among them with its password hidden.
  */
 export interface Connection {
   /** @pattern ^[a-z0-9]+$ */
   code: string;
   credential_keys: string[];
-  /** The non-secret credential values. */
+  /** The non-secret credential values; a URL with its password hidden. */
   credentials_preview: ConnectionCredentialsPreview;
   /** @nullable */
   description: string | null;

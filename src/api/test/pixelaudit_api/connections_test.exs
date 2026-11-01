@@ -50,7 +50,7 @@ defmodule PixelAudit.Api.ConnectionsTest do
           "code" => "pg",
           "name" => "PG",
           "type" => "postgres",
-          "credentials" => %{"database_url" => "postgres://x/y", "bogus" => "1"}
+          "credentials" => %{"url" => "postgres://x/y", "bogus" => "1"}
         })
 
       assert %{credentials: ["is not a known field"]} = errors_on(changeset)
@@ -84,22 +84,21 @@ defmodule PixelAudit.Api.ConnectionsTest do
   describe "update_connection/2" do
     test "merges the credentials sent and clears a key with nil" do
       connection =
-        connection_fixture(:clickhouse, %{
-          credentials: %{"url" => "http://ch:8123", "password" => "p"}
+        connection_fixture(:bigquery, %{
+          credentials: %{"credentials_json" => "{}", "project_id" => "p", "location" => "US"}
         })
 
       {:ok, updated} =
         Connections.update_connection(connection, %{
-          "name" => "CH",
-          "credentials" => %{"password" => nil, "database" => "analytics"}
+          "name" => "BQ",
+          "credentials" => %{"location" => nil, "project_id" => "analytics"}
         })
 
-      assert updated.name == "CH"
+      assert updated.name == "BQ"
 
       assert updated.credentials == %{
-               "url" => "http://ch:8123",
-               "database" => "analytics",
-               "username" => "default"
+               "credentials_json" => "{}",
+               "project_id" => "analytics"
              }
     end
 
@@ -119,7 +118,7 @@ defmodule PixelAudit.Api.ConnectionsTest do
       {:ok, _} =
         PixelAudit.Api.Connections.EnvSync.run(%{
           "CONNECTION_shop_TYPE" => "postgres",
-          "CONNECTION_shop_DATABASE_URL" => test_database_url()
+          "CONNECTION_shop_URL" => test_database_url()
         })
 
       connection = Connections.get_connection_by_code("shop")
@@ -127,7 +126,7 @@ defmodule PixelAudit.Api.ConnectionsTest do
 
       assert {:error, :managed_by_env} =
                Connections.update_connection(connection, %{
-                 "credentials" => %{"database_url" => "x"}
+                 "credentials" => %{"url" => "x"}
                })
 
       assert {:error, :managed_by_env} =
@@ -171,7 +170,7 @@ defmodule PixelAudit.Api.ConnectionsTest do
     test "records a refused one with the reason" do
       connection =
         connection_fixture(:postgres, %{
-          credentials: %{"database_url" => "postgres://nobody:nothing@localhost:1/none"}
+          credentials: %{"url" => "postgres://nobody:nothing@localhost:1/none"}
         })
 
       {{:error, message}, connection} = Connections.check_connection(connection)

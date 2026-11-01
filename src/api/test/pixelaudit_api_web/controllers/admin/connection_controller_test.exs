@@ -57,6 +57,24 @@ defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionControllerTest do
     assert conn |> get("#{@base}/not-a-uuid") |> json_response(404)
   end
 
+  test "shows a database URL with its password hidden", %{conn: conn} do
+    params = %{
+      "code" => "shop",
+      "name" => "Shop",
+      "type" => "postgres",
+      "credentials" => %{"url" => "postgres://sample:s3cret@db.example.com:5432/shop"}
+    }
+
+    %{"data" => created} = conn |> post(@base, params) |> json_response(201)
+    assert created["credential_keys"] == ["url"]
+
+    assert created["credentials_preview"] == %{
+             "url" => "postgres://sample:***@db.example.com:5432/shop"
+           }
+
+    refute inspect(created) =~ "s3cret"
+  end
+
   test "answers 422 with the field errors", %{conn: conn} do
     %{"errors" => errors} =
       conn
@@ -65,7 +83,7 @@ defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionControllerTest do
 
     assert errors["name"] == ["can't be blank"]
     assert errors["code"] == ["must be lowercase letters and digits only"]
-    assert errors["credentials.database_url"] == ["can't be blank"]
+    assert errors["credentials.url"] == ["can't be blank"]
   end
 
   test "refuses to delete a connection in use", %{conn: conn} do
@@ -79,7 +97,7 @@ defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionControllerTest do
     {:ok, _} =
       PixelAudit.Api.Connections.EnvSync.run(%{
         "CONNECTION_shop_TYPE" => "postgres",
-        "CONNECTION_shop_DATABASE_URL" => test_database_url()
+        "CONNECTION_shop_URL" => test_database_url()
       })
 
     connection = PixelAudit.Api.Connections.get_connection_by_code("shop")

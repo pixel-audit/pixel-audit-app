@@ -67,10 +67,6 @@ export function ConnectionDetail({ connection }: { connection: Connection }) {
       ],
     });
 
-  const secretKeys = connection.credential_keys.filter(
-    (key) => !(key in connection.credentials_preview),
-  );
-
   return (
     <div className="space-y-8">
       <PageHeader
@@ -115,11 +111,10 @@ export function ConnectionDetail({ connection }: { connection: Connection }) {
       <DetailsCard title={intl.formatMessage(messages.credentials)} description={type?.label}>
         {(type?.credentials ?? []).map((spec) => (
           <DetailField key={spec.key} label={spec.label}>
-            {spec.kind === "secret"
-              ? secretKeys.includes(spec.key)
+            {connection.credentials_preview[spec.key] ??
+              (connection.credential_keys.includes(spec.key)
                 ? intl.formatMessage(messages.secretSet)
-                : null
-              : connection.credentials_preview[spec.key]}
+                : null)}
           </DetailField>
         ))}
         {connection.managed_by_env && (

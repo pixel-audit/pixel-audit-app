@@ -26,7 +26,9 @@ export type FieldSpecValues = Record<string, string>;
  *
  * A secret already set is not shown (the API never sends it): the box is
  * empty with a hint that leaving it empty keeps the stored value, and the
- * caller sends only the keys that were filled in.
+ * caller sends only the keys that were filled in. A URL is treated the
+ * same, its box showing the stored value as the API shows it — the
+ * password hidden — as a placeholder (`shown`).
  */
 export function FieldSpecFields({
   specs,
@@ -35,6 +37,7 @@ export function FieldSpecFields({
   errors,
   errorPrefix,
   setKeys,
+  shown,
   idPrefix,
 }: {
   specs: FieldSpec[];
@@ -43,8 +46,10 @@ export function FieldSpecFields({
   errors: Record<string, string[]>;
   /** The API's prefix for these fields' errors: "credentials", "settings", "parameters". */
   errorPrefix: string;
-  /** The keys the item already has a value for — a secret among them shows as kept. */
+  /** The keys the item already has a value for — a secret or URL among them shows as kept. */
   setKeys?: readonly string[];
+  /** The stored values as the API shows them; a kept URL's placeholder. */
+  shown?: Readonly<FieldSpecValues>;
   idPrefix: string;
 }) {
   const intl = useIntl();
@@ -53,7 +58,8 @@ export function FieldSpecFields({
       {specs.map((spec) => {
         const id = `${idPrefix}-${spec.key}`;
         const value = values[spec.key] ?? "";
-        const kept = spec.kind === "secret" && setKeys?.includes(spec.key) === true;
+        const kept =
+          (spec.kind === "secret" || spec.kind === "url") && setKeys?.includes(spec.key) === true;
         const hint = [
           spec.description,
           kept ? intl.formatMessage(messages.secretKept) : undefined,
@@ -106,7 +112,7 @@ export function FieldSpecFields({
                 type={spec.kind === "secret" ? "password" : "text"}
                 autoComplete={spec.kind === "secret" ? "new-password" : "off"}
                 value={value}
-                placeholder={kept ? "••••••••" : (spec.default ?? undefined)}
+                placeholder={kept ? (shown?.[spec.key] ?? "••••••••") : (spec.default ?? undefined)}
                 onChange={(event) => onChange(spec.key, event.target.value)}
               />
             )}

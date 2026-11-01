@@ -24,12 +24,12 @@ defmodule PixelAudit.Api.Connections.Connector.ClickHouse do
     [
       field("url",
         label: "URL",
+        kind: :url,
         required: true,
-        description: "The HTTP interface, e.g. http://clickhouse:8123 or https://host:8443."
-      ),
-      field("database", label: "Database", default: "default"),
-      field("username", label: "Username", default: "default"),
-      field("password", label: "Password", kind: :secret)
+        description:
+          "The HTTP interface: http://user:password@clickhouse:8123/database, " <>
+            "or https://host:8443 — user and database default to \"default\"."
+      )
     ]
   end
 
@@ -89,7 +89,7 @@ defmodule PixelAudit.Api.Connections.Connector.ClickHouse do
   end
 
   @doc false
-  def connection_options(%{"url" => url} = credentials) when is_binary(url) do
+  def connection_options(%{"url" => url}) when is_binary(url) do
     uri = URI.parse(url)
 
     cond do
@@ -100,17 +100,45 @@ defmodule PixelAudit.Api.Connections.Connector.ClickHouse do
         {:error, "the ClickHouse URL names no host"}
 
       true ->
+        {username, password} = userinfo(uri.userinfo)
+
         {:ok,
          [
            scheme: uri.scheme,
            hostname: uri.host,
-           port: uri.port || if(uri.scheme == "https", do: 8443, else: 8123),
-           database: credentials["database"] || "default",
-           username: credentials["username"] || "default",
-           password: credentials["password"] || ""
+           port: port(uri, url),
+           database: database(uri.path),
+           username: username,
+           password: password
          ]}
     end
   end
 
   def connection_options(_), do: {:error, "the ClickHouse URL is missing"}
+
+  # `URI.parse/1` fills in the scheme's own port (80, 443) when the URL
+  # names none; ClickHouse's are 8123 and 8443.
+  defp port(%URI{scheme: scheme, port: port}, url) do
+    cond do
+      Regex.match?(~r{^[a-z]+://[^/?#]*:\d+(?=[/?#]|$)}i, url) -> port
+      scheme == "https" -> 8443
+      true -> 8123
+    end
+  end
+
+  defp userinfo(nil), do: {"default", ""}
+
+  defp userinfo(info) do
+    case String.split(info, ":", parts: 2) do
+      [user] -> {URI.decode(user), ""}
+      [user, password] -> {URI.decode(user), URI.decode(password)}
+    end
+  end
+
+  defp database(path) do
+    case String.trim(path || "", "/") do
+      "" -> "default"
+      name -> URI.decode(name)
+    end
+  end
 end

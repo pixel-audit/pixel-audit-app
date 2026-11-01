@@ -100,32 +100,57 @@ The Docker services:
 
 (The API's port is set in `.foreman`; the panel's in `src/admin/vite.config.ts`.)
 
+Two unrelated sets of environment variables reach the API: its own, and
+the connections. Foreman loads `.env` for both; copy `.env.example` to
+start.
+
+### The application's environment
+
+These configure the API itself and are read when it starts:
+
+- `DATABASE_URL` — the API's own PostgreSQL, where funnels, connections
+  and cached counts live (the `postgres` service above). Not a
+  connection: the databases a funnel measures are defined below.
+- `PORT` — the API's port (`.foreman` sets it for development).
+- `CREDENTIALS_ENCRYPTION_KEY` — the key the connection credentials are
+  encrypted with (Cloak, AES-GCM); fixed in `config/dev.exs` for
+  development, required in production.
+- `WEB_SECRET_KEY_BASE` — Phoenix's own signing secret; unrelated to the
+  key above, required in production.
+
 ### Connections from the environment
 
-A connection can be created in the panel, or defined by the environment and
-applied by the API's **boot** role (`make boot`, or `mix boot` in `src/api`;
-in a deployment, the image's `boot` command):
+A connection — the external system a funnel's data sources read from —
+can be created in the panel, or defined by `CONNECTION_*` variables and
+applied by the API's **boot** role
+(`make boot`, or `mix boot` in `src/api`; in a deployment, the image's
+`boot` command). Run `make boot` again after editing `.env`.
 
 ```sh
 CONNECTION_<id>_TYPE=meta | bigquery | postgres | clickhouse
 CONNECTION_<id>_<PARAM>=...
 ```
 
-`<id>` is the connection's code (lowercase letters and digits, case-sensitive);
-`<PARAM>` is one of the type's credentials in upper case — `ACCESS_TOKEN`,
-`PIXEL_ID`, `API_VERSION` for Meta; `CREDENTIALS_JSON`, `PROJECT_ID`,
-`LOCATION` for BigQuery; `DATABASE_URL` for Postgres; `URL`, `DATABASE`,
-`USERNAME`, `PASSWORD` for ClickHouse (`GET /api/admin/v1/connections/types`
-lists them). An existing connection with the same code is updated (its name
-and description kept), a new one is created named after its code; both are
-marked as managed by the environment, which makes their type and
-credentials read-only in the panel. Copy `.env.example` to `.env` — foreman
-loads it — and run `make boot` after editing it.
+`<id>` is the connection's code (lowercase letters and digits,
+case-sensitive) and `<PARAM>` one of the type's credentials, in upper case:
 
-Credentials are stored encrypted (Cloak, AES-GCM) under
-`CREDENTIALS_ENCRYPTION_KEY`, fixed in `config/dev.exs` for development.
-The API's other secret, `WEB_SECRET_KEY_BASE`, is Phoenix's own signing
-secret; the two are unrelated and both are required in production.
+- `meta` — a Meta pixel: `ACCESS_TOKEN`, `PIXEL_ID`, `API_VERSION`
+  (optional, `v25.0`).
+- `bigquery` — a BigQuery project: `CREDENTIALS_JSON` (the service
+  account's key file, as JSON or base64 of it), `PROJECT_ID`, `LOCATION`
+  (optional).
+- `postgres` — a PostgreSQL database to query:
+  `URL=postgres://user:password@host:5432/database`
+  (`?sslmode=require` for TLS).
+- `clickhouse` — a ClickHouse database to query, over its HTTP interface:
+  `URL=http://user:password@host:8123/database` (user and database
+  default to `default`).
+
+`GET /api/admin/v1/connections/types` lists the same. An existing
+connection with the same code is updated (its name and description kept),
+a new one is created named after its code; both are marked as managed by
+the environment, which makes their type and credentials read-only in the
+panel. The panel shows a URL with its password hidden.
 
 ## A first funnel
 
