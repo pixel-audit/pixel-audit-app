@@ -26,7 +26,7 @@ resolver `count(connection, settings, parameters, date_from, date_to)`.
 
 | Type | Connection | Settings | Step parameters | Counts |
 |---|---|---|---|---|
-| `meta_pixel_api` | `meta_api` | — | `event_name` | the event's fires on the day, summed over the cached hours; a day with nothing cached is an error, not a zero |
+| `meta_pixel_api` | `meta` | — | `event_name` | the event's fires on the day, summed over the cached hours; a day with nothing cached is an error, not a zero |
 | `google_analytics_bigquery` | `bigquery` | `dataset` (e.g. `analytics_123456789`) | `event_name`, `where` (extra SQL, optional) | `COUNT(*)` over `events_*` (and `events_intraday_*`) of the day's `_TABLE_SUFFIX` |
 | `google_ads_bigquery` | `bigquery` | `dataset`, `customer_id` | `conversion_action_name`, `metric` (`conversions` / `all_conversions`) | `SUM` of the metric in `ads_ConversionStats_<customer_id>` joined to `ads_ConversionAction_<customer_id>` by resource name on the day's `segments_date` |
 | `postgres_query` | `postgres` | — | `sql` | the query's one row, one number; `$1`/`$2` stand for the day and are replaced by typed `DATE '…'` literals before the query runs |

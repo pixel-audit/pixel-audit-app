@@ -11,7 +11,7 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.ConnectionRef do
       id: %Schema{type: :string, format: :uuid},
       code: %Schema{type: :string},
       name: %Schema{type: :string},
-      type: %Schema{type: :string, enum: ["meta_api", "bigquery", "postgres", "clickhouse"]}
+      type: %Schema{type: :string, enum: ["meta", "bigquery", "postgres", "clickhouse"]}
     },
     required: [:id, :code, :name, :type]
   })

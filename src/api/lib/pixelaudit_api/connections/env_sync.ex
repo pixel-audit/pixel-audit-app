@@ -4,7 +4,7 @@ defmodule PixelAudit.Api.Connections.EnvSync do
   `boot` role does after migrating (`PixelAudit.Api.Release.boot/0`,
   `mix boot`).
 
-      CONNECTION_<id>_TYPE=meta-api | bigquery | postgres | clickhouse
+      CONNECTION_<id>_TYPE=meta | bigquery | postgres | clickhouse
       CONNECTION_<id>_<PARAM>=...
 
   `<id>` is the connection's code, `[a-z0-9]+` and case-sensitive, so it

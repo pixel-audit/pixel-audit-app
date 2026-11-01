@@ -22,7 +22,7 @@ defmodule PixelAudit.Api.ReportingTest do
   describe "refresh_funnel/5" do
     test "enqueues one run per data source, a Meta pull first for a Meta source" do
       %{funnel: funnel} = measured_funnel_fixture()
-      meta = connection_fixture(:meta_api)
+      meta = connection_fixture(:meta)
       data_source_fixture(funnel, meta, :meta_pixel_api)
       funnel = Funnels.get_funnel!(funnel.id)
 
@@ -134,7 +134,7 @@ defmodule PixelAudit.Api.ReportingTest do
     test "a Meta source waits for its connection's pull, then counts from the cache" do
       funnel = funnel_fixture()
       step = step_fixture(funnel)
-      meta = connection_fixture(:meta_api)
+      meta = connection_fixture(:meta)
       data_source = data_source_fixture(funnel, meta, :meta_pixel_api)
 
       {:ok, _} =
@@ -168,7 +168,7 @@ defmodule PixelAudit.Api.ReportingTest do
 
   describe "MetaPixelRefreshJob" do
     test "marks the run failed and retries when Meta refuses" do
-      meta = connection_fixture(:meta_api)
+      meta = connection_fixture(:meta)
       {:ok, run} = Reporting.refresh_meta_connection(meta, ~D[2026-10-30], ~D[2026-10-30], :cron)
 
       Req.Test.stub(PixelAudit.Api.Connections.Connector, fn conn ->
@@ -184,7 +184,7 @@ defmodule PixelAudit.Api.ReportingTest do
 
   describe "Schedule" do
     test "the hourly scope pulls every Meta connection for two days" do
-      meta = connection_fixture(:meta_api)
+      meta = connection_fixture(:meta)
       connection_fixture(:postgres)
 
       assert :ok = perform_job(Schedule, %{scope: "meta_hourly"})
@@ -208,7 +208,7 @@ defmodule PixelAudit.Api.ReportingTest do
   end
 
   test "a new Meta connection and a parameter change enqueue refreshes" do
-    meta = connection_fixture(:meta_api)
+    meta = connection_fixture(:meta)
     {:ok, run} = Reporting.refresh_after_connection_created(meta)
     assert run.kind == :meta_pixel
     assert Date.diff(run.date_to, run.date_from) == 6

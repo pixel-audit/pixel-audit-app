@@ -9,7 +9,7 @@
 export type ConnectionTypeType = (typeof ConnectionTypeType)[keyof typeof ConnectionTypeType];
 
 export const ConnectionTypeType = {
-  meta_api: "meta_api",
+  meta: "meta",
   bigquery: "bigquery",
   postgres: "postgres",
   clickhouse: "clickhouse",

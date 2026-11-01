@@ -34,7 +34,7 @@ const blank = (): Form => ({
   code: "",
   name: "",
   description: "",
-  type: "meta_api",
+  type: "meta",
   credentials: {},
 });
 

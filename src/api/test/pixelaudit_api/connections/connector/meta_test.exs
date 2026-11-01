@@ -1,9 +1,9 @@
-defmodule PixelAudit.Api.Connections.Connector.MetaApiTest do
+defmodule PixelAudit.Api.Connections.Connector.MetaTest do
   use ExUnit.Case, async: true
 
   import PixelAudit.Api.Fixtures
 
-  alias PixelAudit.Api.Connections.Connector.MetaApi
+  alias PixelAudit.Api.Connections.Connector.Meta
 
   @credentials %{"access_token" => "tok", "pixel_id" => "999", "api_version" => "v25.0"}
 
@@ -32,7 +32,7 @@ defmodule PixelAudit.Api.Connections.Connector.MetaApiTest do
     end)
 
     assert {:ok, rows} =
-             MetaApi.fetch_stats(@credentials, ~U[2026-10-30 00:00:00Z], ~U[2026-10-31 00:00:00Z])
+             Meta.fetch_stats(@credentials, ~U[2026-10-30 00:00:00Z], ~U[2026-10-31 00:00:00Z])
 
     assert rows == [
              %{date: ~D[2026-10-30], hour: 0, event_name: "PageView", count: 10},
@@ -48,7 +48,7 @@ defmodule PixelAudit.Api.Connections.Connector.MetaApiTest do
     end)
 
     assert {:ok, [%{date: ~D[2026-10-29], hour: 23, event_name: "Lead", count: 2}]} =
-             MetaApi.fetch_stats(@credentials, ~U[2026-10-29 00:00:00Z], ~U[2026-10-31 00:00:00Z])
+             Meta.fetch_stats(@credentials, ~U[2026-10-29 00:00:00Z], ~U[2026-10-31 00:00:00Z])
   end
 
   test "reports an unreachable API" do
@@ -57,6 +57,6 @@ defmodule PixelAudit.Api.Connections.Connector.MetaApiTest do
     end)
 
     assert {:error, "Meta Graph API unreachable: " <> _} =
-             MetaApi.fetch_stats(@credentials, ~U[2026-10-29 00:00:00Z], ~U[2026-10-31 00:00:00Z])
+             Meta.fetch_stats(@credentials, ~U[2026-10-29 00:00:00Z], ~U[2026-10-31 00:00:00Z])
   end
 end

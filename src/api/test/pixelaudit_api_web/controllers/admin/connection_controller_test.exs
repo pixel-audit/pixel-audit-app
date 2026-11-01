@@ -7,10 +7,10 @@ defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionControllerTest do
 
   test "lists the connection types with their credential fields", %{conn: conn} do
     %{"data" => types} = conn |> get("#{@base}/types") |> json_response(200)
-    assert Enum.map(types, & &1["type"]) == ["meta_api", "bigquery", "postgres", "clickhouse"]
+    assert Enum.map(types, & &1["type"]) == ["meta", "bigquery", "postgres", "clickhouse"]
 
-    meta = Enum.find(types, &(&1["type"] == "meta_api"))
-    assert meta["env_type"] == "meta-api"
+    meta = Enum.find(types, &(&1["type"] == "meta"))
+    assert meta["env_type"] == "meta"
 
     assert [%{"key" => "access_token", "kind" => "secret", "required" => true} | _] =
              meta["credentials"]
@@ -22,7 +22,7 @@ defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionControllerTest do
     params = %{
       "code" => "fb",
       "name" => "Facebook",
-      "type" => "meta_api",
+      "type" => "meta",
       "credentials" => %{"access_token" => "EAAsecret", "pixel_id" => "42"}
     }
 
@@ -102,7 +102,7 @@ defmodule PixelAudit.ApiWeb.Admin.Connections.ConnectionControllerTest do
   end
 
   test "refreshes a Meta connection's stats, and only a Meta one", %{conn: conn} do
-    meta = connection_fixture(:meta_api)
+    meta = connection_fixture(:meta)
     postgres = connection_fixture(:postgres)
     range = %{"date_from" => "2026-10-01", "date_to" => "2026-10-03"}
 

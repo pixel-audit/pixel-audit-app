@@ -14,7 +14,7 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.Connection do
       code: %Schema{type: :string, pattern: "^[a-z0-9]+$"},
       name: %Schema{type: :string},
       description: %Schema{type: :string, nullable: true},
-      type: %Schema{type: :string, enum: ["meta_api", "bigquery", "postgres", "clickhouse"]},
+      type: %Schema{type: :string, enum: ["meta", "bigquery", "postgres", "clickhouse"]},
       managed_by_env: %Schema{
         type: :boolean,
         description:

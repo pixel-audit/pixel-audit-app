@@ -6,7 +6,7 @@ code. Four types, one connector module each
 
 | Type | `CONNECTION_<id>_TYPE` | Credentials | Client |
 |---|---|---|---|
-| `meta_api` | `meta-api` | `access_token` (secret), `pixel_id`, `api_version` (default `v25.0`) | Req against `graph.facebook.com` |
+| `meta` | `meta` | `access_token` (secret), `pixel_id`, `api_version` (default `v25.0`) | Req against `graph.facebook.com` |
 | `bigquery` | `bigquery` | `credentials_json` (secret; the service account key, JSON or base64), `project_id`, `location` | Goth for the token, Req against the BigQuery REST API (`jobs.query`, named parameters) |
 | `postgres` | `postgres` | `database_url` (secret; `?sslmode=` honoured) | Postgrex, one connection per query |
 | `clickhouse` | `clickhouse` | `url`, `database`, `username`, `password` (secret) | `ch` over the HTTP interface, one connection per query |

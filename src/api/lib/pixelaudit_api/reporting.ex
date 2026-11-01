@@ -58,7 +58,7 @@ defmodule PixelAudit.Api.Reporting do
 
   @doc "Enqueues a pull of a Meta connection's pixel stats over the range."
   def refresh_meta_connection(
-        %Connection{type: :meta_api} = connection,
+        %Connection{type: :meta} = connection,
         date_from,
         date_to,
         trigger
@@ -145,7 +145,7 @@ defmodule PixelAudit.Api.Reporting do
   end
 
   @doc "What a new Meta connection triggers: a first pull of Meta's window."
-  def refresh_after_connection_created(%Connection{type: :meta_api} = connection) do
+  def refresh_after_connection_created(%Connection{type: :meta} = connection) do
     {date_from, date_to} = recent_range(Application.fetch_env!(:pixelaudit_api, :backfill_days))
     refresh_meta_connection(connection, date_from, date_to, :change)
   end

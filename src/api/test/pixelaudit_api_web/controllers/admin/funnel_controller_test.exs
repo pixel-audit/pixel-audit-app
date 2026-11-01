@@ -70,7 +70,7 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
     assert data_source["connection"]["code"] == connection.code
     assert data_source["step_parameters"] == []
 
-    meta = connection_fixture(:meta_api)
+    meta = connection_fixture(:meta)
 
     assert %{"errors" => %{"detail" => "connection_type_mismatch"}} =
              conn

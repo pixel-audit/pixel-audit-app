@@ -9,7 +9,7 @@
 export type ConnectionRefType = (typeof ConnectionRefType)[keyof typeof ConnectionRefType];
 
 export const ConnectionRefType = {
-  meta_api: "meta_api",
+  meta: "meta",
   bigquery: "bigquery",
   postgres: "postgres",
   clickhouse: "clickhouse",

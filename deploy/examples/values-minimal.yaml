@@ -9,7 +9,7 @@
 #   kubectl -n pixelaudit create secret generic pixelaudit-database \
 #     --from-literal=DATABASE_URL='postgres://pixelaudit:...@postgres.example.com:5432/pixelaudit?sslmode=require'
 #   kubectl -n pixelaudit create secret generic pixelaudit-connections \
-#     --from-literal=CONNECTION_fb_TYPE=meta-api \
+#     --from-literal=CONNECTION_fb_TYPE=meta \
 #     --from-literal=CONNECTION_fb_PIXEL_ID=123456789012345 \
 #     --from-literal=CONNECTION_fb_ACCESS_TOKEN=EAA...
 #

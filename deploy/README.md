@@ -97,15 +97,15 @@ kubectl -n pixelaudit rollout restart deployment/pixelaudit
 Connections (a Meta pixel, a BigQuery project, a Postgres or ClickHouse database) can be added in the panel, or defined by `CONNECTION_*` variables that the boot Job maps onto connection rows on every install and upgrade:
 
 ```
-CONNECTION_<id>_TYPE = meta-api | bigquery | postgres | clickhouse
+CONNECTION_<id>_TYPE = meta | bigquery | postgres | clickhouse
 CONNECTION_<id>_<PARAM> = ...
 ```
 
-`<id>` is the connection's code — lowercase letters and digits — and `<PARAM>` one of the type's credentials: `ACCESS_TOKEN`, `PIXEL_ID`, `API_VERSION` for `meta-api`; `CREDENTIALS_JSON` (the service account's key file, as JSON or base64 of it), `PROJECT_ID`, `LOCATION` for `bigquery`; `DATABASE_URL` for `postgres`; `URL`, `DATABASE`, `USERNAME`, `PASSWORD` for `clickhouse`. Put them in a Secret and hand it to the application through `app.extraEnvFrom`:
+`<id>` is the connection's code — lowercase letters and digits — and `<PARAM>` one of the type's credentials: `ACCESS_TOKEN`, `PIXEL_ID`, `API_VERSION` for `meta`; `CREDENTIALS_JSON` (the service account's key file, as JSON or base64 of it), `PROJECT_ID`, `LOCATION` for `bigquery`; `DATABASE_URL` for `postgres`; `URL`, `DATABASE`, `USERNAME`, `PASSWORD` for `clickhouse`. Put them in a Secret and hand it to the application through `app.extraEnvFrom`:
 
 ```sh
 kubectl -n pixelaudit create secret generic pixelaudit-connections \
-  --from-literal=CONNECTION_fb_TYPE=meta-api \
+  --from-literal=CONNECTION_fb_TYPE=meta \
   --from-literal=CONNECTION_fb_PIXEL_ID=123456789012345 \
   --from-literal=CONNECTION_fb_ACCESS_TOKEN=EAA... \
   --from-literal=CONNECTION_bq_TYPE=bigquery \

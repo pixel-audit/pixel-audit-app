@@ -1,4 +1,4 @@
-defmodule PixelAudit.Api.Connections.Connector.MetaApi do
+defmodule PixelAudit.Api.Connections.Connector.Meta do
   @moduledoc """
   Meta's Graph API for one pixel: the access token, the pixel id and the
   API version.
@@ -18,10 +18,10 @@ defmodule PixelAudit.Api.Connections.Connector.MetaApi do
   @default_version "v25.0"
 
   @impl true
-  def type, do: :meta_api
+  def type, do: :meta
 
   @impl true
-  def env_type, do: "meta-api"
+  def env_type, do: "meta"
 
   @impl true
   def label, do: "Meta Pixel (Graph API)"

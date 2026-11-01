@@ -23,7 +23,7 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.DataSourceType do
       description: %Schema{type: :string},
       connection_type: %Schema{
         type: :string,
-        enum: ["meta_api", "bigquery", "postgres", "clickhouse"]
+        enum: ["meta", "bigquery", "postgres", "clickhouse"]
       },
       settings: %Schema{type: :array, items: Schemas.FieldSpec},
       parameters: %Schema{type: :array, items: Schemas.FieldSpec}

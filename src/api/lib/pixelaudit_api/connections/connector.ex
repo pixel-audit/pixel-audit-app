@@ -5,7 +5,7 @@ defmodule PixelAudit.Api.Connections.Connector do
   they work. One module per type, beside this one.
 
   The data source types (`PixelAudit.Api.Funnels.DataSourceType`) call the
-  connector's own query functions on top of this — `MetaApi.fetch_stats/3`,
+  connector's own query functions on top of this — `Meta.fetch_stats/3`,
   `BigQuery.query/3`, `Postgres.query/3`, `ClickHouse.query/3`.
   """
 
@@ -19,7 +19,7 @@ defmodule PixelAudit.Api.Connections.Connector do
   @callback check(credentials :: map()) :: :ok | {:error, String.t()}
 
   @connectors [
-    PixelAudit.Api.Connections.Connector.MetaApi,
+    PixelAudit.Api.Connections.Connector.Meta,
     PixelAudit.Api.Connections.Connector.BigQuery,
     PixelAudit.Api.Connections.Connector.Postgres,
     PixelAudit.Api.Connections.Connector.ClickHouse

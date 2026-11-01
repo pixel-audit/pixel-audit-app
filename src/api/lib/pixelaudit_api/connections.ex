@@ -107,12 +107,12 @@ defmodule PixelAudit.Api.Connections do
   end
 
   @doc "Every connection whose credentials fill in a Meta-type data source."
-  def list_meta_connections, do: list_connections(type: :meta_api)
+  def list_meta_connections, do: list_connections(type: :meta)
 
   ## Meta pixel stats
 
   @doc """
-  Stores the hourly rows `PixelAudit.Api.Connections.Connector.MetaApi.fetch_stats/3`
+  Stores the hourly rows `PixelAudit.Api.Connections.Connector.Meta.fetch_stats/3`
   answered, replacing what was stored for the same hour and event.
   """
   def upsert_meta_pixel_stats(%Connection{id: connection_id}, rows) do

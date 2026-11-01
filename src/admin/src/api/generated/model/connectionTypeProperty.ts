@@ -10,7 +10,7 @@ export type ConnectionTypeProperty =
   (typeof ConnectionTypeProperty)[keyof typeof ConnectionTypeProperty];
 
 export const ConnectionTypeProperty = {
-  meta_api: "meta_api",
+  meta: "meta",
   bigquery: "bigquery",
   postgres: "postgres",
   clickhouse: "clickhouse",

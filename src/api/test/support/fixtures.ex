@@ -13,7 +13,7 @@ defmodule PixelAudit.Api.Fixtures do
     "postgres://#{config[:username]}:#{config[:password]}@#{config[:hostname]}:#{config[:port]}/#{config[:database]}"
   end
 
-  def credentials_for(:meta_api),
+  def credentials_for(:meta),
     do: %{"access_token" => "EAAtoken", "pixel_id" => "123456", "api_version" => "v25.0"}
 
   def credentials_for(:bigquery),

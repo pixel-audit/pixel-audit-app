@@ -8,9 +8,9 @@ defmodule PixelAudit.Api.ConnectionsTest do
 
   describe "create_connection/1" do
     test "stores the credentials encrypted and reads them back" do
-      connection = connection_fixture(:meta_api, %{code: "fb"})
+      connection = connection_fixture(:meta, %{code: "fb"})
 
-      assert %Connection{code: "fb", type: :meta_api} = connection
+      assert %Connection{code: "fb", type: :meta} = connection
       assert connection.credentials["access_token"] == "EAAtoken"
 
       # The column holds a Cloak ciphertext, not the JSON.
@@ -25,7 +25,7 @@ defmodule PixelAudit.Api.ConnectionsTest do
 
     test "fills a credential's default in" do
       connection =
-        connection_fixture(:meta_api, %{
+        connection_fixture(:meta, %{
           credentials: %{"access_token" => "t", "pixel_id" => "1"}
         })
 
@@ -37,7 +37,7 @@ defmodule PixelAudit.Api.ConnectionsTest do
         Connections.create_connection(%{
           "code" => "fb",
           "name" => "FB",
-          "type" => "meta_api",
+          "type" => "meta",
           "credentials" => %{"pixel_id" => "1"}
         })
 
@@ -106,7 +106,7 @@ defmodule PixelAudit.Api.ConnectionsTest do
     test "re-validates the credentials when the type changes" do
       connection = connection_fixture(:postgres)
 
-      {:error, changeset} = Connections.update_connection(connection, %{"type" => "meta_api"})
+      {:error, changeset} = Connections.update_connection(connection, %{"type" => "meta"})
 
       assert %{
                "credentials.access_token": ["can't be blank"],
@@ -148,7 +148,7 @@ defmodule PixelAudit.Api.ConnectionsTest do
     end
 
     test "deletes an unused one with its cached pixel stats" do
-      connection = connection_fixture(:meta_api)
+      connection = connection_fixture(:meta)
 
       Connections.upsert_meta_pixel_stats(connection, [
         %{date: ~D[2026-10-30], hour: 1, event_name: "PageView", count: 3}
@@ -187,7 +187,7 @@ defmodule PixelAudit.Api.ConnectionsTest do
         Req.Test.json(conn, %{"id" => "123456", "name" => "Shop pixel"})
       end)
 
-      {:ok, connection} = Connections.check_connection(connection_fixture(:meta_api))
+      {:ok, connection} = Connections.check_connection(connection_fixture(:meta))
       assert connection.last_check_status == :ok
     end
 
@@ -200,14 +200,14 @@ defmodule PixelAudit.Api.ConnectionsTest do
         })
       end)
 
-      {{:error, message}, _} = Connections.check_connection(connection_fixture(:meta_api))
+      {{:error, message}, _} = Connections.check_connection(connection_fixture(:meta))
       assert message == "Meta Graph API answered 400 (code 190): Invalid OAuth access token."
     end
   end
 
   describe "meta pixel stats" do
     test "upserts by hour and event, and sums a day" do
-      connection = connection_fixture(:meta_api)
+      connection = connection_fixture(:meta)
 
       rows = [
         %{date: ~D[2026-10-30], hour: 1, event_name: "PageView", count: 3},

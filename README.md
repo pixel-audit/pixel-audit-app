@@ -107,7 +107,7 @@ applied by the API's **boot** role (`make boot`, or `mix boot` in `src/api`;
 in a deployment, the image's `boot` command):
 
 ```sh
-CONNECTION_<id>_TYPE=meta-api | bigquery | postgres | clickhouse
+CONNECTION_<id>_TYPE=meta | bigquery | postgres | clickhouse
 CONNECTION_<id>_<PARAM>=...
 ```
 

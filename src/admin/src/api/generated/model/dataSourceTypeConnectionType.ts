@@ -10,7 +10,7 @@ export type DataSourceTypeConnectionType =
   (typeof DataSourceTypeConnectionType)[keyof typeof DataSourceTypeConnectionType];
 
 export const DataSourceTypeConnectionType = {
-  meta_api: "meta_api",
+  meta: "meta",
   bigquery: "bigquery",
   postgres: "postgres",
   clickhouse: "clickhouse",

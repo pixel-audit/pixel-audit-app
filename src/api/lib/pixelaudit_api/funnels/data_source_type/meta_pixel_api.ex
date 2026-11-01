@@ -22,7 +22,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.MetaPixelApi do
     do: "The pixel's fire count of an event, from the hourly stats the API reports."
 
   @impl true
-  def connection_type, do: :meta_api
+  def connection_type, do: :meta
 
   @impl true
   def settings_schema, do: []

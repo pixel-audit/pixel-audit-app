@@ -8,7 +8,7 @@ defmodule PixelAudit.Api.Connections.EnvSyncTest do
 
   test "creates connections named after their code, of every type" do
     env = %{
-      "CONNECTION_fb_TYPE" => "meta-api",
+      "CONNECTION_fb_TYPE" => "meta",
       "CONNECTION_fb_ACCESS_TOKEN" => "tok",
       "CONNECTION_fb_PIXEL_ID" => "42",
       "CONNECTION_bq_TYPE" => "bigquery",
@@ -27,7 +27,7 @@ defmodule PixelAudit.Api.Connections.EnvSyncTest do
     assert Enum.map(results, &{&1.code, &1.type, &1.action}) == [
              {"bq", :bigquery, :created},
              {"ch", :clickhouse, :created},
-             {"fb", :meta_api, :created},
+             {"fb", :meta, :created},
              {"shop", :postgres, :created}
            ]
 
@@ -88,7 +88,7 @@ defmodule PixelAudit.Api.Connections.EnvSyncTest do
       "CONNECTION_ok_TYPE" => "postgres",
       "CONNECTION_ok_DATABASE_URL" => "postgres://h/d",
       "CONNECTION_bad_TYPE" => "mysql",
-      "CONNECTION_fb_TYPE" => "meta-api",
+      "CONNECTION_fb_TYPE" => "meta",
       "CONNECTION_fb_PIXEL_ID" => "1",
       "CONNECTION_fb_COLOUR" => "blue"
     }

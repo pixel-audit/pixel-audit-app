@@ -15,8 +15,8 @@ defmodule PixelAudit.Api.Connections.Connection do
 
   alias PixelAudit.Api.Connections.Connector
 
-  @type type :: :meta_api | :bigquery | :postgres | :clickhouse
-  @types [:meta_api, :bigquery, :postgres, :clickhouse]
+  @type type :: :meta | :bigquery | :postgres | :clickhouse
+  @types [:meta, :bigquery, :postgres, :clickhouse]
 
   @code_format ~r/^[a-z0-9]+$/
 

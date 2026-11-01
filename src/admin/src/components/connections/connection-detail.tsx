@@ -90,7 +90,7 @@ export function ConnectionDetail({ connection }: { connection: Connection }) {
             <ActionButton icon={PlugZap} onClick={() => void runCheck()} disabled={pending}>
               {intl.formatMessage(messages.check)}
             </ActionButton>
-            {connection.type === "meta_api" && (
+            {connection.type === "meta" && (
               <ActionButton icon={RefreshCw} onClick={() => setRefreshing(true)}>
                 {intl.formatMessage(messages.refresh)}
               </ActionButton>

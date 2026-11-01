@@ -13,7 +13,7 @@ defmodule PixelAudit.Api.Reporting.MetaPixelRefreshJob do
   require Logger
 
   alias PixelAudit.Api.Connections
-  alias PixelAudit.Api.Connections.Connector.MetaApi
+  alias PixelAudit.Api.Connections.Connector.Meta
   alias PixelAudit.Api.Reporting
 
   @impl Oban.Worker
@@ -28,7 +28,7 @@ defmodule PixelAudit.Api.Reporting.MetaPixelRefreshJob do
 
     result =
       try do
-        with {:ok, rows} <- MetaApi.fetch_stats(connection.credentials, start_time, end_time) do
+        with {:ok, rows} <- Meta.fetch_stats(connection.credentials, start_time, end_time) do
           stored = Connections.upsert_meta_pixel_stats(connection, rows)
 
           Logger.info(

@@ -45,7 +45,7 @@ defmodule PixelAudit.Api.FunnelsTest do
     test "need a connection of the type's connection type" do
       funnel = funnel_fixture()
       postgres = connection_fixture(:postgres)
-      meta = connection_fixture(:meta_api)
+      meta = connection_fixture(:meta)
 
       assert {:error, :connection_type_mismatch} =
                Funnels.create_data_source(funnel, %{

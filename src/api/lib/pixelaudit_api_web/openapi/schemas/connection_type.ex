@@ -9,7 +9,7 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.ConnectionType do
     description: "A connection type and the credentials it takes.",
     type: :object,
     properties: %{
-      type: %Schema{type: :string, enum: ["meta_api", "bigquery", "postgres", "clickhouse"]},
+      type: %Schema{type: :string, enum: ["meta", "bigquery", "postgres", "clickhouse"]},
       env_type: %Schema{type: :string, description: "The value of CONNECTION_<id>_TYPE."},
       label: %Schema{type: :string},
       credentials: %Schema{type: :array, items: Schemas.FieldSpec}
