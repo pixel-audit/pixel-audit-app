@@ -112,16 +112,23 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
 
     %{"data" => parameter} =
       conn
-      |> put(parameters_path, %{"parameters" => %{"sql" => "SELECT 7 WHERE $1 <= $2"}})
+      |> put(parameters_path, %{
+        "parameters" => %{"sql" => "SELECT 7 WHERE $1 <= $2"},
+        "description" => "Seven, always."
+      })
       |> json_response(200)
 
     assert parameter["step_id"] == visit["id"]
+    assert parameter["description"] == "Seven, always."
     assert_enqueued(worker: PixelAudit.Api.Reporting.RefreshJob)
 
     %{"data" => shown} = conn |> get(funnel_path) |> json_response(200)
     assert conn |> get("#{@base}/nosuch") |> json_response(404)
     assert conn |> get("#{@base}/#{Ecto.UUID.generate()}") |> json_response(404)
-    assert [%{"step_parameters" => [%{"step_id" => step_id}]}] = shown["data_sources"]
+
+    assert [%{"step_parameters" => [%{"step_id" => step_id, "description" => "Seven, always."}]}] =
+             shown["data_sources"]
+
     assert step_id == visit["id"]
 
     # The report before any computation: the measured cell is missing every day.

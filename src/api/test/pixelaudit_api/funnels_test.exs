@@ -152,6 +152,20 @@ defmodule PixelAudit.Api.FunnelsTest do
       # Replaced, not duplicated.
       assert length(Funnels.get_data_source!(funnel, data_source.id).step_parameters) == 3
 
+      assert {:ok, %{description: "Orders paid, not refunded."}} =
+               Funnels.put_step_parameters(data_source, visit, %{
+                 "parameters" => %{"sql" => "SELECT 1"},
+                 "description" => "Orders paid, not refunded."
+               })
+
+      assert {:error, changeset} =
+               Funnels.put_step_parameters(data_source, visit, %{
+                 "parameters" => %{"sql" => "SELECT 1"},
+                 "description" => String.duplicate("x", 2001)
+               })
+
+      assert %{description: [_]} = errors_on(changeset)
+
       {:ok, :ok} = Funnels.delete_step_parameters(data_source, visit)
       assert length(Funnels.get_data_source!(funnel, data_source.id).step_parameters) == 2
     end

@@ -518,6 +518,9 @@
   "parameters.dialog.cleared": {
     "defaultMessage": "The step is no longer measured by this source."
   },
+  "parameters.dialog.description": {
+    "defaultMessage": "Description"
+  },
   "parameters.dialog.failed": {
     "defaultMessage": "The parameters could not be saved."
   },

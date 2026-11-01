@@ -26,6 +26,10 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.DataSourceJSON do
   end
 
   def step_parameter(%StepParameter{} = step_parameter) do
-    %{step_id: step_parameter.step_id, parameters: step_parameter.parameters || %{}}
+    %{
+      step_id: step_parameter.step_id,
+      parameters: step_parameter.parameters || %{},
+      description: step_parameter.description
+    }
   end
 end

@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils";
  * The counts: a row per data source, a column per step, aligned with the
  * chart's columns. Each row starts with the source's three-state toggle in
  * its colour (filled, outlined, hidden on the chart); the header's toggle
- * puts every source in one state. Each cell carries the count, and a
+ * puts every source in one state. Each cell carries the count — with the
+ * parameter's description as its tooltip, when there is one — and a
  * warning when some of the range's days failed or are not computed yet
  * (the tooltip says how many, and the last error).
  */
@@ -76,7 +77,12 @@ export function FunnelCountsTable({
                     const cell = cellOf(source.id, step.id);
                     const incomplete =
                       cell !== undefined && (cell.days_error > 0 || cell.days_missing > 0);
-                    const measured = source.step_parameters.some((p) => p.step_id === step.id);
+                    const parameter = source.step_parameters.find((p) => p.step_id === step.id);
+                    const measured = parameter !== undefined;
+                    const count =
+                      cell?.count === null || cell === undefined
+                        ? intl.formatMessage(messages.noCount)
+                        : intl.formatNumber(cell.count);
                     return (
                       <td key={step.id} className="px-2 py-2 text-right tabular-nums">
                         {!measured ? (
@@ -112,9 +118,20 @@ export function FunnelCountsTable({
                                 </TooltipContent>
                               </Tooltip>
                             )}
-                            {cell?.count === null || cell === undefined
-                              ? intl.formatMessage(messages.noCount)
-                              : intl.formatNumber(cell.count)}
+                            {parameter?.description ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="cursor-help underline decoration-muted-foreground/60 decoration-dotted underline-offset-4">
+                                    {count}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                  <p className="whitespace-pre-wrap">{parameter.description}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              count
+                            )}
                           </span>
                         )}
                       </td>

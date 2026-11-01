@@ -8,9 +8,11 @@
 import type { StepParameterParameters } from "./stepParameterParameters.ts";
 
 /**
- * What a data source needs to count one step, keyed by the type's parameter keys (GET /funnels/data-source-types).
+ * What a data source needs to count one step, keyed by the type's parameter keys (GET /funnels/data-source-types), and a note on how it counts it.
  */
 export interface StepParameter {
+  /** @nullable */
+  description: string | null;
   parameters: StepParameterParameters;
   step_id: string;
 }

@@ -2,7 +2,8 @@ defmodule PixelAudit.Api.Funnels.StepParameter do
   @moduledoc """
   What one data source needs to count one step: the Meta event name, the
   GA4 event name, the SQL query. Keyed by the data source type's parameter
-  declaration. A step with no row for a data source is not measured by it.
+  declaration, with an optional description of how the step is counted. A
+  step with no row for a data source is not measured by it.
   """
 
   use Ecto.Schema
@@ -17,6 +18,7 @@ defmodule PixelAudit.Api.Funnels.StepParameter do
     belongs_to :data_source, DataSource
     belongs_to :step, Step
     field :parameters, :map, default: %{}
+    field :description, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -25,7 +27,10 @@ defmodule PixelAudit.Api.Funnels.StepParameter do
     sent = attrs["parameters"] || attrs[:parameters]
     specs = DataSourceType.for_type(type).parameter_schema()
 
-    changeset = change(step_parameter)
+    changeset =
+      step_parameter
+      |> cast(attrs, [:description])
+      |> validate_length(:description, max: 2000)
 
     cond do
       not is_map(sent) ->

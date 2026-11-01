@@ -172,6 +172,7 @@
   "parameters.dialog.clearFailed": "The parameters could not be cleared.",
   "parameters.dialog.clearHint": "The source's cached counts for this step go with the parameters.",
   "parameters.dialog.cleared": "The step is no longer measured by this source.",
+  "parameters.dialog.description": "Description",
   "parameters.dialog.failed": "The parameters could not be saved.",
   "parameters.dialog.saved": "Parameters saved; the recent days are being recomputed.",
   "parameters.dialog.title": "{source} → {step}",

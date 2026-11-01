@@ -7,12 +7,14 @@ import { fieldErrors } from "@/components/crud/api-response";
 import { CrudCard } from "@/components/crud/crud-card";
 import { FormDialog } from "@/components/crud/form-dialog";
 import { useApiCommand } from "@/components/crud/use-api-mutations";
+import { FormField } from "@/components/form/field";
 import { FieldSpecFields, type FieldSpecValues } from "@/components/form/field-spec-fields";
 import { filledValues } from "@/components/form/field-spec-values";
 import { useDataSourceTypes } from "@/components/funnels/data-source-types";
 import { useFunnelInvalidation } from "@/components/funnels/use-funnel-invalidation";
 import { Button } from "@/components/ui/button";
 import { NonIdealState } from "@/components/ui/non-ideal-state";
+import { Textarea } from "@/components/ui/textarea";
 import { useApi } from "@/lib/api";
 import { commonMessages } from "@/lib/i18n/common-messages";
 import { cn } from "@/lib/utils";
@@ -22,8 +24,9 @@ type Cell = { source: DataSource; step: Step };
 /**
  * The grid of steps × data sources: each cell says whether the source
  * measures the step, and opens the parameters the source's type takes for
- * it (an event name, a SQL query). A step a source does not measure stays
- * blank in the report.
+ * it (an event name, a SQL query) with an optional note on how it counts
+ * the step, shown on the count in the report. A step a source does not
+ * measure stays blank in the report.
  */
 export function ParametersCard({ funnel }: { funnel: Funnel }) {
   const intl = useIntl();
@@ -124,6 +127,7 @@ function ParametersDialog({
   // The dialog is mounted for one cell and unmounted when it closes
   // (`ParametersCard`), so the state starts from that cell's parameters.
   const [values, setValues] = useState<FieldSpecValues>({ ...(existing?.parameters ?? {}) });
+  const [description, setDescription] = useState(existing?.description ?? "");
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const put = api.useAdminPutFunnelStepParameters();
   const clear = api.useAdminDeleteFunnelStepParameters();
@@ -134,7 +138,11 @@ function ParametersDialog({
   const save = async () => {
     setErrors({});
     const result = await run(
-      () => put.mutateAsync({ ...ids, data: { parameters: filledValues(values) } }),
+      () =>
+        put.mutateAsync({
+          ...ids,
+          data: { parameters: filledValues(values), description: description || null },
+        }),
       {
         done: intl.formatMessage(messages.saved),
         failed: (result) => {
@@ -189,6 +197,18 @@ function ParametersDialog({
           idPrefix="parameter"
         />
       )}
+      <FormField
+        label={intl.formatMessage(messages.descriptionField)}
+        htmlFor="parameter-description"
+        errors={errors.description}
+      >
+        <Textarea
+          id="parameter-description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={2}
+        />
+      </FormField>
       {existing && (
         <p className="text-xs text-muted-foreground">
           {intl.formatMessage(messages.clearHint)}
@@ -231,6 +251,7 @@ const messages = {
       id: "parameters.dialog.failed",
       defaultMessage: "The parameters could not be saved.",
     },
+    descriptionField: { id: "parameters.dialog.description", defaultMessage: "Description" },
     clear: { id: "parameters.dialog.clear", defaultMessage: "Stop measuring" },
     clearHint: {
       id: "parameters.dialog.clearHint",

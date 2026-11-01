@@ -8,5 +8,10 @@
 import type { StepParameterParamsParameters } from "./stepParameterParamsParameters.ts";
 
 export interface StepParameterParams {
+  /**
+   * @maxLength 2000
+   * @nullable
+   */
+  description?: string | null;
   parameters: StepParameterParamsParameters;
 }
