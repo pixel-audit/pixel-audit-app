@@ -23,7 +23,9 @@ import type {
 
 import type {
   AdminGetFunnelReportParams,
+  AdminListConnectionCallsParams,
   AdminListRefreshRunsParams,
+  ConnectionCallsResponse,
   ConnectionParams,
   ConnectionResponse,
   ConnectionTypesResponse,
@@ -3616,6 +3618,195 @@ export const useAdminUpdateConnection = <TError = Error | ValidationErrors, TCon
 > => {
   return useMutation(getAdminUpdateConnectionMutationOptions(options), queryClient);
 };
+
+export type adminListConnectionCallsResponse200 = {
+  data: ConnectionCallsResponse;
+  status: 200;
+};
+
+export type adminListConnectionCallsResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminListConnectionCallsResponse422 = {
+  data: Error;
+  status: 422;
+};
+
+export type adminListConnectionCallsResponseSuccess = adminListConnectionCallsResponse200 & {
+  headers: Headers;
+};
+export type adminListConnectionCallsResponseError = (
+  adminListConnectionCallsResponse404 | adminListConnectionCallsResponse422
+) & {
+  headers: Headers;
+};
+
+export type adminListConnectionCallsResponse =
+  adminListConnectionCallsResponseSuccess | adminListConnectionCallsResponseError;
+
+export const getAdminListConnectionCallsUrl = (
+  id: string,
+  params?: AdminListConnectionCallsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/v1/settings/connections/${id}/calls?${stringifiedParams}`
+    : `/api/admin/v1/settings/connections/${id}/calls`;
+};
+
+/**
+ * Every query (a database connection) or API call (a Meta connection) the gateway recorded, kept for 30 days. `date_from`/`date_to` are UTC days, inclusive.
+ * @summary List the calls made through a connection, newest first
+ */
+export const adminListConnectionCalls = async (
+  id: string,
+  params?: AdminListConnectionCallsParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminListConnectionCallsResponse> => {
+  return customFetch<adminListConnectionCallsResponse>(getAdminListConnectionCallsUrl(id, params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminListConnectionCallsQueryKey = (
+  id: string,
+  params?: AdminListConnectionCallsParams,
+) => {
+  return [`/api/admin/v1/settings/connections/${id}/calls`, ...(params ? [params] : [])] as const;
+};
+
+export const getAdminListConnectionCallsQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminListConnectionCalls>>,
+  TError = Error,
+>(
+  id: string,
+  params?: AdminListConnectionCallsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionCalls>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminListConnectionCallsQueryKey(id, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListConnectionCalls>>> = ({
+    signal,
+  }) => adminListConnectionCalls(id, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionCalls>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type AdminListConnectionCallsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminListConnectionCalls>>
+>;
+export type AdminListConnectionCallsQueryError = Error;
+
+export function useAdminListConnectionCalls<
+  TData = Awaited<ReturnType<typeof adminListConnectionCalls>>,
+  TError = Error,
+>(
+  id: string,
+  params: undefined | AdminListConnectionCallsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionCalls>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListConnectionCalls>>,
+          TError,
+          Awaited<ReturnType<typeof adminListConnectionCalls>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListConnectionCalls<
+  TData = Awaited<ReturnType<typeof adminListConnectionCalls>>,
+  TError = Error,
+>(
+  id: string,
+  params?: AdminListConnectionCallsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionCalls>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListConnectionCalls>>,
+          TError,
+          Awaited<ReturnType<typeof adminListConnectionCalls>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListConnectionCalls<
+  TData = Awaited<ReturnType<typeof adminListConnectionCalls>>,
+  TError = Error,
+>(
+  id: string,
+  params?: AdminListConnectionCallsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionCalls>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary List the calls made through a connection, newest first
+ */
+
+export function useAdminListConnectionCalls<
+  TData = Awaited<ReturnType<typeof adminListConnectionCalls>>,
+  TError = Error,
+>(
+  id: string,
+  params?: AdminListConnectionCallsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListConnectionCalls>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminListConnectionCallsQueryOptions(id, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
 
 export type adminCheckConnectionResponse200 = {
   data: ConnectionResponse;

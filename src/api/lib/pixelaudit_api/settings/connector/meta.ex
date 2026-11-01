@@ -13,7 +13,7 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
 
   import PixelAudit.Api.FieldSpec, only: [field: 2]
 
-  alias PixelAudit.Api.Settings.Connector
+  alias PixelAudit.Api.Settings.{Connection, Connector, Gateway}
 
   @default_version "v25.0"
 
@@ -45,8 +45,10 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
   end
 
   @impl true
-  def check(credentials) do
-    case request(credentials, "/#{credentials["pixel_id"]}", fields: "id,name") do
+  def check(connection) do
+    pixel_id = connection.credentials["pixel_id"]
+
+    case request(connection, "/#{pixel_id}", fields: "id,name") do
       {:ok, %{"id" => _}} -> :ok
       {:ok, body} -> {:error, "unexpected answer: #{inspect(body)}"}
       {:error, message} -> {:error, message}
@@ -60,9 +62,9 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
   count: non_neg_integer()}` in UTC. Meta pages the answer; every page is
   followed.
   """
-  @spec fetch_stats(map(), DateTime.t(), DateTime.t()) ::
+  @spec fetch_stats(Connection.t(), DateTime.t(), DateTime.t()) ::
           {:ok, [map()]} | {:error, String.t()}
-  def fetch_stats(credentials, %DateTime{} = start_time, %DateTime{} = end_time) do
+  def fetch_stats(%Connection{} = connection, %DateTime{} = start_time, %DateTime{} = end_time) do
     params = [
       aggregation: "event",
       start_time: DateTime.to_unix(start_time),
@@ -70,7 +72,9 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
       limit: 500
     ]
 
-    with {:ok, pages} <- paginate(credentials, "/#{credentials["pixel_id"]}/stats", params) do
+    pixel_id = connection.credentials["pixel_id"]
+
+    with {:ok, pages} <- paginate(connection, "/#{pixel_id}/stats", params) do
       {:ok, Enum.flat_map(pages, &rows_of_page/1)}
     end
   end
@@ -104,11 +108,11 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
 
   defp parse_time(_), do: :error
 
-  defp paginate(credentials, path, params, acc \\ []) do
-    case request(credentials, path, params) do
+  defp paginate(connection, path, params, acc \\ []) do
+    case request(connection, path, params) do
       {:ok, %{"paging" => %{"cursors" => %{"after" => cursor}, "next" => next}} = page}
       when is_binary(next) and is_binary(cursor) ->
-        paginate(credentials, path, Keyword.put(params, :after, cursor), [page | acc])
+        paginate(connection, path, Keyword.put(params, :after, cursor), [page | acc])
 
       {:ok, page} ->
         {:ok, Enum.reverse([page | acc])}
@@ -118,13 +122,19 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
     end
   end
 
-  defp request(credentials, path, params) do
+  # The access token travels as a bearer header, which the gateway does not
+  # record; the URL and its parameters, which it does, hold no secret.
+  defp request(%Connection{credentials: credentials} = connection, path, params) do
     version = credentials["api_version"] || @default_version
-
     url = "https://graph.facebook.com/#{version}#{path}"
-    params = Keyword.put(params, :access_token, credentials["access_token"])
 
-    case Req.get(url, [params: params] ++ Connector.req_options()) do
+    request =
+      Req.new(
+        [method: :get, url: url, params: params, auth: {:bearer, credentials["access_token"]}] ++
+          Connector.req_options()
+      )
+
+    case Gateway.request(connection, request) do
       {:ok, %Req.Response{status: 200, body: body}} when is_map(body) ->
         {:ok, body}
 

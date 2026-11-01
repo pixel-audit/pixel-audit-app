@@ -19,8 +19,8 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.PostgresQuery do
 
   import PixelAudit.Api.FieldSpec, only: [field: 2]
 
-  alias PixelAudit.Api.Settings.Connector.Postgres
   alias PixelAudit.Api.Funnels.DataSourceType
+  alias PixelAudit.Api.Settings.Gateway
 
   @impl true
   def type, do: :postgres_query
@@ -56,7 +56,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.PostgresQuery do
   def count(connection, _settings, %{"sql" => sql}, date_from, date_to) do
     sql = with_dates(sql, date_from, date_to)
 
-    with {:ok, rows} <- Postgres.query(connection.credentials, sql, []) do
+    with {:ok, rows} <- Gateway.query(connection, sql, []) do
       DataSourceType.scalar_count(rows)
     end
   end

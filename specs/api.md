@@ -61,6 +61,16 @@ response body is a named schema module under
 - `POST /funnels/:id/refresh` and `POST /settings/connections/:id/refresh` answer
   `202` with the refresh runs they enqueued; the work is done by Oban.
 
+## External systems
+
+- Nothing in the API talks to an external system but
+  `PixelAudit.Api.Settings.Gateway` (`connections.md`): a controller, a
+  context, a data source type or a job that needs a query run or a request
+  made asks the gateway with the connection, and the call is recorded.
+- `GET /settings/connections/:id/calls` lists those records, newest first,
+  paged (`limit`, `offset`) and optionally between two UTC days
+  (`date_from`, `date_to`; `422 invalid_date` otherwise).
+
 ## The panel, from the same origin
 
 The API serves the panel too (`PixelAudit.ApiWeb.PanelController`): the

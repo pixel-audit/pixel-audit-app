@@ -34,8 +34,8 @@ defmodule PixelAudit.Api.Settings.Connector.Postgres do
   end
 
   @impl true
-  def check(credentials) do
-    case query(credentials, "SELECT 1", []) do
+  def check(connection) do
+    case PixelAudit.Api.Settings.Gateway.query(connection, "SELECT 1", []) do
       {:ok, _rows} -> :ok
       {:error, message} -> {:error, message}
     end

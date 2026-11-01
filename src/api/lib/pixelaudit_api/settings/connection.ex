@@ -16,6 +16,7 @@ defmodule PixelAudit.Api.Settings.Connection do
   alias PixelAudit.Api.Settings.Connector
 
   @type type :: :meta | :bigquery | :postgres | :clickhouse
+  @type t :: %__MODULE__{}
   @types [:meta, :bigquery, :postgres, :clickhouse]
 
   @primary_key {:id, :binary_id, autogenerate: true}

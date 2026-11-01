@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { linkOptions, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Pencil, Trash2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
@@ -6,12 +6,12 @@ import { defineMessage, defineMessages, useIntl } from "react-intl";
 import type { Funnel } from "@/api/generated/model";
 import { ActionButton } from "@/components/crud/action-button";
 import { ConfirmDeleteDialog } from "@/components/crud/confirm-delete-dialog";
+import { TabsNav } from "@/components/crud/tabs-nav";
 import { useApiDelete } from "@/components/crud/use-api-mutations";
 import { FunnelDialog } from "@/components/funnels/funnel-dialog";
 import { PageHeader } from "@/components/page-header";
 import { useApi } from "@/lib/api";
 import { commonMessages } from "@/lib/i18n/common-messages";
-import { cn } from "@/lib/utils";
 
 /**
  * The funnel's page frame: the header with Edit and Delete, and the two
@@ -35,10 +35,15 @@ export function FunnelDetail({ funnel, children }: { funnel: Funnel; children: R
   });
 
   const onSetup = pathname.endsWith("/setup");
+  const params = { id: funnel.id };
   const tabs = [
-    { to: "/funnels/$id" as const, label: intl.formatMessage(messages.view), active: !onSetup },
     {
-      to: "/funnels/$id/setup" as const,
+      link: linkOptions({ to: "/funnels/$id", params }),
+      label: intl.formatMessage(messages.view),
+      active: !onSetup,
+    },
+    {
+      link: linkOptions({ to: "/funnels/$id/setup", params }),
       label: intl.formatMessage(messages.setup),
       active: onSetup,
     },
@@ -61,25 +66,7 @@ export function FunnelDetail({ funnel, children }: { funnel: Funnel; children: R
         }
       />
 
-      <nav
-        aria-label={intl.formatMessage(messages.tabs)}
-        className="inline-flex h-9 items-center rounded-lg bg-muted p-1 text-muted-foreground"
-      >
-        {tabs.map((tab) => (
-          <Link
-            key={tab.to}
-            to={tab.to}
-            params={{ id: funnel.id }}
-            aria-current={tab.active ? "page" : undefined}
-            className={cn(
-              "inline-flex items-center rounded-md px-3 py-1 text-sm font-medium transition-colors",
-              tab.active ? "bg-background text-foreground shadow" : "hover:text-foreground",
-            )}
-          >
-            {tab.label}
-          </Link>
-        ))}
-      </nav>
+      <TabsNav label={intl.formatMessage(messages.tabs)} tabs={tabs} />
 
       {children}
 

@@ -1,6 +1,6 @@
-import { useNavigate } from "@tanstack/react-router";
+import { linkOptions, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Pencil, PlugZap, RefreshCw, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
 
 import type { Connection } from "@/api/generated/model";
@@ -10,7 +10,7 @@ import { connectionTypeLabel, useConnectionTypes } from "@/components/connection
 import { ActionButton } from "@/components/crud/action-button";
 import { errorDetail, refusal } from "@/components/crud/api-response";
 import { ConfirmDeleteDialog } from "@/components/crud/confirm-delete-dialog";
-import { DetailField, DetailsCard } from "@/components/crud/details-card";
+import { TabsNav } from "@/components/crud/tabs-nav";
 import { useApiCommand, useApiDelete } from "@/components/crud/use-api-mutations";
 import { PageHeader } from "@/components/page-header";
 import { RefreshDialog } from "@/components/reporting/refresh-dialog";
@@ -19,13 +19,23 @@ import { useApi } from "@/lib/api";
 import { copy, formatCopy } from "@/lib/i18n/copy";
 import { commonMessages } from "@/lib/i18n/common-messages";
 
-/** The connection's page: what it is, its last check, and its actions. */
-export function ConnectionDetail({ connection }: { connection: Connection }) {
+/**
+ * The connection's page frame: the header with its actions, and the tabs —
+ * Credentials, Checks, and Queries (a database) or Calls (an API) — as
+ * links, each its own route. The tab's content is `children`.
+ */
+export function ConnectionDetail({
+  connection,
+  children,
+}: {
+  connection: Connection;
+  children: ReactNode;
+}) {
   const intl = useIntl();
   const api = useApi();
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const types = useConnectionTypes();
-  const type = types.find((t) => t.type === connection.type);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -67,8 +77,29 @@ export function ConnectionDetail({ connection }: { connection: Connection }) {
       ],
     });
 
+  const params = { id: connection.id };
+  const onChecks = pathname.endsWith("/checks");
+  const onCalls = pathname.endsWith("/calls");
+  const tabs = [
+    {
+      link: linkOptions({ to: "/settings/connections/$id", params }),
+      label: intl.formatMessage(messages.credentials),
+      active: !onChecks && !onCalls,
+    },
+    {
+      link: linkOptions({ to: "/settings/connections/$id/checks", params }),
+      label: intl.formatMessage(messages.checks),
+      active: onChecks,
+    },
+    {
+      link: linkOptions({ to: "/settings/connections/$id/calls", params }),
+      label: intl.formatMessage(connection.type === "meta" ? messages.calls : messages.queries),
+      active: onCalls,
+    },
+  ];
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageHeader
         title={connection.name}
         badges={
@@ -108,44 +139,9 @@ export function ConnectionDetail({ connection }: { connection: Connection }) {
         }
       />
 
-      <DetailsCard title={intl.formatMessage(messages.credentials)} description={type?.label}>
-        {(type?.credentials ?? []).map((spec) => (
-          <DetailField key={spec.key} label={spec.label}>
-            {connection.credentials_preview[spec.key] ??
-              (connection.credential_keys.includes(spec.key)
-                ? intl.formatMessage(messages.secretSet)
-                : null)}
-          </DetailField>
-        ))}
-        {connection.managed_by_env && (
-          <DetailField label={intl.formatMessage(messages.source)} wide>
-            {intl.formatMessage(messages.managedDetail, { name: connection.name })}
-          </DetailField>
-        )}
-      </DetailsCard>
+      <TabsNav label={intl.formatMessage(messages.tabs)} tabs={tabs} />
 
-      <DetailsCard title={intl.formatMessage(messages.lastCheck)}>
-        <DetailField label={intl.formatMessage(messages.checkedAt)}>
-          {connection.last_checked_at
-            ? intl.formatDate(new Date(connection.last_checked_at), {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })
-            : null}
-        </DetailField>
-        <DetailField label={intl.formatMessage(messages.outcome)}>
-          {connection.last_check_status === null ? null : (
-            <ConnectionStatusBadge connection={connection} />
-          )}
-        </DetailField>
-        <DetailField label={intl.formatMessage(messages.error)} wide>
-          {connection.last_check_error && (
-            <code className="text-xs break-all text-destructive">
-              {connection.last_check_error}
-            </code>
-          )}
-        </DetailField>
-      </DetailsCard>
+      {children}
 
       <ConnectionDialog open={editing} onOpenChange={setEditing} connection={connection} />
 
@@ -196,12 +192,10 @@ const messages = {
     check: { id: "connections.detail.check", defaultMessage: "Check connection" },
     refresh: { id: "connections.detail.refresh", defaultMessage: "Pull pixel stats" },
     credentials: { id: "connections.detail.credentials", defaultMessage: "Credentials" },
-    secretSet: { id: "connections.detail.secretSet", defaultMessage: "Set (hidden)" },
-    source: { id: "connections.detail.source", defaultMessage: "Defined by" },
-    lastCheck: { id: "connections.detail.lastCheck", defaultMessage: "Last check" },
-    checkedAt: { id: "connections.detail.checkedAt", defaultMessage: "Checked at" },
-    outcome: { id: "connections.detail.outcome", defaultMessage: "Outcome" },
-    error: { id: "connections.detail.error", defaultMessage: "Error" },
+    checks: { id: "connections.detail.checks", defaultMessage: "Checks" },
+    queries: { id: "connections.detail.queries", defaultMessage: "Queries" },
+    calls: { id: "connections.detail.calls", defaultMessage: "Calls" },
+    tabs: { id: "connections.detail.tabs", defaultMessage: "Connection tabs" },
     checkOk: { id: "connections.detail.checkOk", defaultMessage: "The connection works." },
     checkError: {
       id: "connections.detail.checkError",
@@ -242,10 +236,6 @@ const messages = {
   checkFailed: defineMessage<{ error: string }>({
     id: "connections.detail.checkFailed",
     defaultMessage: "The check failed: {error}",
-  }),
-  managedDetail: defineMessage<{ name: string }>({
-    id: "connections.detail.managedDetail",
-    defaultMessage: "The CONNECTION_{name}_* environment variables, applied by the boot role.",
   }),
   deleteTitle: defineMessage<{ name: string }>({
     id: "connections.detail.deleteTitle",

@@ -31,8 +31,8 @@ openapi-generate:
 	    $(MAKE) admin-openapi-generate; \
 	else \
 	    echo "API is not running — starting it for the generation (log: /tmp/pixelaudit-openapi-api.log)..."; \
-	    ( cd ./src/api && PORT=16000 mix phx.server > /tmp/pixelaudit-openapi-api.log 2>&1 & \
-	      echo $$! > /tmp/pixelaudit-openapi-api.pid ); \
+	    ( cd ./src/api && exec env PORT=16000 mix phx.server > /tmp/pixelaudit-openapi-api.log 2>&1 ) & \
+	    echo $$! > /tmp/pixelaudit-openapi-api.pid; \
 	    apipid=$$(cat /tmp/pixelaudit-openapi-api.pid); rm -f /tmp/pixelaudit-openapi-api.pid; \
 	    tries=0; \
 	    until curl -fso /dev/null http://localhost:16000/openapi/admin.json; do \

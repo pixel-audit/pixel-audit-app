@@ -74,8 +74,59 @@
   "common.yes": {
     "defaultMessage": "Yes"
   },
+  "connections.calls.calls": {
+    "defaultMessage": "Calls"
+  },
+  "connections.calls.clear": {
+    "defaultMessage": "Clear"
+  },
+  "connections.calls.details": {
+    "defaultMessage": "Details"
+  },
+  "connections.calls.error": {
+    "defaultMessage": "Error"
+  },
+  "connections.calls.from": {
+    "defaultMessage": "From"
+  },
+  "connections.calls.noCalls": {
+    "defaultMessage": "No calls were made through this connection in the range."
+  },
+  "connections.calls.noQueries": {
+    "defaultMessage": "No queries were made through this connection in the range."
+  },
+  "connections.calls.ok": {
+    "defaultMessage": "OK"
+  },
+  "connections.calls.params": {
+    "defaultMessage": "Parameters"
+  },
+  "connections.calls.queries": {
+    "defaultMessage": "Queries"
+  },
+  "connections.calls.request": {
+    "defaultMessage": "Request {contentType}"
+  },
+  "connections.calls.response": {
+    "defaultMessage": "Response {contentType}"
+  },
+  "connections.calls.result": {
+    "defaultMessage": "Result"
+  },
+  "connections.calls.sql": {
+    "defaultMessage": "SQL"
+  },
+  "connections.calls.to": {
+    "defaultMessage": "To"
+  },
+  "connections.calls.when": {
+    "defaultMessage": "{at} · {duration} ms"
+  },
   "connections.credential": {
     "defaultMessage": "{key}: {value}"
+  },
+  "connections.detail.calls": {
+    "defaultMessage": "Calls"
   },
   "connections.detail.check": {
     "defaultMessage": "Check connection"
@@ -91,6 +142,9 @@
   },
   "connections.detail.checkedAt": {
     "defaultMessage": "Checked at"
+  },
+  "connections.detail.checks": {
+    "defaultMessage": "Checks"
   },
   "connections.detail.credentials": {
     "defaultMessage": "Credentials"
@@ -125,6 +179,9 @@
   "connections.detail.outcome": {
     "defaultMessage": "Outcome"
   },
+  "connections.detail.queries": {
+    "defaultMessage": "Queries"
+  },
   "connections.detail.refresh": {
     "defaultMessage": "Pull pixel stats"
   },
@@ -148,6 +205,9 @@
   },
   "connections.detail.subject": {
     "defaultMessage": "connection"
+  },
+  "connections.detail.tabs": {
+    "defaultMessage": "Connection tabs"
   },
   "connections.dialog.addTitle": {
     "defaultMessage": "Add a connection"
@@ -406,6 +466,15 @@
   },
   "nav.variables": {
     "defaultMessage": "Variables"
+  },
+  "pagination.next": {
+    "defaultMessage": "Next page"
+  },
+  "pagination.previous": {
+    "defaultMessage": "Previous page"
+  },
+  "pagination.shown": {
+    "defaultMessage": "{from}–{to} of {total}"
   },
   "parameters.card.cellLabel": {
     "defaultMessage": "{source}: {step}"

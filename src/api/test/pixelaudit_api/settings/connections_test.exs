@@ -169,7 +169,7 @@ defmodule PixelAudit.Api.Settings.ConnectionsTest do
     test "asks Meta for the pixel" do
       Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
         assert conn.request_path == "/v25.0/123456"
-        assert conn.query_params["access_token"] == "EAAtoken"
+        assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer EAAtoken"]
         Req.Test.json(conn, %{"id" => "123456", "name" => "Shop pixel"})
       end)
 
@@ -186,8 +186,16 @@ defmodule PixelAudit.Api.Settings.ConnectionsTest do
         })
       end)
 
-      {{:error, message}, _} = Settings.check_connection(connection_fixture(:meta))
+      connection = connection_fixture(:meta)
+      {{:error, message}, _} = Settings.check_connection(connection)
       assert message == "Meta Graph API answered 400 (code 190): Invalid OAuth access token."
+
+      # Recorded as an error, with Meta's answer.
+      assert %{calls: [call]} = Settings.list_connection_calls(connection)
+      assert call.status == :error
+      assert call.error == "HTTP 400"
+      assert call.response_status == 400
+      assert call.response_body =~ "Invalid OAuth access token"
     end
   end
 

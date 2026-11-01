@@ -29,6 +29,7 @@ wrote, each with its step, count or error.
 | `Reporting.MetaPixelRefreshJob` | `meta` (1 at a time; Meta rate-limits per token) | pulls the connection's hourly stats for the range and upserts them; 3 attempts |
 | `Reporting.RefreshJob` | `refresh` (3 at a time) | for every step the data source measures and every day of the range, asks the resolver and upserts the day; 1 attempt (each day's outcome is stored as it comes); marks the run `failed` when any day failed, naming how many and the first error |
 | `Reporting.Schedule` | `default` | the cron entry point: enqueues the runs below |
+| `Settings.CallsCleanupJob` | `default` | deletes the recorded connection calls (`connections.md`, the gateway) older than 30 days |
 
 A `RefreshJob` for a `meta_pixel_api` data source **snoozes** while a pull
 of its connection's stats is queued or running, so it reads the fresh copy.
@@ -38,6 +39,7 @@ of its connection's stats is queued or running, so it reads the fresh copy.
 | Trigger | What |
 |---|---|
 | every hour at :15 (`meta_hourly`) | every Meta connection, the last two days — a late-counted hour is picked up |
+| every night at 04:45 UTC | the recorded connection calls older than 30 days are deleted |
 | every night at 03:30 UTC (`nightly`) | every Meta connection for the last seven days; then every data source of every funnel for yesterday and the day before (two days, so a late export or a day that failed heals) |
 | a Meta connection is created | its last seven days |
 | a data source's parameters change (or a data source with parameters is edited) | the data source's last seven days |
@@ -51,6 +53,11 @@ sources is approximate around midnight; nothing here tries to align them.
 
 ## Retention
 
-Nothing is pruned: the Meta stats and the daily counts are small (one row
-per event-hour, one per step-day) and are the history the product exists
-to keep. Oban's own job rows are pruned after seven days.
+The Meta stats and the daily counts are never pruned: they are small (one
+row per event-hour, one per step-day) and are the history the product
+exists to keep. The recorded connection calls are kept 30 days
+(`connection_calls_retention_days`); Oban's own job rows seven days.
+
+Every read of an external system a job makes — a query, a Meta page —
+goes through the gateway (`connections.md`), never through a connector
+directly, so each is recorded on its connection.

@@ -32,6 +32,12 @@ here are the project's own rules of placement.
   `settings_variables`, served under `/api/admin/v1/settings/`; the env
   sync (`Settings.EnvSync`) applies `CONNECTION_*` and `VARIABLE_*` in one
   run and one transaction.
+- **Nothing talks to an external system but the gateway.** A data source
+  type, a job, a check — anything that needs a query run or an HTTP request
+  made — calls `PixelAudit.Api.Settings.Gateway` with the `%Connection{}`;
+  a connector's `query/3` and `Req` are the gateway's to call, and every
+  call is recorded as a `settings_connection_calls` row. `specs/connections.md`
+  has the rule and the record.
 - **Credentials never leave the API.** `settings_connections.credentials` is a
   Cloak-encrypted map; JSON views render `credential_keys` and the
   non-secret `credentials_preview` only, and `Inspect` skips the field.

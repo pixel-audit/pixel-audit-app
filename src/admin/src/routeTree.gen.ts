@@ -21,6 +21,9 @@ import { Route as FunnelsIdIndexRouteImport } from './routes/funnels_.$id.index'
 import { Route as FunnelsIdSetupRouteImport } from './routes/funnels_.$id.setup'
 import { Route as SettingsConnectionsIdRouteImport } from './routes/settings.connections_.$id'
 import { Route as SettingsVariablesIdRouteImport } from './routes/settings.variables_.$id'
+import { Route as SettingsConnectionsIdIndexRouteImport } from './routes/settings.connections_.$id.index'
+import { Route as SettingsConnectionsIdCallsRouteImport } from './routes/settings.connections_.$id.calls'
+import { Route as SettingsConnectionsIdChecksRouteImport } from './routes/settings.connections_.$id.checks'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +85,24 @@ const SettingsVariablesIdRoute = SettingsVariablesIdRouteImport.update({
   path: '/settings/variables/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsConnectionsIdIndexRoute =
+  SettingsConnectionsIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => SettingsConnectionsIdRoute,
+  } as any)
+const SettingsConnectionsIdCallsRoute =
+  SettingsConnectionsIdCallsRouteImport.update({
+    id: '/calls',
+    path: '/calls',
+    getParentRoute: () => SettingsConnectionsIdRoute,
+  } as any)
+const SettingsConnectionsIdChecksRoute =
+  SettingsConnectionsIdChecksRouteImport.update({
+    id: '/checks',
+    path: '/checks',
+    getParentRoute: () => SettingsConnectionsIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -93,9 +114,12 @@ export interface FileRoutesByFullPath {
   '/settings/variables': typeof SettingsVariablesRoute
   '/settings/': typeof SettingsIndexRoute
   '/funnels/$id/setup': typeof FunnelsIdSetupRoute
-  '/settings/connections/$id': typeof SettingsConnectionsIdRoute
+  '/settings/connections/$id': typeof SettingsConnectionsIdRouteWithChildren
   '/settings/variables/$id': typeof SettingsVariablesIdRoute
   '/funnels/$id/': typeof FunnelsIdIndexRoute
+  '/settings/connections/$id/calls': typeof SettingsConnectionsIdCallsRoute
+  '/settings/connections/$id/checks': typeof SettingsConnectionsIdChecksRoute
+  '/settings/connections/$id/': typeof SettingsConnectionsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -106,9 +130,11 @@ export interface FileRoutesByTo {
   '/settings/variables': typeof SettingsVariablesRoute
   '/settings': typeof SettingsIndexRoute
   '/funnels/$id/setup': typeof FunnelsIdSetupRoute
-  '/settings/connections/$id': typeof SettingsConnectionsIdRoute
   '/settings/variables/$id': typeof SettingsVariablesIdRoute
   '/funnels/$id': typeof FunnelsIdIndexRoute
+  '/settings/connections/$id/calls': typeof SettingsConnectionsIdCallsRoute
+  '/settings/connections/$id/checks': typeof SettingsConnectionsIdChecksRoute
+  '/settings/connections/$id': typeof SettingsConnectionsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,9 +147,12 @@ export interface FileRoutesById {
   '/settings/variables': typeof SettingsVariablesRoute
   '/settings/': typeof SettingsIndexRoute
   '/funnels_/$id/setup': typeof FunnelsIdSetupRoute
-  '/settings/connections_/$id': typeof SettingsConnectionsIdRoute
+  '/settings/connections_/$id': typeof SettingsConnectionsIdRouteWithChildren
   '/settings/variables_/$id': typeof SettingsVariablesIdRoute
   '/funnels_/$id/': typeof FunnelsIdIndexRoute
+  '/settings/connections_/$id/calls': typeof SettingsConnectionsIdCallsRoute
+  '/settings/connections_/$id/checks': typeof SettingsConnectionsIdChecksRoute
+  '/settings/connections_/$id/': typeof SettingsConnectionsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +169,9 @@ export interface FileRouteTypes {
     | '/settings/connections/$id'
     | '/settings/variables/$id'
     | '/funnels/$id/'
+    | '/settings/connections/$id/calls'
+    | '/settings/connections/$id/checks'
+    | '/settings/connections/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -150,9 +182,11 @@ export interface FileRouteTypes {
     | '/settings/variables'
     | '/settings'
     | '/funnels/$id/setup'
-    | '/settings/connections/$id'
     | '/settings/variables/$id'
     | '/funnels/$id'
+    | '/settings/connections/$id/calls'
+    | '/settings/connections/$id/checks'
+    | '/settings/connections/$id'
   id:
     | '__root__'
     | '/'
@@ -167,6 +201,9 @@ export interface FileRouteTypes {
     | '/settings/connections_/$id'
     | '/settings/variables_/$id'
     | '/funnels_/$id/'
+    | '/settings/connections_/$id/calls'
+    | '/settings/connections_/$id/checks'
+    | '/settings/connections_/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -178,7 +215,7 @@ export interface RootRouteChildren {
   SettingsConnectionsRoute: typeof SettingsConnectionsRoute
   SettingsVariablesRoute: typeof SettingsVariablesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
-  SettingsConnectionsIdRoute: typeof SettingsConnectionsIdRoute
+  SettingsConnectionsIdRoute: typeof SettingsConnectionsIdRouteWithChildren
   SettingsVariablesIdRoute: typeof SettingsVariablesIdRoute
 }
 
@@ -268,6 +305,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsVariablesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/connections_/$id/': {
+      id: '/settings/connections_/$id/'
+      path: '/'
+      fullPath: '/settings/connections/$id/'
+      preLoaderRoute: typeof SettingsConnectionsIdIndexRouteImport
+      parentRoute: typeof SettingsConnectionsIdRoute
+    }
+    '/settings/connections_/$id/calls': {
+      id: '/settings/connections_/$id/calls'
+      path: '/calls'
+      fullPath: '/settings/connections/$id/calls'
+      preLoaderRoute: typeof SettingsConnectionsIdCallsRouteImport
+      parentRoute: typeof SettingsConnectionsIdRoute
+    }
+    '/settings/connections_/$id/checks': {
+      id: '/settings/connections_/$id/checks'
+      path: '/checks'
+      fullPath: '/settings/connections/$id/checks'
+      preLoaderRoute: typeof SettingsConnectionsIdChecksRouteImport
+      parentRoute: typeof SettingsConnectionsIdRoute
+    }
   }
 }
 
@@ -285,6 +343,23 @@ const FunnelsIdRouteWithChildren = FunnelsIdRoute._addFileChildren(
   FunnelsIdRouteChildren,
 )
 
+interface SettingsConnectionsIdRouteChildren {
+  SettingsConnectionsIdCallsRoute: typeof SettingsConnectionsIdCallsRoute
+  SettingsConnectionsIdChecksRoute: typeof SettingsConnectionsIdChecksRoute
+  SettingsConnectionsIdIndexRoute: typeof SettingsConnectionsIdIndexRoute
+}
+
+const SettingsConnectionsIdRouteChildren: SettingsConnectionsIdRouteChildren = {
+  SettingsConnectionsIdCallsRoute: SettingsConnectionsIdCallsRoute,
+  SettingsConnectionsIdChecksRoute: SettingsConnectionsIdChecksRoute,
+  SettingsConnectionsIdIndexRoute: SettingsConnectionsIdIndexRoute,
+}
+
+const SettingsConnectionsIdRouteWithChildren =
+  SettingsConnectionsIdRoute._addFileChildren(
+    SettingsConnectionsIdRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FunnelsRoute: FunnelsRoute,
@@ -294,7 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsConnectionsRoute: SettingsConnectionsRoute,
   SettingsVariablesRoute: SettingsVariablesRoute,
   SettingsIndexRoute: SettingsIndexRoute,
-  SettingsConnectionsIdRoute: SettingsConnectionsIdRoute,
+  SettingsConnectionsIdRoute: SettingsConnectionsIdRouteWithChildren,
   SettingsVariablesIdRoute: SettingsVariablesIdRoute,
 }
 export const routeTree = rootRouteImport

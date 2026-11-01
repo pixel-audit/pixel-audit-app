@@ -24,6 +24,32 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionJSON do
     }
   end
 
+  def calls(%{calls: calls, total: total}) do
+    %{data: for(call <- calls, do: call_data(call)), total: total}
+  end
+
+  defp call_data(call) do
+    %{
+      id: call.id,
+      connection_id: call.connection_id,
+      kind: call.kind,
+      status: call.status,
+      started_at: call.started_at,
+      duration_ms: call.duration_ms,
+      error: call.error,
+      sql: call.sql,
+      params: call.params,
+      result: call.result,
+      method: call.method,
+      url: call.url,
+      request_content_type: call.request_content_type,
+      request_body: call.request_body,
+      response_status: call.response_status,
+      response_content_type: call.response_content_type,
+      response_body: call.response_body
+    }
+  end
+
   @doc "A connection as a data source names it."
   def ref(%Connection{} = connection) do
     %{id: connection.id, name: connection.name, type: connection.type}

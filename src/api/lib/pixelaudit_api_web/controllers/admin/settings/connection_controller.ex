@@ -141,6 +141,67 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionController do
     end
   end
 
+  operation(:calls,
+    operation_id: "admin.listConnectionCalls",
+    summary: "List the calls made through a connection, newest first",
+    description:
+      "Every query (a database connection) or API call (a Meta connection) the gateway " <>
+        "recorded, kept for 30 days. `date_from`/`date_to` are UTC days, inclusive.",
+    parameters: [
+      id: @id_parameter,
+      date_from: [
+        in: :query,
+        type: %OpenApiSpex.Schema{type: :string, format: :date},
+        required: false
+      ],
+      date_to: [
+        in: :query,
+        type: %OpenApiSpex.Schema{type: :string, format: :date},
+        required: false
+      ],
+      limit: [
+        in: :query,
+        type: %OpenApiSpex.Schema{type: :integer, minimum: 1, maximum: 200},
+        required: false
+      ],
+      offset: [in: :query, type: %OpenApiSpex.Schema{type: :integer, minimum: 0}, required: false]
+    ],
+    responses: [
+      ok: {"Connection calls", "application/json", Schemas.ConnectionCallsResponse},
+      unprocessable_entity: {"Bad date or pagination", "application/json", Schemas.Error},
+      not_found: {"Not found", "application/json", Schemas.Error}
+    ]
+  )
+
+  def calls(conn, %{"id" => id} = params) do
+    with {:ok, connection} <- fetch_resource(fn -> Settings.get_connection!(id) end),
+         {:ok, pagination} <- pagination(params),
+         {:ok, date_from} <- optional_date(params["date_from"]),
+         {:ok, date_to} <- optional_date(params["date_to"]) do
+      filters =
+        %{date_from: date_from, date_to: date_to}
+        |> Enum.reject(fn {_, value} -> is_nil(value) end)
+        |> Map.new()
+
+      %{calls: calls, total: total} =
+        Settings.list_connection_calls(connection, filters, pagination)
+
+      render(conn, :calls, calls: calls, total: total)
+    end
+  end
+
+  defp optional_date(nil), do: {:ok, nil}
+  defp optional_date(""), do: {:ok, nil}
+
+  defp optional_date(value) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} -> {:ok, date}
+      {:error, _} -> {:error, :invalid_date}
+    end
+  end
+
+  defp optional_date(_), do: {:error, :invalid_date}
+
   operation(:refresh,
     operation_id: "admin.refreshConnection",
     summary: "Pull a Meta connection's pixel stats",

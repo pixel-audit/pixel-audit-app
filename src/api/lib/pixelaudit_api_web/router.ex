@@ -48,6 +48,7 @@ defmodule PixelAudit.ApiWeb.Router do
       put "/connections/:id", ConnectionController, :update
       delete "/connections/:id", ConnectionController, :delete
       post "/connections/:id/check", ConnectionController, :check
+      get "/connections/:id/calls", ConnectionController, :calls
       post "/connections/:id/refresh", ConnectionController, :refresh
 
       get "/variables", VariableController, :index

@@ -9,7 +9,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.ClickHouseQuery do
 
   import PixelAudit.Api.FieldSpec, only: [field: 2]
 
-  alias PixelAudit.Api.Settings.Connector.ClickHouse
+  alias PixelAudit.Api.Settings.Gateway
   alias PixelAudit.Api.Funnels.DataSourceType
 
   @impl true
@@ -46,7 +46,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.ClickHouseQuery do
   def count(connection, _settings, %{"sql" => sql}, date_from, date_to) do
     params = %{"date_from" => date_from, "date_to" => date_to}
 
-    with {:ok, rows} <- ClickHouse.query(connection.credentials, sql, params) do
+    with {:ok, rows} <- Gateway.query(connection, sql, params) do
       DataSourceType.scalar_count(rows)
     end
   end

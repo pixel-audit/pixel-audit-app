@@ -19,7 +19,9 @@ is a route escaped from its list (`funnels_.$id.tsx`). Every item's address is i
 | `/funnels/$id/setup` | **Setup** tab: the steps (add, edit, delete, move up/down), the data sources (type → connection of that type → the type's settings), the parameters grid (steps × sources; a cell opens the type's parameter form, or stops measuring the step). |
 | `/settings` | Leads to `/settings/connections`. |
 | `/settings/connections` | The connections; add. |
-| `/settings/connections/$id` | The connection's page: credentials (secrets shown as set, not their values; a URL with its password hidden), the last check, and the actions: check, pull pixel stats (Meta), edit, delete (blocked while in use). |
+| `/settings/connections/$id` | The connection's page, **Credentials** tab: the credentials (secrets shown as set, not their values; a URL with its password hidden). The header carries the actions: check, pull pixel stats (Meta), edit, delete (blocked while in use). |
+| `/settings/connections/$id/checks` | **Checks** tab: the last check's time, outcome and error. |
+| `/settings/connections/$id/calls` | **Queries** (a database) or **Calls** (Meta) tab: what went through the connection, newest first, fifty a page (`offset`), optionally between two days (`date_from`, `date_to`); a row opens to the SQL, parameters and rows, or the request and response. |
 | `/settings/variables` | The variables (key, value, description); add. |
 | `/settings/variables/$id` | The variable's page: the value, and the actions: edit (a managed one's description only), delete. |
 | `/refreshes` | Every refresh run, filtered by status and kind (in the address); a row leads to the run's page. |

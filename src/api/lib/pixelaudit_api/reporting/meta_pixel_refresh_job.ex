@@ -28,7 +28,7 @@ defmodule PixelAudit.Api.Reporting.MetaPixelRefreshJob do
 
     result =
       try do
-        with {:ok, rows} <- Meta.fetch_stats(connection.credentials, start_time, end_time) do
+        with {:ok, rows} <- Meta.fetch_stats(connection, start_time, end_time) do
           stored = Settings.upsert_meta_pixel_stats(connection, rows)
 
           Logger.info(

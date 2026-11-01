@@ -4,9 +4,11 @@ defmodule PixelAudit.Api.Settings.Connector do
   (`CONNECTION_<id>_TYPE`), the credentials it takes, and how to check that
   they work. One module per type, beside this one.
 
-  The data source types (`PixelAudit.Api.Funnels.DataSourceType`) call the
-  connector's own query functions on top of this — `Meta.fetch_stats/3`,
-  `BigQuery.query/3`, `Postgres.query/3`, `ClickHouse.query/3`.
+  A connector's own `query/3` (the SQL ones) is the driver: only
+  `PixelAudit.Api.Settings.Gateway` calls it, with the credentials, and
+  records the call. Everything else — the data source types, the refresh
+  jobs, `check/1` — goes through the gateway with the connection, never
+  through a connector or `Req` directly.
   """
 
   alias PixelAudit.Api.Settings.Connection
@@ -16,7 +18,7 @@ defmodule PixelAudit.Api.Settings.Connector do
   @callback env_type() :: String.t()
   @callback label() :: String.t()
   @callback credential_params() :: [FieldSpec.t()]
-  @callback check(credentials :: map()) :: :ok | {:error, String.t()}
+  @callback check(Connection.t()) :: :ok | {:error, String.t()}
 
   @connectors [
     PixelAudit.Api.Settings.Connector.Meta,

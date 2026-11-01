@@ -9,7 +9,7 @@ defmodule PixelAudit.Api.Settings do
 
   require Logger
 
-  alias PixelAudit.Api.Settings.{Connection, Connector, MetaPixelStat, Variable}
+  alias PixelAudit.Api.Settings.{Connection, ConnectionCall, Connector, MetaPixelStat, Variable}
   alias PixelAudit.Api.Repo
 
   ## Connections
@@ -84,7 +84,7 @@ defmodule PixelAudit.Api.Settings do
   def check_connection(%Connection{} = connection) do
     result =
       try do
-        Connector.for_type(connection.type).check(connection.credentials || %{})
+        Connector.for_type(connection.type).check(connection)
       rescue
         exception -> {:error, Connector.describe_error(exception)}
       end
@@ -181,6 +181,47 @@ defmodule PixelAudit.Api.Settings do
         order_by: s.event_name,
         select: s.event_name
     )
+  end
+
+  ## Connection calls
+
+  @doc """
+  The calls made through a connection, newest first, with their total:
+  `filters` may hold `date_from` and `date_to` (UTC days, inclusive),
+  `opts` `limit` and `offset`.
+  """
+  def list_connection_calls(%Connection{id: connection_id}, filters \\ %{}, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 50)
+    offset = Keyword.get(opts, :offset, 0)
+
+    query =
+      Enum.reduce(filters, from(c in ConnectionCall, where: c.connection_id == ^connection_id), fn
+        {:date_from, %Date{} = date}, q ->
+          where(q, [c], c.started_at >= ^DateTime.new!(date, ~T[00:00:00], "Etc/UTC"))
+
+        {:date_to, %Date{} = date}, q ->
+          where(q, [c], c.started_at < ^DateTime.new!(Date.add(date, 1), ~T[00:00:00], "Etc/UTC"))
+
+        _other, q ->
+          q
+      end)
+
+    total = Repo.aggregate(query, :count)
+
+    calls =
+      query
+      |> order_by([c], desc: c.started_at, desc: c.id)
+      |> limit(^limit)
+      |> offset(^offset)
+      |> Repo.all()
+
+    %{calls: calls, total: total}
+  end
+
+  @doc "Deletes the calls that started before the instant; answers how many."
+  def delete_connection_calls_before(%DateTime{} = before) do
+    {count, _} = Repo.delete_all(from c in ConnectionCall, where: c.started_at < ^before)
+    count
   end
 
   ## Variables

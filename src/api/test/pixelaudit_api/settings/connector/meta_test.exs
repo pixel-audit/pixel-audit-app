@@ -1,17 +1,27 @@
 defmodule PixelAudit.Api.Settings.Connector.MetaTest do
-  use ExUnit.Case, async: true
+  use PixelAudit.Api.DataCase, async: true
 
   import PixelAudit.Api.Fixtures
 
+  alias PixelAudit.Api.Settings
   alias PixelAudit.Api.Settings.Connector.Meta
 
-  @credentials %{"access_token" => "tok", "pixel_id" => "999", "api_version" => "v25.0"}
+  setup do
+    connection =
+      connection_fixture(:meta, %{
+        credentials: %{"access_token" => "tok", "pixel_id" => "999", "api_version" => "v25.0"}
+      })
 
-  test "reads hourly rows out of /stats and follows the paging" do
+    %{connection: connection}
+  end
+
+  test "reads hourly rows out of /stats and follows the paging", %{connection: connection} do
     Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
       assert conn.request_path == "/v25.0/999/stats"
       assert conn.query_params["aggregation"] == "event"
       assert conn.query_params["start_time"] == "1793318400"
+      assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer tok"]
+      refute Map.has_key?(conn.query_params, "access_token")
 
       case conn.query_params["after"] do
         nil ->
@@ -32,7 +42,7 @@ defmodule PixelAudit.Api.Settings.Connector.MetaTest do
     end)
 
     assert {:ok, rows} =
-             Meta.fetch_stats(@credentials, ~U[2026-10-30 00:00:00Z], ~U[2026-10-31 00:00:00Z])
+             Meta.fetch_stats(connection, ~U[2026-10-30 00:00:00Z], ~U[2026-10-31 00:00:00Z])
 
     assert rows == [
              %{date: ~D[2026-10-30], hour: 0, event_name: "PageView", count: 10},
@@ -40,23 +50,41 @@ defmodule PixelAudit.Api.Settings.Connector.MetaTest do
              %{date: ~D[2026-10-30], hour: 1, event_name: "PageView", count: 7},
              %{date: ~D[2026-10-30], hour: 23, event_name: "PageView", count: 1}
            ]
+
+    # Both pages were recorded through the gateway, the token in neither.
+    %{calls: [second, first], total: 2} = Settings.list_connection_calls(connection)
+    assert first.kind == :api_call
+    assert first.status == :ok
+    assert first.method == "GET"
+    assert first.url =~ "/v25.0/999/stats?"
+    assert first.url =~ "aggregation=event"
+    refute first.url =~ "tok"
+    assert first.response_status == 200
+    assert first.response_content_type =~ "application/json"
+    assert first.response_body =~ "PageView"
+    assert second.url =~ "after=c2"
   end
 
-  test "converts an hour given in another offset to UTC" do
+  test "converts an hour given in another offset to UTC", %{connection: connection} do
     Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
       Req.Test.json(conn, meta_stats_page([{"2026-10-30T01:00:00+0200", [{"Lead", 2}]}]))
     end)
 
     assert {:ok, [%{date: ~D[2026-10-29], hour: 23, event_name: "Lead", count: 2}]} =
-             Meta.fetch_stats(@credentials, ~U[2026-10-29 00:00:00Z], ~U[2026-10-31 00:00:00Z])
+             Meta.fetch_stats(connection, ~U[2026-10-29 00:00:00Z], ~U[2026-10-31 00:00:00Z])
   end
 
-  test "reports an unreachable API" do
+  test "reports an unreachable API, and records it", %{connection: connection} do
     Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
       Req.Test.transport_error(conn, :econnrefused)
     end)
 
     assert {:error, "Meta Graph API unreachable: " <> _} =
-             Meta.fetch_stats(@credentials, ~U[2026-10-29 00:00:00Z], ~U[2026-10-31 00:00:00Z])
+             Meta.fetch_stats(connection, ~U[2026-10-29 00:00:00Z], ~U[2026-10-31 00:00:00Z])
+
+    assert %{calls: [%{status: :error, error: error, response_status: nil}]} =
+             Settings.list_connection_calls(connection)
+
+    assert error =~ "refused"
   end
 end

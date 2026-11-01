@@ -13,7 +13,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.GoogleAdsBigQuery do
 
   import PixelAudit.Api.FieldSpec, only: [field: 2]
 
-  alias PixelAudit.Api.Settings.Connector.BigQuery
+  alias PixelAudit.Api.Settings.Gateway
   alias PixelAudit.Api.Funnels.DataSourceType
 
   @impl true
@@ -92,7 +92,7 @@ defmodule PixelAudit.Api.Funnels.DataSourceType.GoogleAdsBigQuery do
       {"conversion_action_name", "STRING", parameters["conversion_action_name"]}
     ]
 
-    with {:ok, rows} <- BigQuery.query(connection.credentials, sql, params) do
+    with {:ok, rows} <- Gateway.query(connection, sql, params) do
       DataSourceType.scalar_count(rows)
     end
   end

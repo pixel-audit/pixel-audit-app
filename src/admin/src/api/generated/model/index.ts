@@ -7,10 +7,15 @@
  */
 
 export * from "./adminGetFunnelReportParams.ts";
+export * from "./adminListConnectionCallsParams.ts";
 export * from "./adminListRefreshRunsKind.ts";
 export * from "./adminListRefreshRunsParams.ts";
 export * from "./adminListRefreshRunsStatus.ts";
 export * from "./connection.ts";
+export * from "./connectionCall.ts";
+export * from "./connectionCallKind.ts";
+export * from "./connectionCallsResponse.ts";
+export * from "./connectionCallStatus.ts";
 export * from "./connectionCredentialsPreview.ts";
 export * from "./connectionLastCheckStatus.ts";
 export * from "./connectionParams.ts";

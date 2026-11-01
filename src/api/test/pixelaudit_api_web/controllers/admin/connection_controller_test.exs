@@ -110,6 +110,38 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionControllerTest do
              |> json_response(200)
   end
 
+  test "lists the calls made through a connection", %{conn: conn} do
+    connection = connection_fixture(:postgres)
+    assert conn |> post("#{@base}/#{connection.id}/check") |> json_response(200)
+
+    %{"data" => [call], "total" => 1} =
+      conn |> get("#{@base}/#{connection.id}/calls") |> json_response(200)
+
+    assert call["kind"] == "query"
+    assert call["status"] == "ok"
+    assert call["sql"] == "SELECT 1"
+    assert call["result"] == [[1]]
+    assert is_integer(call["duration_ms"])
+
+    today = Date.to_iso8601(Date.utc_today())
+
+    assert %{"total" => 1} =
+             conn
+             |> get("#{@base}/#{connection.id}/calls?date_from=#{today}&date_to=#{today}")
+             |> json_response(200)
+
+    assert %{"total" => 0, "data" => []} =
+             conn
+             |> get("#{@base}/#{connection.id}/calls?date_to=2020-01-01")
+             |> json_response(200)
+
+    assert %{"errors" => %{"detail" => "invalid_date"}} =
+             conn |> get("#{@base}/#{connection.id}/calls?date_from=nope") |> json_response(422)
+
+    assert %{"errors" => %{"detail" => "invalid_pagination"}} =
+             conn |> get("#{@base}/#{connection.id}/calls?limit=0") |> json_response(422)
+  end
+
   test "checks a connection and records the outcome", %{conn: conn} do
     connection = connection_fixture(:postgres)
 
