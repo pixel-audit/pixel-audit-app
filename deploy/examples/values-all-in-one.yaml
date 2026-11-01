@@ -5,8 +5,8 @@
 #
 #   kubectl create namespace pixelaudit
 #   kubectl -n pixelaudit create secret generic pixelaudit-keys \
-#     --from-literal=SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
-#     --from-literal=SECRET_KEY="$(openssl rand -hex 32)"
+#     --from-literal=PHOENIX_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
+#     --from-literal=CREDENTIALS_ENCRYPTION_KEY="$(openssl rand -hex 32)"
 #   helm install pixelaudit deploy --namespace pixelaudit --atomic \
 #     --values deploy/examples/values-all-in-one.yaml
 

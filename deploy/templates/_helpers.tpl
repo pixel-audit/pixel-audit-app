@@ -111,10 +111,10 @@ true
 The API's environment, shared by the boot Job and the API Deployment so
 both see the same database, keys and CONNECTION_* variables. DATABASE_URL
 comes from the external Secret, or is built for the chart's own Postgres
-with the password read from its Secret; the two keys from secrets.secretName.
+with the password read from its Secret; the two secrets from secrets.secretName.
 */}}
 {{- define "pixelaudit.apiEnv" -}}
-{{- $secrets := required "secrets.secretName is required: a Secret holding SECRET_KEY_BASE and SECRET_KEY" .Values.secrets.secretName -}}
+{{- $secrets := required "secrets.secretName is required: a Secret holding PHOENIX_SECRET_KEY_BASE and CREDENTIALS_ENCRYPTION_KEY" .Values.secrets.secretName -}}
 - name: PORT
   value: {{ .Values.api.port | quote }}
 - name: HOSTNAME
@@ -138,16 +138,16 @@ with the password read from its Secret; the two keys from secrets.secretName.
       name: {{ .Values.database.external.secretName }}
       key: {{ .Values.database.external.secretKey }}
 {{- end }}
-- name: SECRET_KEY_BASE
+- name: PHOENIX_SECRET_KEY_BASE
   valueFrom:
     secretKeyRef:
       name: {{ $secrets }}
-      key: {{ .Values.secrets.keys.secretKeyBase }}
-- name: SECRET_KEY
+      key: {{ .Values.secrets.keys.phoenixSecretKeyBase }}
+- name: CREDENTIALS_ENCRYPTION_KEY
   valueFrom:
     secretKeyRef:
       name: {{ $secrets }}
-      key: {{ .Values.secrets.keys.secretKey }}
+      key: {{ .Values.secrets.keys.credentialsEncryptionKey }}
 {{- with .Values.api.extraEnv }}
 {{ toYaml . }}
 {{- end }}

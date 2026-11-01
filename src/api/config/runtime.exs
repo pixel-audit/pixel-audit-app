@@ -35,22 +35,23 @@ if cors_origins = System.get_env("CORS_ORIGINS") do
   config :pixelaudit_api, :cors_origins, origins
 end
 
-# The key the connection credentials are encrypted with
-# (PixelAudit.Api.Vault): 256 bits as 64 hex characters. Read in every role —
-# `boot` writes credentials from the environment, `web` reads them. Dev and
-# test carry a fixed value in their config; production requires it (below).
-# One set in the environment wins everywhere.
-secret_key_hex = ~r/^[0-9a-fA-F]{64}$/
+# CREDENTIALS_ENCRYPTION_KEY: the key the connection credentials are
+# encrypted with at rest (PixelAudit.Api.Vault), 256 bits as 64 hex
+# characters. Read in every role — `boot` writes credentials from the
+# environment, `web` reads them. Dev and test carry a fixed value in their
+# config; production requires it (below). One set in the environment wins
+# everywhere. Losing it makes every stored credential unreadable.
+key_hex = ~r/^[0-9a-fA-F]{64}$/
 
-if secret_key = System.get_env("SECRET_KEY") do
-  if not Regex.match?(secret_key_hex, secret_key) do
+if key = System.get_env("CREDENTIALS_ENCRYPTION_KEY") do
+  if not Regex.match?(key_hex, key) do
     raise """
-    environment variable SECRET_KEY must be a 256-bit key as 64 hex characters.
+    environment variable CREDENTIALS_ENCRYPTION_KEY must be a 256-bit key as 64 hex characters.
     You can generate one by calling: openssl rand -hex 32
     """
   end
 
-  config :pixelaudit_api, :secret_key, secret_key
+  config :pixelaudit_api, :credentials_encryption_key, key
 end
 
 if config_env() == :prod do
@@ -116,23 +117,23 @@ if config_env() == :prod do
     pool_size: String.to_integer(System.get_env("DATABASE_POOL_SIZE") || "10"),
     socket_options: maybe_ipv6
 
-  # The secret key base is used to sign/encrypt cookies and other secrets.
-  # A default value is used in config/dev.exs and config/test.exs but you
-  # want to use a different value for prod and you most likely don't want
-  # to check this value into version control, so we use an environment
-  # variable instead.
+  # PHOENIX_SECRET_KEY_BASE: Phoenix's secret key base, what the framework
+  # signs and encrypts its own tokens and cookies with. PixelAudit serves
+  # no sessions, but Phoenix requires it. A fixed value sits in
+  # config/dev.exs and config/test.exs; production gets its own here.
   secret_key_base =
-    System.get_env("SECRET_KEY_BASE") ||
+    System.get_env("PHOENIX_SECRET_KEY_BASE") ||
       raise """
-      environment variable SECRET_KEY_BASE is missing.
-      You can generate one by calling: mix phx.gen.secret
+      environment variable PHOENIX_SECRET_KEY_BASE is missing.
+      It is Phoenix's signing secret, at least 64 characters.
+      You can generate one by calling: mix phx.gen.secret  (or: openssl rand -base64 64)
       """
 
   # Validated above; here it only has to exist.
-  System.get_env("SECRET_KEY") ||
+  System.get_env("CREDENTIALS_ENCRYPTION_KEY") ||
     raise """
-    environment variable SECRET_KEY is missing.
-    It is the 256-bit key the connection credentials are encrypted with, as 64 hex characters.
+    environment variable CREDENTIALS_ENCRYPTION_KEY is missing.
+    It is the 256-bit key the connection credentials are encrypted with at rest, as 64 hex characters.
     You can generate one by calling: openssl rand -hex 32
     """
 

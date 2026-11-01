@@ -11,10 +11,12 @@
 # Any other command runs as given, e.g. `bin/pixelaudit_api remote`.
 #
 # The release listens on $PORT (config/runtime.exs reads it; 4000 below is
-# only the default) and needs, in production, DATABASE_URL, SECRET_KEY_BASE,
-# SECRET_KEY (64 hex characters — the key the connection credentials are
-# encrypted with) and HOSTNAME; CORS_ORIGINS names the panel's origin — see
-# config/runtime.exs. The `boot` role reads the CONNECTION_* variables on top.
+# only the default) and needs, in production, DATABASE_URL,
+# PHOENIX_SECRET_KEY_BASE (Phoenix's signing secret),
+# CREDENTIALS_ENCRYPTION_KEY (64 hex characters — the key the connection
+# credentials are encrypted with at rest) and HOSTNAME; CORS_ORIGINS names
+# the panel's origin — see config/runtime.exs. The `boot` role reads the
+# CONNECTION_* variables on top.
 #
 # Elixir/Erlang follow .tool-versions in the repo root. hexpm publishes no
 # 1.20.0 image for Erlang 29.0.5, so the closest published patch is used —

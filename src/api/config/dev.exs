@@ -27,11 +27,12 @@ config :pixelaudit_api, PixelAudit.ApiWeb.Endpoint,
   secret_key_base: "syPwU+OUWyzbvdsZRHyp/M3l9npMThw0xetdYGwQi8evL4KSP7pMxoYKah+4GJUi",
   watchers: []
 
-# The key the connection credentials are encrypted with
+# The key the connection credentials are encrypted with at rest
 # (PixelAudit.Api.Vault). A fixed value here, so a dev database keeps
-# working across restarts; production reads SECRET_KEY in config/runtime.exs.
+# working across restarts; production reads CREDENTIALS_ENCRYPTION_KEY in
+# config/runtime.exs.
 config :pixelaudit_api,
-       :secret_key,
+       :credentials_encryption_key,
        "0f1e2d3c4b5a69788796a5b4c3d2e1f00112233445566778899aabbccddeeff0"
 
 # The panel's dev server — allowed to call the API from the browser (CORS).

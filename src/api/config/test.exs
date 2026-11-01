@@ -25,7 +25,7 @@ config :pixelaudit_api, PixelAudit.ApiWeb.Endpoint,
 
 # A fixed Cloak key for the test database.
 config :pixelaudit_api,
-       :secret_key,
+       :credentials_encryption_key,
        "ffeeddccbbaa99887766554433221100ffeeddccbbaa99887766554433221100"
 
 # Jobs are inserted, never run, unless a test performs them by hand

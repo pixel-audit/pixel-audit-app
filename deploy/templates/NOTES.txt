@@ -29,7 +29,7 @@ No CONNECTION_* variables were given: add connections in the panel, or
 through a Secret referenced by api.extraEnvFrom (see the chart's README).
 {{- end }}
 
-Back up the database together with the SECRET_KEY in {{ .Values.secrets.secretName }}:
+Back up the database together with the CREDENTIALS_ENCRYPTION_KEY in {{ .Values.secrets.secretName }}:
 the connection credentials are encrypted with it, and a database restored
 without it cannot read them.
 {{- if include "pixelaudit.internalDatabase" . }}

@@ -56,18 +56,25 @@ hosts:
   # API_URL and of the allowed origin.
   tls: true
 
-# The Secret holding the API's two keys. Required. Create it with
+# The Secret holding the API's two secrets. Required. Create it with
 #   kubectl create secret generic pixelaudit-keys \
-#     --from-literal=SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
-#     --from-literal=SECRET_KEY="$(openssl rand -hex 32)"
-# SECRET_KEY (64 hex characters) encrypts the connection credentials stored
-# in the database: back it up with the database, or the credentials are lost.
+#     --from-literal=PHOENIX_SECRET_KEY_BASE="$(openssl rand -base64 64 | tr -d '\n')" \
+#     --from-literal=CREDENTIALS_ENCRYPTION_KEY="$(openssl rand -hex 32)"
+#
+#   PHOENIX_SECRET_KEY_BASE     Phoenix's signing secret (64+ characters):
+#                               what the framework signs its tokens and
+#                               cookies with. Rotating it costs nothing here.
+#   CREDENTIALS_ENCRYPTION_KEY  the 256-bit key (64 hex characters) the
+#                               connection credentials are encrypted with at
+#                               rest. Back it up with the database: a
+#                               database restored without it cannot read
+#                               any stored credential.
 secrets:
   secretName: ""
   # The keys inside it.
   keys:
-    secretKeyBase: SECRET_KEY_BASE
-    secretKey: SECRET_KEY
+    phoenixSecretKeyBase: PHOENIX_SECRET_KEY_BASE
+    credentialsEncryptionKey: CREDENTIALS_ENCRYPTION_KEY
 
 database:
   # A managed Postgres of yours (15 or later): a Secret holding its URL —
