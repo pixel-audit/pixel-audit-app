@@ -7,7 +7,7 @@ import { fieldErrors } from "@/components/crud/api-response";
 import { CrudCard } from "@/components/crud/crud-card";
 import { FormDialog } from "@/components/crud/form-dialog";
 import { useApiCommand } from "@/components/crud/use-api-mutations";
-import { FormField } from "@/components/form/field";
+import { FieldErrors, FormField, SwitchRow } from "@/components/form/field";
 import { FieldSpecFields, type FieldSpecValues } from "@/components/form/field-spec-fields";
 import { filledValues } from "@/components/form/field-spec-values";
 import { useDataSourceTypes } from "@/components/funnels/data-source-types";
@@ -25,8 +25,9 @@ type Cell = { source: DataSource; step: Step };
  * The grid of steps × data sources: each cell says whether the source
  * measures the step, and opens the parameters the source's type takes for
  * it (an event name, a SQL query) with an optional note on how it counts
- * the step, shown on the count in the report. A step a source does not
- * measure stays blank in the report.
+ * the step, shown on the count in the report, and whether the source is
+ * the step's primary one — the most reliable, its count in bold; at most
+ * one per step. A step a source does not measure stays blank in the report.
  */
 export function ParametersCard({ funnel }: { funnel: Funnel }) {
   const intl = useIntl();
@@ -128,6 +129,7 @@ function ParametersDialog({
   // (`ParametersCard`), so the state starts from that cell's parameters.
   const [values, setValues] = useState<FieldSpecValues>({ ...(existing?.parameters ?? {}) });
   const [description, setDescription] = useState(existing?.description ?? "");
+  const [primary, setPrimary] = useState(existing?.primary ?? false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const put = api.useAdminPutFunnelStepParameters();
   const clear = api.useAdminDeleteFunnelStepParameters();
@@ -141,7 +143,7 @@ function ParametersDialog({
       () =>
         put.mutateAsync({
           ...ids,
-          data: { parameters: filledValues(values), description: description || null },
+          data: { parameters: filledValues(values), description: description || null, primary },
         }),
       {
         done: intl.formatMessage(messages.saved),
@@ -209,6 +211,16 @@ function ParametersDialog({
           rows={2}
         />
       </FormField>
+      <div className="space-y-1">
+        <SwitchRow
+          id="parameter-primary"
+          label={intl.formatMessage(messages.primary)}
+          description={intl.formatMessage(messages.primaryHint)}
+          checked={primary}
+          onCheckedChange={setPrimary}
+        />
+        <FieldErrors errors={errors.primary} />
+      </div>
       {existing && (
         <p className="text-xs text-muted-foreground">
           {intl.formatMessage(messages.clearHint)}
@@ -252,6 +264,12 @@ const messages = {
       defaultMessage: "The parameters could not be saved.",
     },
     descriptionField: { id: "parameters.dialog.description", defaultMessage: "Description" },
+    primary: { id: "parameters.dialog.primary", defaultMessage: "Primary" },
+    primaryHint: {
+      id: "parameters.dialog.primaryHint",
+      defaultMessage:
+        "A data source marked as primary gives a visual indication that it is the most reliable for this funnel step.",
+    },
     clear: { id: "parameters.dialog.clear", defaultMessage: "Stop measuring" },
     clearHint: {
       id: "parameters.dialog.clearHint",

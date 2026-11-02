@@ -170,6 +170,39 @@ defmodule PixelAudit.Api.FunnelsTest do
       assert length(Funnels.get_data_source!(funnel, data_source.id).step_parameters) == 2
     end
 
+    test "at most one data source is primary for a step" do
+      %{funnel: funnel, steps: [visit | _], data_source: first} = measured_funnel_fixture()
+      second = data_source_fixture(funnel, first.connection, :postgres_query)
+      sql = %{"sql" => "SELECT 1"}
+
+      assert {:ok, %{primary: false}} =
+               Funnels.put_step_parameters(first, visit, %{"parameters" => sql})
+
+      assert {:ok, %{primary: true}} =
+               Funnels.put_step_parameters(first, visit, %{"parameters" => sql, "primary" => true})
+
+      assert {:error, changeset} =
+               Funnels.put_step_parameters(second, visit, %{
+                 "parameters" => sql,
+                 "primary" => true
+               })
+
+      assert %{primary: ["another data source is already primary for this step"]} =
+               errors_on(changeset)
+
+      assert {:ok, %{primary: false}} =
+               Funnels.put_step_parameters(first, visit, %{
+                 "parameters" => sql,
+                 "primary" => false
+               })
+
+      assert {:ok, %{primary: true}} =
+               Funnels.put_step_parameters(second, visit, %{
+                 "parameters" => sql,
+                 "primary" => true
+               })
+    end
+
     test "a select parameter takes its default and refuses other values" do
       funnel = funnel_fixture()
       step = step_fixture(funnel)

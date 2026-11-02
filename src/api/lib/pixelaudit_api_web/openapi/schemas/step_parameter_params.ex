@@ -8,7 +8,12 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.StepParameterParams do
     type: :object,
     properties: %{
       parameters: %Schema{type: :object, additionalProperties: %Schema{type: :string}},
-      description: %Schema{type: :string, nullable: true, maxLength: 2000}
+      description: %Schema{type: :string, nullable: true, maxLength: 2000},
+      primary: %Schema{
+        type: :boolean,
+        default: false,
+        description: "At most one data source is primary for a step (422 on `primary`)."
+      }
     },
     required: [:parameters]
   })

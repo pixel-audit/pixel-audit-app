@@ -9,7 +9,9 @@ random — the panel draws it in), each of which carries, per step, the
 **parameters** its type needs to count that step
 (`funnel_step_parameters`, unique per data source and step, with an
 optional `description` of how it counts it — the panel shows it as a
-tooltip on the count in the report). A step with
+tooltip on the count in the report — and a `primary` flag for the data
+source the step's count is most reliably read from: at most one per step,
+none is fine, and the panel shows its count in bold). A step with
 no parameters for a data source is not measured by it and shows blank in
 the report.
 

@@ -11,8 +11,9 @@ import { cn } from "@/lib/utils";
  * The counts: a row per data source, a column per step, aligned with the
  * chart's columns. Each row starts with the source's three-state toggle in
  * its colour (filled, outlined, hidden on the chart); the header's toggle
- * puts every source in one state. Each cell carries the count — with the
- * parameter's description as its tooltip, when there is one — and a
+ * puts every source in one state. Each cell carries the count — in bold
+ * for the step's primary source, with the parameter's description as its
+ * tooltip when there is one — and a
  * warning when some of the range's days failed or are not computed yet
  * (the tooltip says how many, and the last error).
  */
@@ -90,7 +91,12 @@ export function FunnelCountsTable({
                             {intl.formatMessage(messages.notMeasured)}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1 text-foreground",
+                              parameter.primary ? "font-bold" : "font-medium",
+                            )}
+                          >
                             {incomplete && cell && (
                               <Tooltip>
                                 <TooltipTrigger asChild>

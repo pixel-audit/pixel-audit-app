@@ -14,4 +14,6 @@ export interface StepParameterParams {
    */
   description?: string | null;
   parameters: StepParameterParamsParameters;
+  /** At most one data source is primary for a step (422 on `primary`). */
+  primary?: boolean;
 }

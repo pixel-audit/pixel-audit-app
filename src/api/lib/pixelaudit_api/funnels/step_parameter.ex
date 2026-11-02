@@ -2,8 +2,10 @@ defmodule PixelAudit.Api.Funnels.StepParameter do
   @moduledoc """
   What one data source needs to count one step: the Meta event name, the
   GA4 event name, the SQL query. Keyed by the data source type's parameter
-  declaration, with an optional description of how the step is counted. A
-  step with no row for a data source is not measured by it.
+  declaration, with an optional description of how the step is counted and
+  whether this is the step's primary source — the one its count is most
+  reliably read from; at most one per step. A step with no row for a data
+  source is not measured by it.
   """
 
   use Ecto.Schema
@@ -19,6 +21,7 @@ defmodule PixelAudit.Api.Funnels.StepParameter do
     belongs_to :step, Step
     field :parameters, :map, default: %{}
     field :description, :string
+    field :primary, :boolean, default: false
 
     timestamps(type: :utc_datetime)
   end
@@ -29,7 +32,7 @@ defmodule PixelAudit.Api.Funnels.StepParameter do
 
     changeset =
       step_parameter
-      |> cast(attrs, [:description])
+      |> cast(attrs, [:description, :primary])
       |> validate_length(:description, max: 2000)
 
     cond do
@@ -54,6 +57,10 @@ defmodule PixelAudit.Api.Funnels.StepParameter do
     end
     |> unique_constraint([:data_source_id, :step_id],
       name: :funnel_step_parameters_data_source_id_step_id_index
+    )
+    |> unique_constraint(:primary,
+      name: :funnel_step_parameters_one_primary_per_step_index,
+      message: "another data source is already primary for this step"
     )
   end
 end

@@ -524,6 +524,12 @@
   "parameters.dialog.failed": {
     "defaultMessage": "The parameters could not be saved."
   },
+  "parameters.dialog.primary": {
+    "defaultMessage": "Primary"
+  },
+  "parameters.dialog.primaryHint": {
+    "defaultMessage": "A data source marked as primary gives a visual indication that it is the most reliable for this funnel step."
+  },
   "parameters.dialog.saved": {
     "defaultMessage": "Parameters saved; the recent days are being recomputed."
   },

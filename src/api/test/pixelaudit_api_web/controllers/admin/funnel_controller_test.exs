@@ -114,12 +114,14 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
       conn
       |> put(parameters_path, %{
         "parameters" => %{"sql" => "SELECT 7 WHERE $1 <= $2"},
-        "description" => "Seven, always."
+        "description" => "Seven, always.",
+        "primary" => true
       })
       |> json_response(200)
 
     assert parameter["step_id"] == visit["id"]
     assert parameter["description"] == "Seven, always."
+    assert parameter["primary"] == true
     assert_enqueued(worker: PixelAudit.Api.Reporting.RefreshJob)
 
     %{"data" => shown} = conn |> get(funnel_path) |> json_response(200)
