@@ -48,7 +48,7 @@ kubectl -n pixelaudit create secret generic pixelaudit-keys \
 3. Install:
 
    ```sh
-   helm install pixelaudit oci://ghcr.io/pixel-audit/charts/pixelaudit --version 0.0.5 \
+   helm install pixelaudit oci://ghcr.io/pixel-audit/charts/pixelaudit --version 0.0.6 \
      --namespace pixelaudit --atomic --values my-values.yaml
    ```
 
