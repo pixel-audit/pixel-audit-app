@@ -238,6 +238,7 @@
   "report.refreshTitle": "Recompute the funnel",
   "report.subject": "report",
   "routes.back.connections": "Back to connections",
+  "routes.back.funnel": "Back to the funnel",
   "routes.back.funnels": "Back to funnels",
   "routes.back.refreshes": "Back to refreshes",
   "routes.back.variables": "Back to variables",

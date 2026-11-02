@@ -716,6 +716,9 @@
   "routes.back.connections": {
     "defaultMessage": "Back to connections"
   },
+  "routes.back.funnel": {
+    "defaultMessage": "Back to the funnel"
+  },
   "routes.back.funnels": {
     "defaultMessage": "Back to funnels"
   },
