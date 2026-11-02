@@ -67,6 +67,51 @@ defmodule PixelAudit.Api.Settings.Connector.MetaTest do
     assert second.url =~ "after=c2"
   end
 
+  test "walks every page by cursor and stops at the empty one past the last",
+       %{connection: connection} do
+    Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
+      # Every page carries a `next` link (with the token in it, as Meta
+      # writes it) and an `after` cursor, the page past the last too.
+      paging = fn after_cursor ->
+        %{
+          "cursors" => %{"before" => "b", "after" => after_cursor},
+          "next" =>
+            "https://graph.facebook.com/v26.0/999/stats?access_token=SECRET&after=" <>
+              after_cursor
+        }
+      end
+
+      refute conn.query_params["access_token"]
+
+      case conn.query_params["after"] do
+        nil ->
+          Req.Test.json(
+            conn,
+            meta_stats_page([{"2026-11-01T16:00:00+0000", [{"PageView", 783}]}], paging.("c2"))
+          )
+
+        "c2" ->
+          Req.Test.json(
+            conn,
+            meta_stats_page([{"2026-11-01T17:00:00+0000", [{"PageView", 715}]}], paging.("c3"))
+          )
+
+        "c3" ->
+          Req.Test.json(conn, meta_stats_page([], paging.("c3")))
+      end
+    end)
+
+    assert {:ok, rows} =
+             Meta.fetch_stats(connection, ~U[2026-11-01 00:00:00Z], ~U[2026-11-03 00:00:00Z])
+
+    assert Enum.map(rows, &{&1.hour, &1.count}) == [{16, 783}, {17, 715}]
+
+    # Three calls, none with the token in its URL.
+    %{calls: calls, total: 3} = Settings.list_connection_calls(connection)
+    refute Enum.any?(calls, &(&1.url =~ "SECRET"))
+    assert Enum.map(calls, &(&1.url =~ "after=")) == [true, true, false]
+  end
+
   test "reads an answer the Graph API labels text/javascript", %{connection: connection} do
     Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
       conn

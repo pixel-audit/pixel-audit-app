@@ -115,19 +115,35 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
 
   defp parse_time(_), do: :error
 
-  # Every page with the id of the call that fetched it.
-  defp paginate(connection, path, params, acc \\ []) do
-    case request(connection, path, params) do
-      {:ok, %{"paging" => %{"cursors" => %{"after" => cursor}, "next" => next}} = page}
-      when is_binary(next) and is_binary(cursor) ->
-        acc = [{page, Gateway.last_call_id()} | acc]
-        paginate(connection, path, Keyword.put(params, :after, cursor), acc)
+  # Meta answers a few dozen hours a page, whatever `limit` asks; what is
+  # wanted is every page.
+  @max_pages 1_000
 
-      {:ok, page} ->
-        {:ok, Enum.reverse([{page, Gateway.last_call_id()} | acc])}
+  # Every page with the id of the call that fetched it. The next page is
+  # asked for with the `after` cursor — never by following `paging.next`,
+  # which carries the access token in its query string and would be
+  # recorded with it. The walk ends at a page with no cursor, an empty
+  # page (Meta hands a cursor out past the last page), a cursor already
+  # used, or the cap.
+  defp paginate(connection, path, params, acc \\ [], seen \\ MapSet.new()) do
+    with {:ok, page} <- request(connection, path, params) do
+      acc = [{page, Gateway.last_call_id()} | acc]
+      cursor = get_in(page, ["paging", "cursors", "after"])
 
-      {:error, message} ->
-        {:error, message}
+      cond do
+        not is_binary(cursor) or cursor == "" or page["data"] in [nil, []] or
+          MapSet.member?(seen, cursor) or MapSet.size(seen) >= @max_pages ->
+          {:ok, Enum.reverse(acc)}
+
+        true ->
+          paginate(
+            connection,
+            path,
+            Keyword.put(params, :after, cursor),
+            acc,
+            MapSet.put(seen, cursor)
+          )
+      end
     end
   end
 
