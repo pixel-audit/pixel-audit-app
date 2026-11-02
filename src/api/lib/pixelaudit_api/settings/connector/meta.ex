@@ -144,16 +144,30 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
       )
 
     case Gateway.request(connection, request) do
-      {:ok, %Req.Response{status: 200, body: body}} when is_map(body) ->
-        {:ok, body}
+      {:ok, %Req.Response{status: 200, body: body}} ->
+        case decoded(body) do
+          %{} = body -> {:ok, body}
+          other -> {:error, "Meta Graph API answered 200 with #{inspect(other)}, not an object"}
+        end
 
       {:ok, %Req.Response{status: status, body: body}} ->
-        {:error, graph_error(status, body)}
+        {:error, graph_error(status, decoded(body))}
 
       {:error, exception} ->
         {:error, "Meta Graph API unreachable: " <> Connector.describe_error(exception)}
     end
   end
+
+  # Req decodes JSON when the answer says `application/json`; the Graph API
+  # also answers `text/javascript`, which leaves the JSON as text.
+  defp decoded(body) when is_binary(body) do
+    case Jason.decode(body) do
+      {:ok, decoded} -> decoded
+      {:error, _} -> body
+    end
+  end
+
+  defp decoded(body), do: body
 
   defp graph_error(status, %{"error" => %{"message" => message} = error}) do
     code = error["code"]

@@ -67,6 +67,25 @@ defmodule PixelAudit.Api.Settings.Connector.MetaTest do
     assert second.url =~ "after=c2"
   end
 
+  test "reads an answer the Graph API labels text/javascript", %{connection: connection} do
+    Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
+      conn
+      |> Plug.Conn.put_resp_content_type("text/javascript")
+      |> Plug.Conn.send_resp(200, ~s({"id":"999","name":"Pixel"}))
+    end)
+
+    assert :ok = Meta.check(connection)
+
+    Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
+      conn
+      |> Plug.Conn.put_resp_content_type("text/javascript")
+      |> Plug.Conn.send_resp(400, ~s({"error":{"message":"Invalid token","code":190}}))
+    end)
+
+    assert {:error, "Meta Graph API answered 400 (code 190): Invalid token"} =
+             Meta.check(connection)
+  end
+
   test "converts an hour given in another offset to UTC", %{connection: connection} do
     Req.Test.stub(PixelAudit.Api.Settings.Connector, fn conn ->
       Req.Test.json(conn, meta_stats_page([{"2026-10-30T01:00:00+0200", [{"Lead", 2}]}]))
