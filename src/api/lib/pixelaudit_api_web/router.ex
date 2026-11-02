@@ -49,6 +49,7 @@ defmodule PixelAudit.ApiWeb.Router do
       delete "/connections/:id", ConnectionController, :delete
       post "/connections/:id/check", ConnectionController, :check
       get "/connections/:id/calls", ConnectionController, :calls
+      get "/connections/:id/calls/:call_id", ConnectionController, :show_call
       post "/connections/:id/refresh", ConnectionController, :refresh
 
       get "/variables", VariableController, :index
@@ -86,6 +87,11 @@ defmodule PixelAudit.ApiWeb.Router do
 
       get "/:funnel_id/report", ReportController, :show
       get "/:funnel_id/steps/:step_id/report", ReportController, :step
+
+      get "/:funnel_id/data-sources/:data_source_id/steps/:step_id/days",
+          ReportController,
+          :days
+
       post "/:funnel_id/refresh", RefreshController, :create
     end
 

@@ -74,3 +74,10 @@ measured by the source, or no day counted yet), `days_ok`, `days_error`,
 `days_missing` (never computed) and the last error; plus each data
 source's step-to-step conversion rate. The panel draws the sankey and the
 table from this — see `admin-panel.md`.
+
+`GET /funnels/:id/steps/:step_id/report?date_from&date_to` answers one
+step day by day: for every data source a series with a point per day —
+the count, or why there is none (`error`, `missing`) — which the step's
+page draws as lines. `GET /funnels/:id/data-sources/:data_source_id/steps/:step_id/days?date_from&date_to`
+is the trail of one cell: each day's stored count, its refresh run and
+the calls it cites, whole (`provenance.md`).

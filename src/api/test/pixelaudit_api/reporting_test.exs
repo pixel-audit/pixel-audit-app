@@ -71,6 +71,37 @@ defmodule PixelAudit.Api.ReportingTest do
       assert %{count: 120} = cell.(cart)
       assert %{count: 30} = cell.(purchase)
 
+      # Every day cites the query that counted it, and the query says why it ran.
+      [day | _] = days = Reporting.step_days(data_source, visit, ~D[2026-10-01], ~D[2026-10-04])
+      assert length(days) == 4
+      assert day.daily_count.count == 100
+      assert [call] = day.calls
+      assert call.purpose == :count
+      assert call.refresh_run_id == run.id
+      assert call.data_source_id == data_source.id
+      assert call.step_id == visit.id
+      assert call.date == ~D[2026-10-01]
+      assert call.sql =~ "SELECT 100"
+      assert call.result == [[100]]
+      assert call.connection.id == data_source.connection_id
+      assert %{daily_count: nil, calls: []} = List.last(days)
+
+      # A recomputation of one step cites the new query in place of the old.
+      {:ok, again} =
+        Reporting.refresh_data_source(data_source, ~D[2026-10-01], ~D[2026-10-01], :manual,
+          step_id: visit.id
+        )
+
+      assert :ok = perform_job(RefreshJob, %{refresh_run_id: again.id})
+      assert Reporting.get_refresh_run!(again.id).step_id == visit.id
+      again_id = again.id
+
+      [day] = Reporting.step_days(data_source, visit, ~D[2026-10-01], ~D[2026-10-01])
+      assert day.daily_count.refresh_run_id == again.id
+      assert [%{refresh_run_id: ^again_id}] = day.calls
+      assert [cart_day] = Reporting.step_days(data_source, cart, ~D[2026-10-01], ~D[2026-10-01])
+      assert cart_day.daily_count.refresh_run_id == run.id
+
       assert [%{from_step_id: from, to_step_id: to, rate: rate}, %{rate: rate2}] =
                report.conversions
 
@@ -163,6 +194,15 @@ defmodule PixelAudit.Api.ReportingTest do
       assert :ok = perform_job(RefreshJob, %{refresh_run_id: run.id})
       report = Reporting.report(Funnels.get_funnel!(funnel.id), ~D[2026-10-30], ~D[2026-10-30])
       assert [%{count: 5, days_ok: 1}] = report.cells
+
+      # The day rests on the page that delivered its hours: the pull's call,
+      # made for the pull's run — the count made no call of its own.
+      %{calls: [page], total: 1} = Settings.list_connection_calls(meta)
+      assert page.purpose == :meta_stats_pull
+      assert page.refresh_run_id == meta_run.id
+      [day] = Reporting.step_days(data_source, step, ~D[2026-10-30], ~D[2026-10-30])
+      assert Enum.map(day.calls, & &1.id) == [page.id]
+      assert day.daily_count.refresh_run_id == run.id
     end
   end
 

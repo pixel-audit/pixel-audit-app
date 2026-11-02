@@ -14,6 +14,7 @@ defmodule PixelAudit.Api.Reporting.MetaPixelRefreshJob do
 
   alias PixelAudit.Api.Settings
   alias PixelAudit.Api.Settings.Connector.Meta
+  alias PixelAudit.Api.Settings.Gateway
   alias PixelAudit.Api.Reporting
 
   @impl Oban.Worker
@@ -26,20 +27,23 @@ defmodule PixelAudit.Api.Reporting.MetaPixelRefreshJob do
     end_of_range = DateTime.new!(Date.add(run.date_to, 1), ~T[00:00:00], "Etc/UTC")
     end_time = Enum.min([end_of_range, DateTime.utc_now()], DateTime)
 
-    result =
-      try do
-        with {:ok, rows} <- Meta.fetch_stats(connection, start_time, end_time) do
-          stored = Settings.upsert_meta_pixel_stats(connection, rows)
+    # Every page fetched carries the run; each hour stored cites its page.
+    {result, _calls} =
+      Gateway.capture(%{purpose: :meta_stats_pull, refresh_run_id: run.id}, fn ->
+        try do
+          with {:ok, rows} <- Meta.fetch_stats(connection, start_time, end_time) do
+            stored = Settings.upsert_meta_pixel_stats(connection, rows)
 
-          Logger.info(
-            "reporting.meta_pixel refreshed connection=#{connection.id} from=#{run.date_from} to=#{run.date_to} rows=#{stored}"
-          )
+            Logger.info(
+              "reporting.meta_pixel refreshed connection=#{connection.id} from=#{run.date_from} to=#{run.date_to} rows=#{stored}"
+            )
 
-          :ok
+            :ok
+          end
+        rescue
+          exception -> {:error, Exception.message(exception)}
         end
-      rescue
-        exception -> {:error, Exception.message(exception)}
-      end
+      end)
 
     Reporting.finish_run(run, result)
 

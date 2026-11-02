@@ -21,7 +21,7 @@ is a route escaped from its list (`funnels_.$id.tsx`). Every item's address is i
 | `/settings/connections` | The connections; add. |
 | `/settings/connections/$id` | The connection's page, **Credentials** tab: the credentials (secrets shown as set, not their values; a URL with its password hidden). The header carries the actions: check, pull pixel stats (Meta), edit, delete (blocked while in use). |
 | `/settings/connections/$id/checks` | **Checks** tab: the last check's time, outcome and error. |
-| `/settings/connections/$id/calls` | **Queries** (a database) or **Calls** (Meta) tab: what went through the connection, newest first, fifty a page (`offset`), optionally between two days (`date_from`, `date_to`); a row opens to the SQL, parameters and rows, or the request and response. |
+| `/settings/connections/$id/calls` | **Queries** (a database) or **Calls** (Meta) tab: what went through the connection, newest first, fifty a page (`offset`), optionally between two days (`date_from`, `date_to`), of one purpose (`purpose`), or those that served one data source, step and day (`data_source_id`, `step_id`, `date` — a link from a cell's trail sets these). Each row says where the call came from and what cites it; it opens to the SQL, parameters and rows, or the request and response, each with a Copy button. |
 | `/settings/variables` | The variables (key, value, description); add. |
 | `/settings/variables/$id` | The variable's page: the value, and the actions: edit (a managed one's description only), delete. |
 | `/refreshes` | Every refresh run, filtered by status and kind (in the address); a row leads to the run's page. |
@@ -78,7 +78,12 @@ is. A cell shows the count over the chosen range — the same figures the
 chart draws; a warning
 icon with a tooltip when some days failed or are not computed yet (how
 many, and the last error). A step the source does not measure shows a
-dash; one with no day counted yet an ellipsis.
+dash; one with no day counted yet an ellipsis. A count is a button: it
+opens the cell's trail (`provenance.md`) — a row per day with the count
+or why there is none, when it was computed and by which refresh run,
+and, opened, the query or request that produced it with its parameters
+and its answer, each with a Copy button; a Refresh per day and one for
+the range. The step page's totals open the same dialog.
 
 ## Forms from the API
 

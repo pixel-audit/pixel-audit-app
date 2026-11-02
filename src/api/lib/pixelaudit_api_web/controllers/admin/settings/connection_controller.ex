@@ -146,7 +146,9 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionController do
     summary: "List the calls made through a connection, newest first",
     description:
       "Every query (a database connection) or API call (a Meta connection) the gateway " <>
-        "recorded, kept for 30 days. `date_from`/`date_to` are UTC days, inclusive.",
+        "recorded, kept for good, each with why it was made and what cites it. " <>
+        "`date_from`/`date_to` are the UTC days the calls were made on, inclusive; " <>
+        "`purpose`, `data_source_id`, `step_id` and `date` (the day counted) narrow them.",
     parameters: [
       id: @id_parameter,
       date_from: [
@@ -158,6 +160,19 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionController do
         in: :query,
         type: %OpenApiSpex.Schema{type: :string, format: :date},
         required: false
+      ],
+      purpose: [
+        in: :query,
+        type: %OpenApiSpex.Schema{type: :string, enum: ["count", "meta_stats_pull", "check"]},
+        required: false
+      ],
+      data_source_id: [in: :query, type: %OpenApiSpex.Schema{type: :string}, required: false],
+      step_id: [in: :query, type: %OpenApiSpex.Schema{type: :string}, required: false],
+      date: [
+        in: :query,
+        type: %OpenApiSpex.Schema{type: :string, format: :date},
+        required: false,
+        description: "The day the call counted"
       ],
       limit: [
         in: :query,
@@ -177,9 +192,21 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionController do
     with {:ok, connection} <- fetch_resource(fn -> Settings.get_connection!(id) end),
          {:ok, pagination} <- pagination(params),
          {:ok, date_from} <- optional_date(params["date_from"]),
-         {:ok, date_to} <- optional_date(params["date_to"]) do
+         {:ok, date_to} <- optional_date(params["date_to"]),
+         {:ok, date} <- optional_date(params["date"]),
+         {:ok, purpose} <-
+           enum_param(params["purpose"], [:count, :meta_stats_pull, :check], :invalid_purpose),
+         {:ok, data_source_id} <- optional_uuid(params["data_source_id"]),
+         {:ok, step_id} <- optional_uuid(params["step_id"]) do
       filters =
-        %{date_from: date_from, date_to: date_to}
+        %{
+          date_from: date_from,
+          date_to: date_to,
+          date: date,
+          purpose: purpose,
+          data_source_id: data_source_id,
+          step_id: step_id
+        }
         |> Enum.reject(fn {_, value} -> is_nil(value) end)
         |> Map.new()
 
@@ -187,6 +214,38 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionController do
         Settings.list_connection_calls(connection, filters, pagination)
 
       render(conn, :calls, calls: calls, total: total)
+    end
+  end
+
+  operation(:show_call,
+    operation_id: "admin.getConnectionCall",
+    summary: "One call made through a connection, whole",
+    parameters: [
+      id: @id_parameter,
+      call_id: [in: :path, type: %OpenApiSpex.Schema{type: :string}, required: true]
+    ],
+    responses: [
+      ok: {"The call", "application/json", Schemas.ConnectionCallResponse},
+      not_found: {"Not found", "application/json", Schemas.Error}
+    ]
+  )
+
+  def show_call(conn, %{"id" => id, "call_id" => call_id}) do
+    with {:ok, connection} <- fetch_resource(fn -> Settings.get_connection!(id) end),
+         {:ok, call} <-
+           fetch_resource(fn -> Settings.get_connection_call!(connection, call_id) end) do
+      render(conn, :call, call: call)
+    end
+  end
+
+  # An id that is not a UUID matches nothing — the filter is kept, and the list is empty.
+  defp optional_uuid(nil), do: {:ok, nil}
+  defp optional_uuid(""), do: {:ok, nil}
+
+  defp optional_uuid(value) when is_binary(value) do
+    case Ecto.UUID.cast(value) do
+      {:ok, uuid} -> {:ok, uuid}
+      :error -> {:ok, Ecto.UUID.generate()}
     end
   end
 

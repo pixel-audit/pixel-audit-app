@@ -1,7 +1,12 @@
 import { Database, Globe } from "lucide-react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
 
-import type { Connection, ConnectionCall } from "@/api/generated/model";
+import type {
+  AdminListConnectionCallsPurpose as CallPurpose,
+  Connection,
+  ConnectionCall,
+} from "@/api/generated/model";
+import { CallPayloads, CallProvenance } from "@/components/connections/call-payloads";
 import { ApiList } from "@/components/crud/api-list";
 import { CrudCard } from "@/components/crud/crud-card";
 import { ListRow, RowDetail } from "@/components/crud/list-row";
@@ -9,17 +14,40 @@ import { Pagination } from "@/components/crud/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useApi } from "@/lib/api";
+import { CALL_PURPOSES } from "@/lib/call-purposes";
+import { formatDay } from "@/lib/date-range";
 
 export const CALLS_PAGE = 50;
 
-export type CallsFilters = { date_from?: string; date_to?: string; offset?: number };
+export type CallsFilters = {
+  date_from?: string;
+  date_to?: string;
+  purpose?: CallPurpose;
+  /** What the call served — set by a link from a cell's trail. */
+  data_source_id?: string;
+  step_id?: string;
+  date?: string;
+  offset?: number;
+};
+
+const ANY = "any";
 
 /**
  * The Queries (a database connection) or Calls (an API connection) tab:
  * what went through the connection, newest first, a page at a time, with
- * an optional range of days. A row opens to the whole exchange — the SQL,
- * its parameters and rows, or the request and response bodies.
+ * an optional range of days and a purpose; a link from a cell's trail
+ * narrows it to the calls that served one data source, step and day.
+ * Every row says where the call came from and what cites it, and opens
+ * to the whole exchange — the SQL, its parameters and rows, or the
+ * request and response bodies — with a Copy button on each.
  */
 export function ConnectionCallsCard({
   connection,
@@ -37,10 +65,22 @@ export function ConnectionCallsCard({
   const list = api.useAdminListConnectionCalls(connection.id, {
     date_from: filters.date_from,
     date_to: filters.date_to,
+    purpose: filters.purpose,
+    data_source_id: filters.data_source_id,
+    step_id: filters.step_id,
+    date: filters.date,
     limit: CALLS_PAGE,
     offset,
   });
   const total = list.data?.status === 200 ? list.data.data.total : 0;
+  const narrowed = Boolean(
+    filters.date_from ||
+    filters.date_to ||
+    filters.purpose ||
+    filters.data_source_id ||
+    filters.step_id ||
+    filters.date,
+  );
 
   return (
     <CrudCard
@@ -67,7 +107,30 @@ export function ConnectionCallsCard({
               onFiltersChange({ ...filters, date_to: e.target.value || undefined, offset: 0 })
             }
           />
-          {(filters.date_from || filters.date_to) && (
+          <Select
+            value={filters.purpose ?? ANY}
+            onValueChange={(value) =>
+              onFiltersChange({
+                ...filters,
+                purpose: value === ANY ? undefined : (value as CallPurpose),
+                offset: 0,
+              })
+            }
+          >
+            <SelectTrigger className="w-40" aria-label={intl.formatMessage(messages.purpose)}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ANY}>{intl.formatMessage(messages.anyPurpose)}</SelectItem>
+              {CALL_PURPOSES.map((purpose) => (
+                <SelectItem key={purpose} value={purpose}>
+                  {intl.formatMessage(messages.purposeName, { purpose })}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {filters.date && <Badge variant="outline">{formatDay(intl, filters.date)}</Badge>}
+          {narrowed && (
             <Button
               type="button"
               size="sm"
@@ -127,6 +190,9 @@ function CallRow({ call }: { call: ConnectionCall }) {
           duration: intl.formatNumber(call.duration_ms),
         })}
       </RowDetail>
+      <div className="mt-1">
+        <CallProvenance call={call} />
+      </div>
       {call.error && (
         <RowDetail className="text-destructive">
           <code className="break-all">{call.error.split("\n")[0]}</code>
@@ -137,48 +203,12 @@ function CallRow({ call }: { call: ConnectionCall }) {
           {intl.formatMessage(messages.details)}
         </summary>
         <div className="mt-2 space-y-2">
-          {query ? (
-            <>
-              <Payload label={intl.formatMessage(messages.sql)} value={call.sql} />
-              <Payload label={intl.formatMessage(messages.params)} value={json(call.params)} />
-              <Payload label={intl.formatMessage(messages.result)} value={json(call.result)} />
-            </>
-          ) : (
-            <>
-              <Payload
-                label={intl.formatMessage(messages.request, {
-                  contentType: call.request_content_type ?? "",
-                })}
-                value={call.request_body}
-              />
-              <Payload
-                label={intl.formatMessage(messages.response, {
-                  contentType: call.response_content_type ?? "",
-                })}
-                value={call.response_body}
-              />
-            </>
-          )}
+          <CallPayloads call={call} />
         </div>
       </details>
     </ListRow>
   );
 }
-
-function Payload({ label, value }: { label: string; value: string | null | undefined }) {
-  if (value === null || value === undefined || value === "") return null;
-  return (
-    <div>
-      <div className="font-semibold text-muted-foreground uppercase">{label}</div>
-      <pre className="mt-1 max-h-80 overflow-auto rounded-md border border-border bg-muted/40 p-2 font-mono break-words whitespace-pre-wrap select-text">
-        {value}
-      </pre>
-    </div>
-  );
-}
-
-const json = (value: unknown): string | null =>
-  value === null || value === undefined ? null : JSON.stringify(value, null, 2);
 
 const messages = {
   ...defineMessages({
@@ -198,20 +228,16 @@ const messages = {
     ok: { id: "connections.calls.ok", defaultMessage: "OK" },
     error: { id: "connections.calls.error", defaultMessage: "Error" },
     details: { id: "connections.calls.details", defaultMessage: "Details" },
-    sql: { id: "connections.calls.sql", defaultMessage: "SQL" },
-    params: { id: "connections.calls.params", defaultMessage: "Parameters" },
-    result: { id: "connections.calls.result", defaultMessage: "Result" },
+    purpose: { id: "connections.calls.purpose", defaultMessage: "Purpose" },
+    anyPurpose: { id: "connections.calls.anyPurpose", defaultMessage: "Any purpose" },
   }),
   when: defineMessage<{ at: string; duration: string }>({
     id: "connections.calls.when",
     defaultMessage: "{at} · {duration} ms",
   }),
-  request: defineMessage<{ contentType: string }>({
-    id: "connections.calls.request",
-    defaultMessage: "Request {contentType}",
-  }),
-  response: defineMessage<{ contentType: string }>({
-    id: "connections.calls.response",
-    defaultMessage: "Response {contentType}",
+  purposeName: defineMessage<{ purpose: string }>({
+    id: "connections.calls.purposeName",
+    defaultMessage:
+      "{purpose, select, count {Count} meta_stats_pull {Pixel stats pull} check {Check} other {{purpose}}}",
   }),
 };

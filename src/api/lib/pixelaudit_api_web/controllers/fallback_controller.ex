@@ -35,6 +35,7 @@ defmodule PixelAudit.ApiWeb.FallbackController do
     :invalid_order,
     :missing_date,
     :invalid_date,
+    :invalid_purpose,
     :invalid_date_range,
     :range_too_large,
     # `limit`/`offset` outside their documented range, or not integers.

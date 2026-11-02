@@ -15,6 +15,12 @@ defmodule PixelAudit.ApiWeb.OpenApi.Schemas.RefreshRangeParams do
         format: :uuid,
         nullable: true,
         description: "For a funnel refresh: only this data source. Every data source when absent."
+      },
+      step_id: %Schema{
+        type: :string,
+        format: :uuid,
+        nullable: true,
+        description: "For a funnel refresh: only this step. Every step when absent."
       }
     },
     required: [:date_from, :date_to]

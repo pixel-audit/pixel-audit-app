@@ -29,5 +29,6 @@ export interface RefreshRun {
   /** @nullable */
   started_at: string | null;
   status: RefreshRunStatus;
+  step: EntityRef | null;
   trigger: RefreshRunTrigger;
 }

@@ -29,6 +29,20 @@ defmodule PixelAudit.ApiWeb.Admin.Reporting.RefreshRunJSON do
     }
   end
 
+  @doc "A run as a daily count names the one that wrote it."
+  def run_ref(nil), do: nil
+  def run_ref(%Ecto.Association.NotLoaded{}), do: nil
+
+  def run_ref(%RefreshRun{} = run) do
+    %{
+      id: run.id,
+      trigger: run.trigger,
+      status: run.status,
+      started_at: run.started_at,
+      finished_at: run.finished_at
+    }
+  end
+
   defp data(%RefreshRun{} = run) do
     %{
       id: run.id,
@@ -36,6 +50,7 @@ defmodule PixelAudit.ApiWeb.Admin.Reporting.RefreshRunJSON do
       connection: ref(run.connection),
       funnel: ref(run.funnel),
       data_source: ref(run.data_source),
+      step: ref(run.step),
       date_from: run.date_from,
       date_to: run.date_to,
       trigger: run.trigger,

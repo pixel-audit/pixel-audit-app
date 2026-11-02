@@ -17,8 +17,9 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.RefreshController do
     operation_id: "admin.refreshFunnel",
     summary: "Recompute the funnel's daily counts over a date range",
     description:
-      "Enqueues one run per data source (or the one named by `data_source_id`); a Meta " <>
-        "data source's connection is pulled first. Answers with the runs.",
+      "Enqueues one run per data source (or the one named by `data_source_id`), for every " <>
+        "step or the one named by `step_id`; a Meta data source's connection is pulled " <>
+        "first. Answers with the runs.",
     parameters: [
       funnel_id: [
         in: :path,
@@ -43,7 +44,8 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.RefreshController do
            Reporting.parse_range(params["date_from"], params["date_to"]),
          {:ok, runs} <-
            Reporting.refresh_funnel(funnel, date_from, date_to, :manual,
-             data_source_id: params["data_source_id"]
+             data_source_id: params["data_source_id"],
+             step_id: params["step_id"]
            ) do
       Logger.info(
         "admin.funnel refresh id=#{funnel.id} from=#{date_from} to=#{date_to} runs=#{length(runs)}"

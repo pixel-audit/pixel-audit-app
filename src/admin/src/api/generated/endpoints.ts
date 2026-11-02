@@ -23,9 +23,11 @@ import type {
 
 import type {
   AdminGetFunnelReportParams,
+  AdminGetStepDaysParams,
   AdminGetStepReportParams,
   AdminListConnectionCallsParams,
   AdminListRefreshRunsParams,
+  ConnectionCallResponse,
   ConnectionCallsResponse,
   ConnectionParams,
   ConnectionResponse,
@@ -46,6 +48,7 @@ import type {
   RefreshRunsCreatedResponse,
   RefreshRunsResponse,
   ReportResponse,
+  StepDaysResponse,
   StepOrderParams,
   StepParameterParams,
   StepParameterResponse,
@@ -750,6 +753,217 @@ export const useAdminReorderFunnelDataSources = <TError = Error, TContext = unkn
   return useMutation(getAdminReorderFunnelDataSourcesMutationOptions(options), queryClient);
 };
 
+export type adminGetStepDaysResponse200 = {
+  data: StepDaysResponse;
+  status: 200;
+};
+
+export type adminGetStepDaysResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminGetStepDaysResponse422 = {
+  data: Error;
+  status: 422;
+};
+
+export type adminGetStepDaysResponseSuccess = adminGetStepDaysResponse200 & {
+  headers: Headers;
+};
+export type adminGetStepDaysResponseError = (
+  adminGetStepDaysResponse404 | adminGetStepDaysResponse422
+) & {
+  headers: Headers;
+};
+
+export type adminGetStepDaysResponse =
+  adminGetStepDaysResponseSuccess | adminGetStepDaysResponseError;
+
+export const getAdminGetStepDaysUrl = (
+  funnelId: string,
+  dataSourceId: string,
+  stepId: string,
+  params: AdminGetStepDaysParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/v1/funnels/${funnelId}/data-sources/${dataSourceId}/steps/${stepId}/days?${stringifiedParams}`
+    : `/api/admin/v1/funnels/${funnelId}/data-sources/${dataSourceId}/steps/${stepId}/days`;
+};
+
+/**
+ * For every day of the range: the daily count as stored (or nothing, when the day was never computed), when it was computed and by which refresh run, and the calls it cites — each whole, with its connection — oldest first.
+ * @summary The trail of one cell: a data source's count of a step, day by day, with the calls behind each
+ */
+export const adminGetStepDays = async (
+  funnelId: string,
+  dataSourceId: string,
+  stepId: string,
+  params: AdminGetStepDaysParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminGetStepDaysResponse> => {
+  return customFetch<adminGetStepDaysResponse>(
+    getAdminGetStepDaysUrl(funnelId, dataSourceId, stepId, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getAdminGetStepDaysQueryKey = (
+  funnelId: string,
+  dataSourceId: string,
+  stepId: string,
+  params?: AdminGetStepDaysParams,
+) => {
+  return [
+    `/api/admin/v1/funnels/${funnelId}/data-sources/${dataSourceId}/steps/${stepId}/days`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getAdminGetStepDaysQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetStepDays>>,
+  TError = Error,
+>(
+  funnelId: string,
+  dataSourceId: string,
+  stepId: string,
+  params: AdminGetStepDaysParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetStepDays>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAdminGetStepDaysQueryKey(funnelId, dataSourceId, stepId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetStepDays>>> = ({ signal }) =>
+    adminGetStepDays(funnelId, dataSourceId, stepId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      funnelId !== null &&
+      funnelId !== undefined &&
+      dataSourceId !== null &&
+      dataSourceId !== undefined &&
+      stepId !== null &&
+      stepId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof adminGetStepDays>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type AdminGetStepDaysQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetStepDays>>>;
+export type AdminGetStepDaysQueryError = Error;
+
+export function useAdminGetStepDays<
+  TData = Awaited<ReturnType<typeof adminGetStepDays>>,
+  TError = Error,
+>(
+  funnelId: string,
+  dataSourceId: string,
+  stepId: string,
+  params: AdminGetStepDaysParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetStepDays>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetStepDays>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetStepDays>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetStepDays<
+  TData = Awaited<ReturnType<typeof adminGetStepDays>>,
+  TError = Error,
+>(
+  funnelId: string,
+  dataSourceId: string,
+  stepId: string,
+  params: AdminGetStepDaysParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetStepDays>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetStepDays>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetStepDays>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetStepDays<
+  TData = Awaited<ReturnType<typeof adminGetStepDays>>,
+  TError = Error,
+>(
+  funnelId: string,
+  dataSourceId: string,
+  stepId: string,
+  params: AdminGetStepDaysParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetStepDays>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary The trail of one cell: a data source's count of a step, day by day, with the calls behind each
+ */
+
+export function useAdminGetStepDays<
+  TData = Awaited<ReturnType<typeof adminGetStepDays>>,
+  TError = Error,
+>(
+  funnelId: string,
+  dataSourceId: string,
+  stepId: string,
+  params: AdminGetStepDaysParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetStepDays>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminGetStepDaysQueryOptions(
+    funnelId,
+    dataSourceId,
+    stepId,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
 export type adminDeleteFunnelStepParametersResponse204 = {
   data: void;
   status: 204;
@@ -1315,7 +1529,7 @@ export const getAdminRefreshFunnelUrl = (funnelId: string) => {
 };
 
 /**
- * Enqueues one run per data source (or the one named by `data_source_id`); a Meta data source's connection is pulled first. Answers with the runs.
+ * Enqueues one run per data source (or the one named by `data_source_id`), for every step or the one named by `step_id`; a Meta data source's connection is pulled first. Answers with the runs.
  * @summary Recompute the funnel's daily counts over a date range
  */
 export const adminRefreshFunnel = async (
@@ -4008,7 +4222,7 @@ export const getAdminListConnectionCallsUrl = (
 };
 
 /**
- * Every query (a database connection) or API call (a Meta connection) the gateway recorded, kept for 30 days. `date_from`/`date_to` are UTC days, inclusive.
+ * Every query (a database connection) or API call (a Meta connection) the gateway recorded, kept for good, each with why it was made and what cites it. `date_from`/`date_to` are the UTC days the calls were made on, inclusive; `purpose`, `data_source_id`, `step_id` and `date` (the day counted) narrow them.
  * @summary List the calls made through a connection, newest first
  */
 export const adminListConnectionCalls = async (
@@ -4142,6 +4356,168 @@ export function useAdminListConnectionCalls<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAdminListConnectionCallsQueryOptions(id, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type adminGetConnectionCallResponse200 = {
+  data: ConnectionCallResponse;
+  status: 200;
+};
+
+export type adminGetConnectionCallResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminGetConnectionCallResponseSuccess = adminGetConnectionCallResponse200 & {
+  headers: Headers;
+};
+export type adminGetConnectionCallResponseError = adminGetConnectionCallResponse404 & {
+  headers: Headers;
+};
+
+export type adminGetConnectionCallResponse =
+  adminGetConnectionCallResponseSuccess | adminGetConnectionCallResponseError;
+
+export const getAdminGetConnectionCallUrl = (id: string, callId: string) => {
+  return `/api/admin/v1/settings/connections/${id}/calls/${callId}`;
+};
+
+/**
+ * @summary One call made through a connection, whole
+ */
+export const adminGetConnectionCall = async (
+  id: string,
+  callId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminGetConnectionCallResponse> => {
+  return customFetch<adminGetConnectionCallResponse>(getAdminGetConnectionCallUrl(id, callId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminGetConnectionCallQueryKey = (id: string, callId: string) => {
+  return [`/api/admin/v1/settings/connections/${id}/calls/${callId}`] as const;
+};
+
+export const getAdminGetConnectionCallQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetConnectionCall>>,
+  TError = Error,
+>(
+  id: string,
+  callId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminGetConnectionCall>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminGetConnectionCallQueryKey(id, callId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetConnectionCall>>> = ({ signal }) =>
+    adminGetConnectionCall(id, callId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: id !== null && id !== undefined && callId !== null && callId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof adminGetConnectionCall>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type AdminGetConnectionCallQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetConnectionCall>>
+>;
+export type AdminGetConnectionCallQueryError = Error;
+
+export function useAdminGetConnectionCall<
+  TData = Awaited<ReturnType<typeof adminGetConnectionCall>>,
+  TError = Error,
+>(
+  id: string,
+  callId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminGetConnectionCall>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetConnectionCall>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetConnectionCall>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetConnectionCall<
+  TData = Awaited<ReturnType<typeof adminGetConnectionCall>>,
+  TError = Error,
+>(
+  id: string,
+  callId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminGetConnectionCall>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetConnectionCall>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetConnectionCall>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetConnectionCall<
+  TData = Awaited<ReturnType<typeof adminGetConnectionCall>>,
+  TError = Error,
+>(
+  id: string,
+  callId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminGetConnectionCall>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary One call made through a connection, whole
+ */
+
+export function useAdminGetConnectionCall<
+  TData = Awaited<ReturnType<typeof adminGetConnectionCall>>,
+  TError = Error,
+>(
+  id: string,
+  callId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminGetConnectionCall>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminGetConnectionCallQueryOptions(id, callId, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>;

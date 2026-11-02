@@ -28,15 +28,47 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionJSON do
     %{data: for(call <- calls, do: call_data(call)), total: total}
   end
 
-  defp call_data(call) do
+  def call(%{call: call}), do: %{data: call_data(call)}
+
+  @doc """
+  A call whole, with its provenance: why it was made (its purpose, the
+  refresh run, data source, step and day it served) and what cites it —
+  the daily counts, each with its data source, step and day, and how
+  many cached Meta hours.
+  """
+  def call_data(call) do
+    citations = loaded(call.citations)
+
+    daily_counts =
+      for %{daily_count: %{} = count} <- citations do
+        %{
+          id: count.id,
+          data_source: entity_ref(count.data_source),
+          step: entity_ref(count.step),
+          date: count.date,
+          count: count.count,
+          status: count.status
+        }
+      end
+
     %{
       id: call.id,
       connection_id: call.connection_id,
+      connection: ref(call.connection),
       kind: call.kind,
       status: call.status,
       started_at: call.started_at,
       duration_ms: call.duration_ms,
       error: call.error,
+      purpose: call.purpose,
+      date: call.date,
+      refresh_run_id: call.refresh_run_id,
+      data_source: entity_ref(call.data_source),
+      step: entity_ref(call.step),
+      cited_by: %{
+        daily_counts: daily_counts,
+        meta_pixel_hours: Enum.count(citations, &match?(%{meta_pixel_stat: %{}}, &1))
+      },
       sql: call.sql,
       params: call.params,
       result: call.result,
@@ -54,6 +86,14 @@ defmodule PixelAudit.ApiWeb.Admin.Settings.ConnectionJSON do
   def ref(%Connection{} = connection) do
     %{id: connection.id, name: connection.name, type: connection.type}
   end
+
+  def ref(_), do: nil
+
+  defp entity_ref(%{id: id, name: name}), do: %{id: id, name: name}
+  defp entity_ref(_), do: nil
+
+  defp loaded(%Ecto.Association.NotLoaded{}), do: []
+  defp loaded(list) when is_list(list), do: list
 
   # The credentials never leave the API whole: which keys are set, and the
   # values as `FieldSpec.preview/2` shows them — no secret, a URL without

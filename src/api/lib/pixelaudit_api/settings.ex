@@ -9,8 +9,17 @@ defmodule PixelAudit.Api.Settings do
 
   require Logger
 
-  alias PixelAudit.Api.Settings.{Connection, ConnectionCall, Connector, MetaPixelStat, Variable}
+  alias PixelAudit.Api.Reporting.Citation
   alias PixelAudit.Api.Repo
+
+  alias PixelAudit.Api.Settings.{
+    Connection,
+    ConnectionCall,
+    Connector,
+    Gateway,
+    MetaPixelStat,
+    Variable
+  }
 
   ## Connections
 
@@ -82,12 +91,14 @@ defmodule PixelAudit.Api.Settings do
   on the connection (`last_check_*`).
   """
   def check_connection(%Connection{} = connection) do
-    result =
-      try do
-        Connector.for_type(connection.type).check(connection)
-      rescue
-        exception -> {:error, Connector.describe_error(exception)}
-      end
+    {result, _calls} =
+      Gateway.capture(%{purpose: :check}, fn ->
+        try do
+          Connector.for_type(connection.type).check(connection)
+        rescue
+          exception -> {:error, Connector.describe_error(exception)}
+        end
+      end)
 
     {:ok, connection} =
       connection
@@ -114,7 +125,9 @@ defmodule PixelAudit.Api.Settings do
 
   @doc """
   Stores the hourly rows `PixelAudit.Api.Settings.Connector.Meta.fetch_stats/3`
-  answered, replacing what was stored for the same hour and event.
+  answered, replacing what was stored for the same hour and event, and
+  makes each hour cite the call that delivered it (`row.call_id`, when
+  there is one) in place of what it cited before.
   """
   def upsert_meta_pixel_stats(%Connection{id: connection_id}, rows) do
     now = DateTime.utc_now(:second)
@@ -132,17 +145,38 @@ defmodule PixelAudit.Api.Settings do
         }
       end
 
-    entries
-    |> Enum.chunk_every(1000)
-    |> Enum.reduce(0, fn chunk, total ->
-      {count, _} =
-        Repo.insert_all(MetaPixelStat, chunk,
-          on_conflict: {:replace, [:count, :inserted_at]},
-          conflict_target: [:connection_id, :date, :hour, :event_name]
-        )
+    call_of = Map.new(rows, &{{&1.date, &1.hour, &1.event_name}, Map.get(&1, :call_id)})
 
-      total + count
+    Repo.transaction(fn ->
+      entries
+      |> Enum.chunk_every(1000)
+      |> Enum.reduce(0, fn chunk, total ->
+        {count, stored} =
+          Repo.insert_all(MetaPixelStat, chunk,
+            on_conflict: {:replace, [:count, :inserted_at]},
+            conflict_target: [:connection_id, :date, :hour, :event_name],
+            returning: [:id, :date, :hour, :event_name]
+          )
+
+        cite_meta_pixel_stats(stored, call_of, now)
+        total + count
+      end)
     end)
+    |> then(fn {:ok, total} -> total end)
+  end
+
+  defp cite_meta_pixel_stats(stored, call_of, now) do
+    ids = Enum.map(stored, & &1.id)
+    Repo.delete_all(from c in Citation, where: c.meta_pixel_stat_id in ^ids)
+
+    citations =
+      for stat <- stored,
+          call_id = call_of[{stat.date, stat.hour, stat.event_name}],
+          call_id != nil,
+          do: %{meta_pixel_stat_id: stat.id, call_id: call_id, inserted_at: now}
+
+    if citations != [], do: Repo.insert_all(Citation, citations)
+    :ok
   end
 
   @doc """
@@ -157,14 +191,25 @@ defmodule PixelAudit.Api.Settings do
       )
 
     if cached_day? do
-      sum =
-        Repo.one(
-          from s in MetaPixelStat,
-            where:
-              s.connection_id == ^connection_id and s.date == ^date and
-                s.event_name == ^event_name,
-            select: type(sum(s.count), :integer)
+      hours =
+        from s in MetaPixelStat,
+          where:
+            s.connection_id == ^connection_id and s.date == ^date and
+              s.event_name == ^event_name
+
+      sum = Repo.one(from s in hours, select: type(sum(s.count), :integer))
+
+      # The day rests on the pages that delivered its hours.
+      Gateway.cite(
+        Repo.all(
+          from c in Citation,
+            join: s in subquery(hours),
+            on: c.meta_pixel_stat_id == s.id,
+            order_by: c.call_id,
+            distinct: true,
+            select: c.call_id
         )
+      )
 
       {:ok, sum || 0}
     else
@@ -187,8 +232,9 @@ defmodule PixelAudit.Api.Settings do
 
   @doc """
   The calls made through a connection, newest first, with their total:
-  `filters` may hold `date_from` and `date_to` (UTC days, inclusive),
-  `opts` `limit` and `offset`.
+  `filters` may hold `date_from` and `date_to` (UTC days the call was
+  made on, inclusive), `purpose`, `data_source_id`, `step_id` and `date`
+  (the day the call counted); `opts` `limit` and `offset`.
   """
   def list_connection_calls(%Connection{id: connection_id}, filters \\ %{}, opts \\ []) do
     limit = Keyword.get(opts, :limit, 50)
@@ -202,6 +248,18 @@ defmodule PixelAudit.Api.Settings do
         {:date_to, %Date{} = date}, q ->
           where(q, [c], c.started_at < ^DateTime.new!(Date.add(date, 1), ~T[00:00:00], "Etc/UTC"))
 
+        {:purpose, purpose}, q when not is_nil(purpose) ->
+          where(q, [c], c.purpose == ^purpose)
+
+        {:data_source_id, id}, q when is_binary(id) ->
+          where(q, [c], c.data_source_id == ^id)
+
+        {:step_id, id}, q when is_binary(id) ->
+          where(q, [c], c.step_id == ^id)
+
+        {:date, %Date{} = date}, q ->
+          where(q, [c], c.date == ^date)
+
         _other, q ->
           q
       end)
@@ -213,16 +271,30 @@ defmodule PixelAudit.Api.Settings do
       |> order_by([c], desc: c.started_at, desc: c.id)
       |> limit(^limit)
       |> offset(^offset)
+      |> preload(^call_preloads())
       |> Repo.all()
 
     %{calls: calls, total: total}
   end
 
-  @doc "Deletes the calls that started before the instant; answers how many."
-  def delete_connection_calls_before(%DateTime{} = before) do
-    {count, _} = Repo.delete_all(from c in ConnectionCall, where: c.started_at < ^before)
-    count
+  @doc "One call made through the connection, with its context and what cites it."
+  def get_connection_call!(%Connection{id: connection_id}, id) do
+    Repo.one!(
+      from c in ConnectionCall,
+        where: c.connection_id == ^connection_id and c.id == ^id,
+        preload: ^call_preloads()
+    )
   end
+
+  @doc "What a call carries for the panel: its context, and the values that cite it."
+  def call_preloads,
+    do: [
+      :connection,
+      :refresh_run,
+      :data_source,
+      :step,
+      citations: [daily_count: [:step, :data_source], meta_pixel_stat: []]
+    ]
 
   ## Variables
 

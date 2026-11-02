@@ -1,8 +1,9 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
+import type { ReactNode } from "react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
 
-import type { Report, ReportCell } from "@/api/generated/model";
+import type { DataSource, Report, ReportCell, Step } from "@/api/generated/model";
 import { SourceModeToggle } from "@/components/funnels/source-mode-toggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { allModes, commonMode, modeOf, type SourceModes } from "@/lib/source-modes";
@@ -15,21 +16,24 @@ import { cn } from "@/lib/utils";
  * its colour (filled, outlined, hidden on the chart); the header's toggle
  * puts every source in one state. Each cell carries the count — in bold
  * for the step's primary source, with the parameter's description as its
- * tooltip when there is one — and a
- * warning when some of the range's days failed or are not computed yet
- * (the tooltip says how many, and the last error).
+ * tooltip when there is one — as a button that opens the cell's trail,
+ * and a warning when some of the range's days failed or are not computed
+ * yet (the tooltip says how many, and the last error).
  */
 export function FunnelCountsTable({
   report,
   modes,
   onModesChange,
   stepLink,
+  onTrail,
 }: {
   report: Report;
   modes: SourceModes;
   onModesChange: (modes: SourceModes) => void;
   /** Where a step's name leads: the step's own screen. */
   stepLink: (stepId: string) => LinkProps;
+  /** A count was clicked: open the cell's trail. */
+  onTrail: (source: DataSource, step: Step) => void;
 }) {
   const intl = useIntl();
 
@@ -137,16 +141,23 @@ export function FunnelCountsTable({
                             {parameter?.description ? (
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <span className="cursor-help underline decoration-muted-foreground/60 decoration-dotted underline-offset-4">
+                                  <CountButton
+                                    source={source}
+                                    step={step}
+                                    onTrail={onTrail}
+                                    className="underline decoration-muted-foreground/60 decoration-dotted underline-offset-4"
+                                  >
                                     {count}
-                                  </span>
+                                  </CountButton>
                                 </TooltipTrigger>
                                 <TooltipContent className="max-w-xs">
                                   <p className="whitespace-pre-wrap">{parameter.description}</p>
                                 </TooltipContent>
                               </Tooltip>
                             ) : (
-                              count
+                              <CountButton source={source} step={step} onTrail={onTrail}>
+                                {count}
+                              </CountButton>
                             )}
                           </span>
                         )}
@@ -163,6 +174,36 @@ export function FunnelCountsTable({
   );
 }
 
+/** A count as a button: a click opens the cell's trail. */
+export function CountButton({
+  source,
+  step,
+  onTrail,
+  className,
+  children,
+}: {
+  source: DataSource;
+  step: Step;
+  onTrail: (source: DataSource, step: Step) => void;
+  className?: string;
+  children: ReactNode;
+}) {
+  const intl = useIntl();
+  return (
+    <button
+      type="button"
+      onClick={() => onTrail(source, step)}
+      aria-label={intl.formatMessage(messages.trailLabel, { source: source.name, step: step.name })}
+      className={cn(
+        "rounded-sm hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 const messages = {
   ...defineMessages({
     source: { id: "counts.table.source", defaultMessage: "Data source" },
@@ -170,6 +211,10 @@ const messages = {
     notMeasured: { id: "counts.table.notMeasured", defaultMessage: "—" },
     noCount: { id: "counts.table.noCount", defaultMessage: "…" },
     incompleteLabel: { id: "counts.table.incompleteLabel", defaultMessage: "Incomplete" },
+  }),
+  trailLabel: defineMessage<{ source: string; step: string }>({
+    id: "counts.table.trailLabel",
+    defaultMessage: "{source} — {step}: the count's trail",
   }),
   incomplete: defineMessage<{ ok: number; error: number; missing: number; days: number }>({
     id: "counts.table.incomplete",

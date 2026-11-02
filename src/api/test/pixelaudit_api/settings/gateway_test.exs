@@ -5,7 +5,8 @@ defmodule PixelAudit.Api.Settings.GatewayTest do
   import PixelAudit.Api.Fixtures
 
   alias PixelAudit.Api.Settings
-  alias PixelAudit.Api.Settings.{CallsCleanupJob, ConnectionCall, Gateway}
+  alias PixelAudit.Api.Reporting.Citation
+  alias PixelAudit.Api.Settings.{ConnectionCall, Gateway}
 
   describe "query/3" do
     test "runs the query through the connection's connector and records it" do
@@ -83,16 +84,98 @@ defmodule PixelAudit.Api.Settings.GatewayTest do
     end
   end
 
-  describe "CallsCleanupJob" do
-    test "deletes the calls older than the retention" do
+  describe "capture/2" do
+    test "gives every call its context and collects them, with what was cited" do
       connection = connection_fixture(:postgres)
-      old = insert_call(connection, DateTime.add(DateTime.utc_now(), -31, :day))
-      recent = insert_call(connection, DateTime.add(DateTime.utc_now(), -29, :day))
+      run_id = Ecto.UUID.generate()
+      cited_elsewhere = insert_call(connection, DateTime.utc_now())
 
-      assert :ok = perform_job(CallsCleanupJob, %{})
+      {result, calls} =
+        Gateway.capture(%{purpose: :check}, fn ->
+          {:ok, _} = Gateway.query(connection, "SELECT 1", [])
 
-      assert Enum.map(Settings.list_connection_calls(connection).calls, & &1.id) == [recent.id]
-      refute Repo.get(ConnectionCall, old.id)
+          {inner, inner_calls} =
+            Gateway.capture(%{purpose: :count, date: ~D[2026-10-01]}, fn ->
+              Gateway.cite([cited_elsewhere.id])
+              Gateway.query(connection, "SELECT 2", [])
+            end)
+
+          assert {:ok, [[2]]} = inner
+          assert length(inner_calls) == 2
+          :done
+        end)
+
+      assert result == :done
+
+      assert %{calls: [two, one, _elsewhere], total: 3} =
+               Settings.list_connection_calls(connection)
+
+      assert calls == [one.id, cited_elsewhere.id, two.id]
+      assert one.purpose == :check
+      assert one.date == nil
+      # The inner capture keeps the outer context it does not override.
+      assert two.purpose == :count
+      assert two.date == ~D[2026-10-01]
+      assert Gateway.cited_calls() == []
+      assert Gateway.last_call_id() == two.id
+      refute Enum.any?([one, two], &(&1.refresh_run_id == run_id))
+    end
+
+    test "keeps the capture whole when the computation raises" do
+      connection = connection_fixture(:postgres)
+
+      assert_raise RuntimeError, fn ->
+        Gateway.capture(%{purpose: :count}, fn ->
+          Gateway.query(connection, "SELECT 1", [])
+          raise "boom"
+        end)
+      end
+
+      assert Gateway.cited_calls() == []
+      assert %{total: 1} = Settings.list_connection_calls(connection)
+    end
+  end
+
+  describe "a cited call" do
+    test "cannot be deleted, and its bodies are kept whole" do
+      connection = connection_fixture(:postgres)
+      long = String.duplicate("x", 100_000)
+      {:ok, _} = Gateway.query(connection, "SELECT '#{long}'", [])
+      %{calls: [call]} = Settings.list_connection_calls(connection)
+      assert [[^long]] = call.result
+
+      %{funnel: funnel, steps: [step | _], data_source: data_source} = measured_funnel_fixture()
+
+      {:ok, run} =
+        PixelAudit.Api.Reporting.refresh_data_source(
+          data_source,
+          ~D[2026-10-01],
+          ~D[2026-10-01],
+          :manual
+        )
+
+      :ok =
+        PixelAudit.Api.Reporting.put_daily_count(
+          run,
+          data_source,
+          step,
+          ~D[2026-10-01],
+          {:ok, 1},
+          [call.id]
+        )
+
+      assert [%Citation{call_id: call_id}] = Repo.all(Citation)
+      assert call_id == call.id
+      assert_raise Ecto.ConstraintError, fn -> Repo.delete!(call) end
+
+      # The value goes, and takes its citation: the call is free.
+      {:ok, _} =
+        PixelAudit.Api.Funnels.delete_data_source(
+          PixelAudit.Api.Funnels.get_data_source!(funnel, data_source.id)
+        )
+
+      assert Repo.all(Citation) == []
+      assert {:ok, _} = Repo.delete(call)
     end
   end
 

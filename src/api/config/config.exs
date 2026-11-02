@@ -21,9 +21,7 @@ config :pixelaudit_api,
   # How far back a freshly added Meta connection or data source is filled in.
   # Meta serves roughly the last seven days of pixel stats, so there is no
   # point asking for more.
-  backfill_days: 7,
-  # How long the recorded connection calls (queries, API calls) are kept.
-  connection_calls_retention_days: 30
+  backfill_days: 7
 
 # Every connection announces itself to Postgres (pg_stat_activity's
 # application_name) as pixelaudit-api. config/runtime.exs sets the same for
@@ -55,9 +53,7 @@ config :pixelaudit_api, Oban,
        # The nightly run: the full Meta window, then yesterday and the day
        # before for every data source (two days, so a late export or a
        # failed day heals itself).
-       {"30 3 * * *", PixelAudit.Api.Reporting.Schedule, args: %{scope: "nightly"}},
-       # The recorded connection calls older than the retention go.
-       {"45 4 * * *", PixelAudit.Api.Settings.CallsCleanupJob}
+       {"30 3 * * *", PixelAudit.Api.Reporting.Schedule, args: %{scope: "nightly"}}
      ]}
   ]
 

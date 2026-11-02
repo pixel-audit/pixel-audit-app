@@ -59,8 +59,9 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
   The pixel's hourly event counts between two instants.
 
   Answers rows of `%{date: Date.t(), hour: 0..23, event_name: String.t(),
-  count: non_neg_integer()}` in UTC. Meta pages the answer; every page is
-  followed.
+  count: non_neg_integer(), call_id: Ecto.UUID.t()}` in UTC — `call_id`
+  the recorded call of the page that delivered the hour, which the cached
+  hour cites. Meta pages the answer; every page is followed.
   """
   @spec fetch_stats(Connection.t(), DateTime.t(), DateTime.t()) ::
           {:ok, [map()]} | {:error, String.t()}
@@ -81,13 +82,19 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
 
   # One page of /stats: `data` is a list of `{start_time, count, data: [{value, count}]}`
   # per hour, where `value` is the event name.
-  defp rows_of_page(%{"data" => data}) when is_list(data) do
+  defp rows_of_page({%{"data" => data}, call_id}) when is_list(data) do
     Enum.flat_map(data, fn hour ->
       with {:ok, at} <- parse_time(hour["start_time"]) do
         events = hour["data"] || []
 
         for %{"value" => event_name, "count" => count} <- events do
-          %{date: DateTime.to_date(at), hour: at.hour, event_name: event_name, count: count}
+          %{
+            date: DateTime.to_date(at),
+            hour: at.hour,
+            event_name: event_name,
+            count: count,
+            call_id: call_id
+          }
         end
       else
         _ -> []
@@ -108,14 +115,16 @@ defmodule PixelAudit.Api.Settings.Connector.Meta do
 
   defp parse_time(_), do: :error
 
+  # Every page with the id of the call that fetched it.
   defp paginate(connection, path, params, acc \\ []) do
     case request(connection, path, params) do
       {:ok, %{"paging" => %{"cursors" => %{"after" => cursor}, "next" => next}} = page}
       when is_binary(next) and is_binary(cursor) ->
-        paginate(connection, path, Keyword.put(params, :after, cursor), [page | acc])
+        acc = [{page, Gateway.last_call_id()} | acc]
+        paginate(connection, path, Keyword.put(params, :after, cursor), acc)
 
       {:ok, page} ->
-        {:ok, Enum.reverse([page | acc])}
+        {:ok, Enum.reverse([{page, Gateway.last_call_id()} | acc])}
 
       {:error, message} ->
         {:error, message}

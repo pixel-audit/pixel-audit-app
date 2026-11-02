@@ -3,7 +3,7 @@ defmodule PixelAudit.Api.Reporting.DailyCount do
   One data source's count of one funnel step on one day — the cache the
   report is drawn from. `status: :error` keeps the resolver's message in
   `error` and no count, so the report can say a day is missing rather than
-  show a zero.
+  show a zero. Its citations name the calls it was computed from.
   """
 
   use Ecto.Schema
@@ -19,5 +19,7 @@ defmodule PixelAudit.Api.Reporting.DailyCount do
     field :status, Ecto.Enum, values: [:ok, :error]
     field :error, :string
     field :computed_at, :utc_datetime
+
+    has_many :citations, PixelAudit.Api.Reporting.Citation
   end
 end

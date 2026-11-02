@@ -1,9 +1,11 @@
 defmodule PixelAudit.Api.Reporting.RefreshJob do
   @moduledoc """
   Recomputes one data source's daily counts over a refresh run's date
-  range: for every step the data source has parameters for and every day,
-  asks the type's resolver and stores the answer — the count, or the error
-  — in `reporting_daily_counts`. Queue `refresh`.
+  range: for every step the data source has parameters for (or the one
+  the run names) and every day, asks the type's resolver and stores the
+  answer — the count, or the error — in `reporting_daily_counts`, citing
+  the calls the resolver made or read cached values of
+  (`PixelAudit.Api.Settings.Gateway.capture/2`). Queue `refresh`.
 
   One attempt: each day's outcome is stored as it comes, so a retry of the
   whole job would only repeat work; the nightly run recomputes the recent
@@ -20,6 +22,7 @@ defmodule PixelAudit.Api.Reporting.RefreshJob do
   alias PixelAudit.Api.Funnels
   alias PixelAudit.Api.Funnels.DataSourceType
   alias PixelAudit.Api.Reporting
+  alias PixelAudit.Api.Settings.Gateway
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"refresh_run_id" => run_id}}) do
@@ -37,13 +40,31 @@ defmodule PixelAudit.Api.Reporting.RefreshJob do
   defp compute(run, data_source) do
     module = DataSourceType.for_type(data_source.type)
     parameters = Map.new(data_source.step_parameters, &{&1.step_id, &1.parameters})
-    steps = Enum.filter(data_source.funnel.steps, &Map.has_key?(parameters, &1.id))
+
+    steps =
+      Enum.filter(
+        data_source.funnel.steps,
+        &(Map.has_key?(parameters, &1.id) and (run.step_id == nil or &1.id == run.step_id))
+      )
+
     dates = Date.range(run.date_from, run.date_to)
 
     outcomes =
       for step <- steps, date <- dates do
-        outcome = count(module, data_source, parameters[step.id], date)
-        Reporting.put_daily_count(run, data_source, step, date, outcome)
+        context = %{
+          purpose: :count,
+          refresh_run_id: run.id,
+          data_source_id: data_source.id,
+          step_id: step.id,
+          date: date
+        }
+
+        {outcome, cited} =
+          Gateway.capture(context, fn ->
+            count(module, data_source, parameters[step.id], date)
+          end)
+
+        Reporting.put_daily_count(run, data_source, step, date, outcome, cited)
         outcome
       end
 

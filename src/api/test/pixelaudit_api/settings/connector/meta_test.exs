@@ -44,15 +44,17 @@ defmodule PixelAudit.Api.Settings.Connector.MetaTest do
     assert {:ok, rows} =
              Meta.fetch_stats(connection, ~U[2026-10-30 00:00:00Z], ~U[2026-10-31 00:00:00Z])
 
-    assert rows == [
+    assert Enum.map(rows, &Map.delete(&1, :call_id)) == [
              %{date: ~D[2026-10-30], hour: 0, event_name: "PageView", count: 10},
              %{date: ~D[2026-10-30], hour: 0, event_name: "Purchase", count: 1},
              %{date: ~D[2026-10-30], hour: 1, event_name: "PageView", count: 7},
              %{date: ~D[2026-10-30], hour: 23, event_name: "PageView", count: 1}
            ]
 
-    # Both pages were recorded through the gateway, the token in neither.
+    # Both pages were recorded through the gateway, the token in neither;
+    # each hour names the page that delivered it.
     %{calls: [second, first], total: 2} = Settings.list_connection_calls(connection)
+    assert Enum.map(rows, & &1.call_id) == [first.id, first.id, first.id, second.id]
     assert first.kind == :api_call
     assert first.status == :ok
     assert first.method == "GET"
@@ -70,7 +72,7 @@ defmodule PixelAudit.Api.Settings.Connector.MetaTest do
       Req.Test.json(conn, meta_stats_page([{"2026-10-30T01:00:00+0200", [{"Lead", 2}]}]))
     end)
 
-    assert {:ok, [%{date: ~D[2026-10-29], hour: 23, event_name: "Lead", count: 2}]} =
+    assert {:ok, [%{date: ~D[2026-10-29], hour: 23, event_name: "Lead", count: 2, call_id: _}]} =
              Meta.fetch_stats(connection, ~U[2026-10-29 00:00:00Z], ~U[2026-10-31 00:00:00Z])
   end
 

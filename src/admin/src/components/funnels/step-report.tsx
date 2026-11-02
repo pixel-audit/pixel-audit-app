@@ -1,10 +1,13 @@
 import { TriangleAlert } from "lucide-react";
+import { useState } from "react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
 
-import type { Funnel, Step, StepReport as StepReportData } from "@/api/generated/model";
+import type { DataSource, Funnel, Step, StepReport as StepReportData } from "@/api/generated/model";
 import { okData, refusal } from "@/components/crud/api-response";
+import { CountButton } from "@/components/funnels/funnel-counts-table";
 import { SourceModeToggle } from "@/components/funnels/source-mode-toggle";
 import { StepChart } from "@/components/funnels/step-chart";
+import { TrailDialog, type TrailCell } from "@/components/funnels/trail-dialog";
 import { DateRangePicker } from "@/components/reporting/date-range-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +45,7 @@ export function StepReport({
   onModesChange: (modes: SourceModes) => void;
 }) {
   const intl = useIntl();
+  const [trail, setTrail] = useState<TrailCell | null>(null);
   const query = useApi().useAdminGetStepReport(funnel.id, step.id, range);
   const report = okData(query.data)?.data ?? null;
 
@@ -76,10 +80,22 @@ export function StepReport({
         <Card className="shadow-none">
           <CardContent className="space-y-6 pt-6">
             <StepChart report={report} shown={shownSources(report.data_sources, modes)} />
-            <StepTotalsTable report={report} modes={modes} onModesChange={onModesChange} />
+            <StepTotalsTable
+              report={report}
+              modes={modes}
+              onModesChange={onModesChange}
+              onTrail={(source) => setTrail({ source, step })}
+            />
           </CardContent>
         </Card>
       )}
+
+      <TrailDialog
+        funnelId={funnel.id}
+        cell={trail}
+        range={range}
+        onOpenChange={(open) => !open && setTrail(null)}
+      />
     </div>
   );
 }
@@ -87,17 +103,20 @@ export function StepReport({
 /**
  * A row per data source: its three-state toggle in its colour and its
  * name, then its total of the step over the range — with a warning when
- * some of the range's days failed or are not computed yet. The header's
- * toggle puts every source in one state.
+ * some of the range's days failed or are not computed yet — as a button
+ * that opens the cell's trail. The header's toggle puts every source in
+ * one state.
  */
 function StepTotalsTable({
   report,
   modes,
   onModesChange,
+  onTrail,
 }: {
   report: StepReportData;
   modes: SourceModes;
   onModesChange: (modes: SourceModes) => void;
+  onTrail: (source: DataSource) => void;
 }) {
   const intl = useIntl();
   const seriesOf = new Map(report.series.map((series) => [series.data_source_id, series]));
@@ -179,9 +198,15 @@ function StepTotalsTable({
                           </TooltipContent>
                         </Tooltip>
                       )}
-                      {ok.length === 0
-                        ? intl.formatMessage(messages.noCount)
-                        : intl.formatNumber(total)}
+                      <CountButton
+                        source={source}
+                        step={report.step}
+                        onTrail={() => onTrail(source)}
+                      >
+                        {ok.length === 0
+                          ? intl.formatMessage(messages.noCount)
+                          : intl.formatNumber(total)}
+                      </CountButton>
                     </span>
                   )}
                 </td>

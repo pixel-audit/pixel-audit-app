@@ -9,7 +9,15 @@ defmodule PixelAudit.Api.Settings.Gateway do
 
   Credentials travel in what the connector builds (a bearer header, the
   driver's options), never in what is recorded: a query's SQL and
-  parameters, a request's method, URL, content types and bodies.
+  parameters, a request's method, URL, content types and bodies. What is
+  recorded is kept whole and for good — it is the evidence a stored
+  value cites (`specs/provenance.md`).
+
+  A computation runs inside `capture/2`, which gives every call it makes
+  its context — why it was made: the purpose, the refresh run, the data
+  source, the step and the day — and collects the ids of those calls,
+  plus whatever cached values the computation read cite (`cite/1`), so
+  the value computed can cite them all.
   """
 
   require Logger
@@ -17,10 +25,70 @@ defmodule PixelAudit.Api.Settings.Gateway do
   alias PixelAudit.Api.Repo
   alias PixelAudit.Api.Settings.{Connection, ConnectionCall, Connector}
 
-  # Bodies and results are kept whole up to this, then cut — a log, not a
-  # cache.
-  @max_body 65_536
-  @max_rows 50
+  @capture_key {__MODULE__, :capture}
+  @last_call_key {__MODULE__, :last_call_id}
+
+  @type context :: %{
+          optional(:purpose) => ConnectionCall.purpose(),
+          optional(:refresh_run_id) => Ecto.UUID.t(),
+          optional(:data_source_id) => Ecto.UUID.t(),
+          optional(:step_id) => Ecto.UUID.t(),
+          optional(:date) => Date.t()
+        }
+
+  ## Context and citations
+
+  @doc """
+  Runs `fun` as one computation: every call recorded meanwhile carries
+  `context`, and the answer comes with the ids of those calls and of
+  whatever was cited (`cite/1`) — in the order they were made, without
+  repeats. Captures nest: an inner capture's calls are the outer one's
+  too.
+  """
+  @spec capture(context(), (-> result)) :: {result, [Ecto.UUID.t()]} when result: term()
+  def capture(context, fun) when is_map(context) and is_function(fun, 0) do
+    outer = Process.get(@capture_key)
+    Process.put(@capture_key, %{context: Map.merge(context_of(outer), context), cited: []})
+
+    try do
+      result = fun.()
+      {result, cited_calls()}
+    after
+      inner = Process.get(@capture_key)
+
+      case outer do
+        nil -> Process.delete(@capture_key)
+        outer -> Process.put(@capture_key, %{outer | cited: outer.cited ++ inner.cited})
+      end
+    end
+  end
+
+  @doc "Adds calls the running computation rests on — those a cached value it read cites."
+  @spec cite([Ecto.UUID.t()]) :: :ok
+  def cite(call_ids) when is_list(call_ids) do
+    case Process.get(@capture_key) do
+      nil -> :ok
+      capture -> Process.put(@capture_key, %{capture | cited: capture.cited ++ call_ids})
+    end
+
+    :ok
+  end
+
+  @doc "The calls the running capture has collected so far, oldest first, without repeats."
+  @spec cited_calls() :: [Ecto.UUID.t()]
+  def cited_calls do
+    case Process.get(@capture_key) do
+      nil -> []
+      capture -> Enum.uniq(capture.cited)
+    end
+  end
+
+  @doc "The id of the last call this process recorded, if any."
+  @spec last_call_id() :: Ecto.UUID.t() | nil
+  def last_call_id, do: Process.get(@last_call_key)
+
+  defp context_of(nil), do: %{}
+  defp context_of(%{context: context}), do: context
 
   @doc """
   Runs a SQL query through a database connection — Postgres, ClickHouse
@@ -103,20 +171,30 @@ defmodule PixelAudit.Api.Settings.Gateway do
   defp status({:ok, _}), do: :ok
   defp status({:error, _}), do: :error
 
-  defp rows_of({:ok, rows}), do: rows |> Enum.take(@max_rows) |> normalise()
+  defp rows_of({:ok, rows}), do: normalise(rows)
   defp rows_of({:error, _}), do: nil
 
   defp error_of({:ok, _}), do: nil
   defp error_of({:error, message}), do: message
 
   # A failure to record must not fail the call that was recorded — it is
-  # logged and the caller gets its answer.
+  # logged and the caller gets its answer. A recorded call joins the
+  # running capture, with the capture's context on it.
   defp record(%Connection{id: connection_id}, attrs) do
+    capture = Process.get(@capture_key)
+
+    attrs =
+      attrs
+      |> Map.put(:connection_id, connection_id)
+      |> Map.merge(context_of(capture))
+
     %ConnectionCall{}
-    |> ConnectionCall.changeset(Map.put(attrs, :connection_id, connection_id))
+    |> ConnectionCall.changeset(attrs)
     |> Repo.insert()
     |> case do
-      {:ok, _call} ->
+      {:ok, call} ->
+        Process.put(@last_call_key, call.id)
+        cite([call.id])
         :ok
 
       {:error, changeset} ->
@@ -134,12 +212,9 @@ defmodule PixelAudit.Api.Settings.Gateway do
 
   defp body_text(nil), do: nil
   defp body_text(""), do: nil
-  defp body_text(body) when is_binary(body), do: truncate(body)
-  defp body_text(body) when is_list(body), do: body |> IO.iodata_to_binary() |> truncate()
-  defp body_text(body), do: body |> normalise() |> Jason.encode!() |> truncate()
-
-  defp truncate(text) when byte_size(text) <= @max_body, do: text
-  defp truncate(text), do: binary_part(text, 0, @max_body) <> "… (truncated)"
+  defp body_text(body) when is_binary(body), do: body
+  defp body_text(body) when is_list(body), do: IO.iodata_to_binary(body)
+  defp body_text(body), do: body |> normalise() |> Jason.encode!()
 
   @doc false
   # Whatever a connector sends or answers, as JSON can hold it.

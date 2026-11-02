@@ -241,6 +241,100 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
            |> json_response(404)
   end
 
+  test "shows the trail of a cell: each day with the calls behind it", %{conn: conn} do
+    %{funnel: funnel, steps: [visit | _], data_source: data_source} = measured_funnel_fixture()
+
+    {:ok, run} =
+      PixelAudit.Api.Reporting.refresh_data_source(
+        data_source,
+        ~D[2026-10-01],
+        ~D[2026-10-01],
+        :manual
+      )
+
+    assert :ok = perform_job(PixelAudit.Api.Reporting.RefreshJob, %{refresh_run_id: run.id})
+
+    path = "#{@base}/#{funnel.id}/data-sources/#{data_source.id}/steps/#{visit.id}/days"
+
+    %{"data" => trail} =
+      conn |> get("#{path}?date_from=2026-10-01&date_to=2026-10-02") |> json_response(200)
+
+    assert trail["data_source"]["id"] == data_source.id
+    assert trail["step"]["id"] == visit.id
+
+    assert [
+             %{
+               "date" => "2026-10-01",
+               "count" => 100,
+               "status" => "ok",
+               "computed_at" => computed_at,
+               "refresh_run" => %{"id" => run_id, "trigger" => "manual", "status" => "done"},
+               "calls" => [call]
+             },
+             %{"date" => "2026-10-02", "status" => "missing", "count" => nil, "calls" => []}
+           ] = trail["days"]
+
+    assert is_binary(computed_at)
+    assert run_id == run.id
+    assert call["purpose"] == "count"
+    assert call["date"] == "2026-10-01"
+    assert call["refresh_run_id"] == run.id
+    assert call["data_source"]["id"] == data_source.id
+    assert call["step"]["id"] == visit.id
+    assert call["connection"]["id"] == data_source.connection_id
+    assert call["sql"] =~ "SELECT 100"
+    assert call["result"] == [[100]]
+    assert [%{"date" => "2026-10-01", "count" => 100}] = call["cited_by"]["daily_counts"]
+
+    # The same call, from the connection's end: filtered by what it served, and alone.
+    calls_path = "/api/admin/v1/settings/connections/#{data_source.connection_id}/calls"
+
+    assert %{"data" => [%{"id" => call_id}], "total" => 1} =
+             conn
+             |> get("#{calls_path}?step_id=#{visit.id}&date=2026-10-01&purpose=count")
+             |> json_response(200)
+
+    assert call_id == call["id"]
+
+    assert %{"total" => 0} =
+             conn |> get("#{calls_path}?data_source_id=nope") |> json_response(200)
+
+    assert %{"errors" => %{"detail" => "invalid_purpose"}} =
+             conn |> get("#{calls_path}?purpose=fun") |> json_response(422)
+
+    assert %{"data" => %{"id" => ^call_id, "sql" => _}} =
+             conn |> get("#{calls_path}/#{call_id}") |> json_response(200)
+
+    assert conn |> get("#{calls_path}/#{Ecto.UUID.generate()}") |> json_response(404)
+
+    # A refresh of one step and day, from the trail.
+    %{"data" => [queued]} =
+      conn
+      |> post("#{@base}/#{funnel.id}/refresh", %{
+        "date_from" => "2026-10-01",
+        "date_to" => "2026-10-01",
+        "data_source_id" => data_source.id,
+        "step_id" => visit.id
+      })
+      |> json_response(202)
+
+    assert queued["step"]["id"] == visit.id
+
+    assert conn
+           |> post("#{@base}/#{funnel.id}/refresh", %{
+             "date_from" => "2026-10-01",
+             "date_to" => "2026-10-01",
+             "step_id" => Ecto.UUID.generate()
+           })
+           |> json_response(404)
+
+    assert conn
+           |> get(
+             "#{@base}/#{funnel.id}/data-sources/#{Ecto.UUID.generate()}/steps/#{visit.id}/days?date_from=2026-10-01&date_to=2026-10-01"
+           )
+           |> json_response(404)
+  end
+
   test "lists funnels with their steps and data sources", %{conn: conn} do
     %{funnel: funnel} = measured_funnel_fixture()
 

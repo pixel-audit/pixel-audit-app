@@ -17,4 +17,9 @@ export interface RefreshRangeParams {
   data_source_id?: string | null;
   date_from: string;
   date_to: string;
+  /**
+   * For a funnel refresh: only this step. Every step when absent.
+   * @nullable
+   */
+  step_id?: string | null;
 }

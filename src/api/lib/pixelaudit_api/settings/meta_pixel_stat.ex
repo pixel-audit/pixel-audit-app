@@ -19,6 +19,8 @@ defmodule PixelAudit.Api.Settings.MetaPixelStat do
     field :event_name, :string
     field :count, :integer
 
+    has_many :citations, PixelAudit.Api.Reporting.Citation
+
     timestamps(type: :utc_datetime, updated_at: false)
   end
 end

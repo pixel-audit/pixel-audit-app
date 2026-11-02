@@ -29,6 +29,48 @@
   "breadcrumbs.trail": {
     "defaultMessage": "Breadcrumbs"
   },
+  "calls.payload.copied": {
+    "defaultMessage": "{label} copied."
+  },
+  "calls.payload.copy": {
+    "defaultMessage": "Copy the {label}"
+  },
+  "calls.payload.copyFailed": {
+    "defaultMessage": "Could not copy."
+  },
+  "calls.payload.copyShort": {
+    "defaultMessage": "Copy"
+  },
+  "calls.payload.params": {
+    "defaultMessage": "Parameters"
+  },
+  "calls.payload.request": {
+    "defaultMessage": "Request {contentType}"
+  },
+  "calls.payload.requestBody": {
+    "defaultMessage": "Request body"
+  },
+  "calls.payload.response": {
+    "defaultMessage": "Response {contentType}"
+  },
+  "calls.payload.result": {
+    "defaultMessage": "Result"
+  },
+  "calls.payload.sql": {
+    "defaultMessage": "SQL"
+  },
+  "calls.provenance.citedBy": {
+    "defaultMessage": "Cited by {counts, plural, =0 {} one {# daily count} other {# daily counts}}{counts, plural, =0 {} other {{hours, plural, =0 {} other {, }}}}{hours, plural, =0 {} one {# cached hour} other {# cached hours}}"
+  },
+  "calls.provenance.purpose": {
+    "defaultMessage": "{purpose, select, count {Count} meta_stats_pull {Pixel stats pull} check {Check} other {{purpose}}}"
+  },
+  "calls.provenance.run": {
+    "defaultMessage": "Refresh run"
+  },
+  "calls.provenance.served": {
+    "defaultMessage": "{source} › {step}"
+  },
   "common.add": {
     "defaultMessage": "Add"
   },
@@ -74,6 +116,9 @@
   "common.yes": {
     "defaultMessage": "Yes"
   },
+  "connections.calls.anyPurpose": {
+    "defaultMessage": "Any purpose"
+  },
   "connections.calls.calls": {
     "defaultMessage": "Calls"
   },
@@ -98,23 +143,14 @@
   "connections.calls.ok": {
     "defaultMessage": "OK"
   },
-  "connections.calls.params": {
-    "defaultMessage": "Parameters"
+  "connections.calls.purpose": {
+    "defaultMessage": "Purpose"
+  },
+  "connections.calls.purposeName": {
+    "defaultMessage": "{purpose, select, count {Count} meta_stats_pull {Pixel stats pull} check {Check} other {{purpose}}}"
   },
   "connections.calls.queries": {
     "defaultMessage": "Queries"
-  },
-  "connections.calls.request": {
-    "defaultMessage": "Request {contentType}"
-  },
-  "connections.calls.response": {
-    "defaultMessage": "Response {contentType}"
-  },
-  "connections.calls.result": {
-    "defaultMessage": "Result"
-  },
-  "connections.calls.sql": {
-    "defaultMessage": "SQL"
   },
   "connections.calls.to": {
     "defaultMessage": "To"
@@ -268,6 +304,9 @@
   },
   "counts.table.source": {
     "defaultMessage": "Data source"
+  },
+  "counts.table.trailLabel": {
+    "defaultMessage": "{source} — {step}: the count's trail"
   },
   "crud.details.title": {
     "defaultMessage": "Details"
@@ -859,6 +898,66 @@
   },
   "steps.dialog.saved": {
     "defaultMessage": "Step \"{name}\" saved."
+  },
+  "trail.call.error": {
+    "defaultMessage": "Error"
+  },
+  "trail.call.ok": {
+    "defaultMessage": "OK"
+  },
+  "trail.call.when": {
+    "defaultMessage": "{at} · {duration} ms"
+  },
+  "trail.computedAt": {
+    "defaultMessage": "Computed"
+  },
+  "trail.day": {
+    "defaultMessage": "Day"
+  },
+  "trail.failed": {
+    "defaultMessage": "failed"
+  },
+  "trail.loadFailed": {
+    "defaultMessage": "The days could not be loaded."
+  },
+  "trail.noCallsBefore": {
+    "defaultMessage": "Computed before calls were kept: refresh the day to record its call."
+  },
+  "trail.noCallsMissing": {
+    "defaultMessage": "Not computed yet: no call was made for this day."
+  },
+  "trail.notComputed": {
+    "defaultMessage": "not computed"
+  },
+  "trail.queued": {
+    "defaultMessage": "Refresh queued — see Refreshes."
+  },
+  "trail.refreshAll": {
+    "defaultMessage": "Refresh all"
+  },
+  "trail.refreshDay": {
+    "defaultMessage": "Recompute {day}"
+  },
+  "trail.refreshFailed": {
+    "defaultMessage": "The refresh could not be queued."
+  },
+  "trail.refreshing": {
+    "defaultMessage": "Refreshing…"
+  },
+  "trail.run": {
+    "defaultMessage": "Refresh run"
+  },
+  "trail.runLabel": {
+    "defaultMessage": "{trigger, select, cron {Scheduled} manual {Manual} change {After a change} other {{trigger}}} · {status, select, queued {queued} running {running} done {done} failed {failed} other {{status}}}"
+  },
+  "trail.subject": {
+    "defaultMessage": "trail"
+  },
+  "trail.title": {
+    "defaultMessage": "{source} — {step}"
+  },
+  "trail.toggle": {
+    "defaultMessage": "The calls behind {day}"
   },
   "variables.detail.deleteDescription": {
     "defaultMessage": "The variable is removed. One defined by the environment comes back at the next boot."

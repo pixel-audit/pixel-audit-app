@@ -5,10 +5,16 @@
  * PixelAudit's admin API. No authentication: deploy it behind a network boundary.
  * OpenAPI spec version: 1.0.0
  */
+import type { AdminListConnectionCallsPurpose } from "./adminListConnectionCallsPurpose.ts";
 
 export type AdminListConnectionCallsParams = {
   date_from?: string;
   date_to?: string;
+  purpose?: AdminListConnectionCallsPurpose;
+  data_source_id?: string;
+  step_id?: string;
+  /** The day the call counted */
+  date?: string;
   /**
    * @minimum 1
    * @maximum 200

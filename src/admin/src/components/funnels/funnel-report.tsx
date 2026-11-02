@@ -8,6 +8,7 @@ import { ActionButton } from "@/components/crud/action-button";
 import { okData, refusal } from "@/components/crud/api-response";
 import { FunnelCountsTable } from "@/components/funnels/funnel-counts-table";
 import { FunnelSankey } from "@/components/funnels/funnel-sankey";
+import { TrailDialog, type TrailCell } from "@/components/funnels/trail-dialog";
 import { DateRangePicker } from "@/components/reporting/date-range-picker";
 import { RefreshDialog } from "@/components/reporting/refresh-dialog";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ import { serializeModes, shownSources, type SourceModes } from "@/lib/source-mod
  * route owns them); a refresh of the shown range is queued from here. A
  * step's name — over the chart, or at the head of its column — leads to
  * the step's own screen, its counts day by day, with the range and the
- * modes carried along.
+ * modes carried along; a count opens the cell's trail.
  */
 export function FunnelReport({
   funnel,
@@ -46,6 +47,7 @@ export function FunnelReport({
   const intl = useIntl();
   const api = useApi();
   const [refreshing, setRefreshing] = useState(false);
+  const [trail, setTrail] = useState<TrailCell | null>(null);
   const refresh = api.useAdminRefreshFunnel();
 
   const query = api.useAdminGetFunnelReport(funnel.id, range);
@@ -106,10 +108,18 @@ export function FunnelReport({
               modes={modes}
               onModesChange={onModesChange}
               stepLink={stepLink}
+              onTrail={(source, step) => setTrail({ source, step })}
             />
           </CardContent>
         </Card>
       )}
+
+      <TrailDialog
+        funnelId={funnel.id}
+        cell={trail}
+        range={range}
+        onOpenChange={(open) => !open && setTrail(null)}
+      />
 
       <RefreshDialog
         open={refreshing}

@@ -68,8 +68,15 @@ response body is a named schema module under
   context, a data source type or a job that needs a query run or a request
   made asks the gateway with the connection, and the call is recorded.
 - `GET /settings/connections/:id/calls` lists those records, newest first,
-  paged (`limit`, `offset`) and optionally between two UTC days
-  (`date_from`, `date_to`; `422 invalid_date` otherwise).
+  paged (`limit`, `offset`), optionally between two UTC days
+  (`date_from`, `date_to`; `422 invalid_date` otherwise), of one `purpose`
+  (`422 invalid_purpose`), or those that served one `data_source_id`,
+  `step_id` or `date`; `GET /settings/connections/:id/calls/:call_id` is
+  one record whole. Every record carries its provenance (`provenance.md`);
+  none is ever deleted.
+- `GET /funnels/:id/data-sources/:data_source_id/steps/:step_id/days` is
+  the trail of one cell of the report: each day's stored count with the
+  records it cites.
 
 ## The panel, from the same origin
 

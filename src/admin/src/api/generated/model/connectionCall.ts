@@ -5,14 +5,26 @@
  * PixelAudit's admin API. No authentication: deploy it behind a network boundary.
  * OpenAPI spec version: 1.0.0
  */
+import type { CallCitedBy } from "./callCitedBy.ts";
 import type { ConnectionCallKind } from "./connectionCallKind.ts";
+import type { ConnectionCallPurpose } from "./connectionCallPurpose.ts";
 import type { ConnectionCallStatus } from "./connectionCallStatus.ts";
+import type { ConnectionRef } from "./connectionRef.ts";
+import type { EntityRef } from "./entityRef.ts";
 
 /**
- * One call made through a connection, as the gateway recorded it: a `query` carries `sql`, `params` and `result`; an `api_call` the method, URL, content types and bodies. Bodies and results are cut at 64 KiB.
+ * One call made through a connection, as the gateway recorded it, whole: a `query` carries `sql`, `params` and `result`; an `api_call` the method, URL, content types and bodies. With its provenance: why it was made (`purpose`, and the refresh run, data source, step and `date` it served, when it served one) and what cites it.
  */
 export interface ConnectionCall {
+  cited_by: CallCitedBy;
+  connection: ConnectionRef | null;
   connection_id: string;
+  data_source: EntityRef | null;
+  /**
+   * The day the call counted, for a `count`.
+   * @nullable
+   */
+  date: string | null;
   duration_ms: number;
   /** @nullable */
   error: string | null;
@@ -23,6 +35,13 @@ export interface ConnectionCall {
   method: string | null;
   /** The parameters as sent, as JSON. */
   params: unknown;
+  /**
+   * Null for a call recorded before purposes were kept.
+   * @nullable
+   */
+  purpose: ConnectionCallPurpose;
+  /** @nullable */
+  refresh_run_id: string | null;
   /** @nullable */
   request_body: string | null;
   /** @nullable */
@@ -34,7 +53,7 @@ export interface ConnectionCall {
   /** @nullable */
   response_status: number | null;
   /**
-   * The rows answered (the first 50).
+   * The rows answered, every one.
    * @nullable
    */
   result: unknown[][] | null;
@@ -42,6 +61,7 @@ export interface ConnectionCall {
   sql: string | null;
   started_at: string;
   status: ConnectionCallStatus;
+  step: EntityRef | null;
   /** @nullable */
   url: string | null;
 }

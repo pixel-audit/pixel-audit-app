@@ -2,8 +2,9 @@ defmodule PixelAudit.Api.Reporting.RefreshRun do
   @moduledoc """
   One refresh: either a pull of a Meta connection's pixel stats
   (`kind: :meta_pixel`) or a recomputation of a data source's daily counts
-  (`kind: :data_source`), over a date range, with how it was triggered and
-  how it went. The panel lists these; the Oban job behind one is an
+  (`kind: :data_source`, every step the source measures or the one named
+  by `step_id`), over a date range, with how it was triggered and how it
+  went. The panel lists these; the Oban job behind one is an
   implementation detail (`oban_job_id`).
   """
 
@@ -18,6 +19,7 @@ defmodule PixelAudit.Api.Reporting.RefreshRun do
     belongs_to :connection, PixelAudit.Api.Settings.Connection
     belongs_to :funnel, PixelAudit.Api.Funnels.Funnel
     belongs_to :data_source, PixelAudit.Api.Funnels.DataSource
+    belongs_to :step, PixelAudit.Api.Funnels.Step
     field :date_from, :date
     field :date_to, :date
     field :trigger, Ecto.Enum, values: [:cron, :manual, :change]
@@ -37,6 +39,7 @@ defmodule PixelAudit.Api.Reporting.RefreshRun do
       :connection_id,
       :funnel_id,
       :data_source_id,
+      :step_id,
       :date_from,
       :date_to,
       :trigger,

@@ -12,7 +12,15 @@ defmodule PixelAudit.Api.Reporting do
   alias PixelAudit.Api.Settings.Connection
   alias PixelAudit.Api.Funnels.{DataSource, Funnel, Step}
   alias PixelAudit.Api.Repo
-  alias PixelAudit.Api.Reporting.{DailyCount, MetaPixelRefreshJob, RefreshJob, RefreshRun, Report}
+
+  alias PixelAudit.Api.Reporting.{
+    Citation,
+    DailyCount,
+    MetaPixelRefreshJob,
+    RefreshJob,
+    RefreshRun,
+    Report
+  }
 
   ## Date ranges
 
@@ -78,13 +86,17 @@ defmodule PixelAudit.Api.Reporting do
   def refresh_meta_connection(%Connection{}, _date_from, _date_to, _trigger),
     do: {:error, :not_a_meta_connection}
 
-  @doc "Enqueues a recomputation of a data source's daily counts over the range."
-  def refresh_data_source(%DataSource{} = data_source, date_from, date_to, trigger) do
+  @doc """
+  Enqueues a recomputation of a data source's daily counts over the
+  range — every step it measures, or the one named by `:step_id`.
+  """
+  def refresh_data_source(%DataSource{} = data_source, date_from, date_to, trigger, opts \\ []) do
     enqueue_run(
       %{
         kind: :data_source,
         funnel_id: data_source.funnel_id,
         data_source_id: data_source.id,
+        step_id: Keyword.get(opts, :step_id),
         connection_id: data_source.connection_id,
         date_from: date_from,
         date_to: date_to,
@@ -96,36 +108,48 @@ defmodule PixelAudit.Api.Reporting do
 
   @doc """
   Enqueues a recomputation of every data source of a funnel (or the one
-  named by `:data_source_id`) over the range; a Meta-type data source's
-  connection is pulled first, so its stats are fresh.
+  named by `:data_source_id`), every step or the one named by `:step_id`,
+  over the range; a Meta-type data source's connection is pulled first,
+  so its stats are fresh. A data source or step the funnel has not is
+  `{:error, :not_found}`.
   """
   def refresh_funnel(%Funnel{} = funnel, date_from, date_to, trigger, opts \\ []) do
+    data_source_id = Keyword.get(opts, :data_source_id)
+    step_id = Keyword.get(opts, :step_id)
+
     data_sources =
-      case Keyword.get(opts, :data_source_id) do
+      case data_source_id do
         nil -> funnel.data_sources
         id -> Enum.filter(funnel.data_sources, &(&1.id == id))
       end
 
-    if data_sources == [] and Keyword.get(opts, :data_source_id) do
-      {:error, :not_found}
-    else
-      runs =
-        Enum.flat_map(data_sources, fn data_source ->
-          meta_runs =
-            if data_source.type == :meta_pixel_api and data_source.connection,
-              do: [
-                elem(
-                  refresh_meta_connection(data_source.connection, date_from, date_to, trigger),
-                  1
-                )
-              ],
-              else: []
+    cond do
+      data_sources == [] and data_source_id != nil ->
+        {:error, :not_found}
 
-          {:ok, run} = refresh_data_source(data_source, date_from, date_to, trigger)
-          meta_runs ++ [run]
-        end)
+      step_id != nil and not Enum.any?(funnel.steps, &(&1.id == step_id)) ->
+        {:error, :not_found}
 
-      {:ok, runs}
+      true ->
+        runs =
+          Enum.flat_map(data_sources, fn data_source ->
+            meta_runs =
+              if data_source.type == :meta_pixel_api and data_source.connection,
+                do: [
+                  elem(
+                    refresh_meta_connection(data_source.connection, date_from, date_to, trigger),
+                    1
+                  )
+                ],
+                else: []
+
+            {:ok, run} =
+              refresh_data_source(data_source, date_from, date_to, trigger, step_id: step_id)
+
+            meta_runs ++ [run]
+          end)
+
+        {:ok, runs}
     end
   end
 
@@ -189,7 +213,7 @@ defmodule PixelAudit.Api.Reporting do
       |> order_by([r], desc: r.inserted_at, desc: r.id)
       |> limit(^limit)
       |> offset(^offset)
-      |> preload([:connection, :funnel, :data_source])
+      |> preload([:connection, :funnel, :data_source, :step])
       |> Repo.all()
 
     %{runs: runs, total: total}
@@ -198,7 +222,7 @@ defmodule PixelAudit.Api.Reporting do
   def get_refresh_run!(id), do: Repo.get!(RefreshRun, id)
 
   def get_refresh_run_with_assocs!(id),
-    do: RefreshRun |> Repo.get!(id) |> Repo.preload([:connection, :funnel, :data_source])
+    do: RefreshRun |> Repo.get!(id) |> Repo.preload([:connection, :funnel, :data_source, :step])
 
   @doc """
   The days a data-source run computed, each with its step: what the run
@@ -233,13 +257,18 @@ defmodule PixelAudit.Api.Reporting do
 
   ## Daily counts
 
-  @doc "Stores one day's outcome for a data source and step."
+  @doc """
+  Stores one day's outcome for a data source and step, citing the calls
+  it rests on (`cited`, from `PixelAudit.Api.Settings.Gateway.capture/2`)
+  in place of what the day cited before.
+  """
   def put_daily_count(
         %RefreshRun{} = run,
         %DataSource{} = data_source,
         %Step{} = step,
         date,
-        outcome
+        outcome,
+        cited \\ []
       ) do
     {status, count, error} =
       case outcome do
@@ -247,26 +276,84 @@ defmodule PixelAudit.Api.Reporting do
         {:error, message} -> {:error, nil, String.slice(to_string(message), 0, 2000)}
       end
 
-    Repo.insert_all(
-      DailyCount,
-      [
-        %{
-          id: Ecto.UUID.generate(),
-          data_source_id: data_source.id,
-          step_id: step.id,
-          refresh_run_id: run.id,
-          date: date,
-          count: count,
-          status: status,
-          error: error,
-          computed_at: DateTime.utc_now(:second)
-        }
-      ],
-      on_conflict: {:replace, [:count, :status, :error, :computed_at, :refresh_run_id]},
-      conflict_target: [:data_source_id, :step_id, :date]
-    )
+    now = DateTime.utc_now(:second)
+
+    Repo.transaction(fn ->
+      {1, [%{id: daily_count_id}]} =
+        Repo.insert_all(
+          DailyCount,
+          [
+            %{
+              id: Ecto.UUID.generate(),
+              data_source_id: data_source.id,
+              step_id: step.id,
+              refresh_run_id: run.id,
+              date: date,
+              count: count,
+              status: status,
+              error: error,
+              computed_at: now
+            }
+          ],
+          on_conflict: {:replace, [:count, :status, :error, :computed_at, :refresh_run_id]},
+          conflict_target: [:data_source_id, :step_id, :date],
+          returning: [:id]
+        )
+
+      Repo.delete_all(from c in Citation, where: c.daily_count_id == ^daily_count_id)
+
+      citations =
+        for call_id <- Enum.uniq(cited),
+            do: %{daily_count_id: daily_count_id, call_id: call_id, inserted_at: now}
+
+      if citations != [], do: Repo.insert_all(Citation, citations)
+    end)
 
     :ok
+  end
+
+  @doc """
+  The trail of one cell of the report: for every day of the range, the
+  daily count as stored (or nothing, when the day was never computed),
+  with its refresh run and the calls it cites — each whole, with its
+  connection — oldest first.
+  """
+  def step_days(
+        %DataSource{} = data_source,
+        %Step{} = step,
+        %Date{} = date_from,
+        %Date{} = date_to
+      ) do
+    stored =
+      Repo.all(
+        from c in DailyCount,
+          where:
+            c.data_source_id == ^data_source.id and c.step_id == ^step.id and
+              c.date >= ^date_from and c.date <= ^date_to,
+          preload: [:refresh_run, citations: [call: ^PixelAudit.Api.Settings.call_preloads()]]
+      )
+      |> Map.new(&{&1.date, &1})
+
+    for date <- Date.range(date_from, date_to) do
+      case stored[date] do
+        nil ->
+          %{date: date, daily_count: nil, calls: []}
+
+        daily_count ->
+          calls =
+            daily_count.citations
+            |> Enum.map(& &1.call)
+            |> Enum.sort_by(&{&1.started_at, &1.id}, fn {a, ida}, {b, idb} ->
+              case DateTime.compare(a, b) do
+                :lt -> true
+                :gt -> false
+                :eq -> ida <= idb
+              end
+            end)
+
+          %{date: date, daily_count: daily_count, calls: calls}
+      end
+    end
   end
 
   ## Report
