@@ -1,3 +1,4 @@
+import { Link, type LinkProps } from "@tanstack/react-router";
 import { useLayoutEffect, useRef, useState } from "react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
 
@@ -19,10 +20,10 @@ const FILL_OPACITY = 0.3;
  * of each other and two that do not show the gap. A step the source does
  * not measure is drawn dashed at the median of the other sources.
  *
- * The step names stand over their columns; hovering one says how far the
- * sources disagree on it — the lowest and the highest count, with who
- * says so, and the average. Hovering a node or a ribbon names its source
- * and count.
+ * The step names stand over their columns, each a link to the step's own
+ * screen; hovering one says how far the sources disagree on it — the
+ * lowest and the highest count, with who says so, and the average.
+ * Hovering a node or a ribbon names its source and count.
  *
  * The chart's box is always there, at its fixed height, whatever is shown:
  * when every source is hidden, or the shown ones measure nothing, the
@@ -30,7 +31,16 @@ const FILL_OPACITY = 0.3;
  * a box that came and went would be measured as nothing when it left —
  * and never again once it came back.
  */
-export function FunnelSankey({ report, shown }: { report: Report; shown: ShownSource[] }) {
+export function FunnelSankey({
+  report,
+  shown,
+  stepLink,
+}: {
+  report: Report;
+  shown: ShownSource[];
+  /** Where a step's name leads: the step's own screen. */
+  stepLink: (stepId: string) => LinkProps;
+}) {
   const intl = useIntl();
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -81,13 +91,13 @@ export function FunnelSankey({ report, shown }: { report: Report; shown: ShownSo
                 return (
                   <Tooltip key={column.step.id}>
                     <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="absolute top-0 cursor-help text-xs font-medium whitespace-nowrap text-foreground underline decoration-dotted underline-offset-2"
+                      <Link
+                        {...stepLink(column.step.id)}
+                        className="absolute top-0 text-xs font-medium whitespace-nowrap text-foreground underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
                         style={position}
                       >
                         {column.step.name}
-                      </button>
+                      </Link>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       {stats ? (

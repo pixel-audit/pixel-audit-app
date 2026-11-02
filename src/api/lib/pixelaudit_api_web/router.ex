@@ -85,6 +85,7 @@ defmodule PixelAudit.ApiWeb.Router do
              :delete
 
       get "/:funnel_id/report", ReportController, :show
+      get "/:funnel_id/steps/:step_id/report", ReportController, :step
       post "/:funnel_id/refresh", RefreshController, :create
     end
 

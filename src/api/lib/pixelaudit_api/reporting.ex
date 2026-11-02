@@ -274,4 +274,8 @@ defmodule PixelAudit.Api.Reporting do
   @doc "The report of a funnel loaded by `PixelAudit.Api.Funnels.get_funnel!/1`."
   def report(%Funnel{} = funnel, %Date{} = date_from, %Date{} = date_to),
     do: Report.build(funnel, date_from, date_to)
+
+  @doc "One step of the funnel day by day over the range, per data source."
+  def step_series(%Funnel{} = funnel, %Step{} = step, %Date{} = date_from, %Date{} = date_to),
+    do: Report.step_series(funnel, step, date_from, date_to)
 end

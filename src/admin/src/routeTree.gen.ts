@@ -21,6 +21,7 @@ import { Route as FunnelsIdIndexRouteImport } from './routes/funnels_.$id.index'
 import { Route as FunnelsIdSetupRouteImport } from './routes/funnels_.$id.setup'
 import { Route as SettingsConnectionsIdRouteImport } from './routes/settings.connections_.$id'
 import { Route as SettingsVariablesIdRouteImport } from './routes/settings.variables_.$id'
+import { Route as FunnelsIdStepsStepIdRouteImport } from './routes/funnels_.$id.steps.$stepId'
 import { Route as SettingsConnectionsIdIndexRouteImport } from './routes/settings.connections_.$id.index'
 import { Route as SettingsConnectionsIdCallsRouteImport } from './routes/settings.connections_.$id.calls'
 import { Route as SettingsConnectionsIdChecksRouteImport } from './routes/settings.connections_.$id.checks'
@@ -85,6 +86,11 @@ const SettingsVariablesIdRoute = SettingsVariablesIdRouteImport.update({
   path: '/settings/variables/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FunnelsIdStepsStepIdRoute = FunnelsIdStepsStepIdRouteImport.update({
+  id: '/steps/$stepId',
+  path: '/steps/$stepId',
+  getParentRoute: () => FunnelsIdRoute,
+} as any)
 const SettingsConnectionsIdIndexRoute =
   SettingsConnectionsIdIndexRouteImport.update({
     id: '/',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/settings/connections/$id': typeof SettingsConnectionsIdRouteWithChildren
   '/settings/variables/$id': typeof SettingsVariablesIdRoute
   '/funnels/$id/': typeof FunnelsIdIndexRoute
+  '/funnels/$id/steps/$stepId': typeof FunnelsIdStepsStepIdRoute
   '/settings/connections/$id/calls': typeof SettingsConnectionsIdCallsRoute
   '/settings/connections/$id/checks': typeof SettingsConnectionsIdChecksRoute
   '/settings/connections/$id/': typeof SettingsConnectionsIdIndexRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/funnels/$id/setup': typeof FunnelsIdSetupRoute
   '/settings/variables/$id': typeof SettingsVariablesIdRoute
   '/funnels/$id': typeof FunnelsIdIndexRoute
+  '/funnels/$id/steps/$stepId': typeof FunnelsIdStepsStepIdRoute
   '/settings/connections/$id/calls': typeof SettingsConnectionsIdCallsRoute
   '/settings/connections/$id/checks': typeof SettingsConnectionsIdChecksRoute
   '/settings/connections/$id': typeof SettingsConnectionsIdIndexRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/settings/connections_/$id': typeof SettingsConnectionsIdRouteWithChildren
   '/settings/variables_/$id': typeof SettingsVariablesIdRoute
   '/funnels_/$id/': typeof FunnelsIdIndexRoute
+  '/funnels_/$id/steps/$stepId': typeof FunnelsIdStepsStepIdRoute
   '/settings/connections_/$id/calls': typeof SettingsConnectionsIdCallsRoute
   '/settings/connections_/$id/checks': typeof SettingsConnectionsIdChecksRoute
   '/settings/connections_/$id/': typeof SettingsConnectionsIdIndexRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/settings/connections/$id'
     | '/settings/variables/$id'
     | '/funnels/$id/'
+    | '/funnels/$id/steps/$stepId'
     | '/settings/connections/$id/calls'
     | '/settings/connections/$id/checks'
     | '/settings/connections/$id/'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/funnels/$id/setup'
     | '/settings/variables/$id'
     | '/funnels/$id'
+    | '/funnels/$id/steps/$stepId'
     | '/settings/connections/$id/calls'
     | '/settings/connections/$id/checks'
     | '/settings/connections/$id'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/settings/connections_/$id'
     | '/settings/variables_/$id'
     | '/funnels_/$id/'
+    | '/funnels_/$id/steps/$stepId'
     | '/settings/connections_/$id/calls'
     | '/settings/connections_/$id/checks'
     | '/settings/connections_/$id/'
@@ -305,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsVariablesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/funnels_/$id/steps/$stepId': {
+      id: '/funnels_/$id/steps/$stepId'
+      path: '/steps/$stepId'
+      fullPath: '/funnels/$id/steps/$stepId'
+      preLoaderRoute: typeof FunnelsIdStepsStepIdRouteImport
+      parentRoute: typeof FunnelsIdRoute
+    }
     '/settings/connections_/$id/': {
       id: '/settings/connections_/$id/'
       path: '/'
@@ -332,11 +351,13 @@ declare module '@tanstack/react-router' {
 interface FunnelsIdRouteChildren {
   FunnelsIdSetupRoute: typeof FunnelsIdSetupRoute
   FunnelsIdIndexRoute: typeof FunnelsIdIndexRoute
+  FunnelsIdStepsStepIdRoute: typeof FunnelsIdStepsStepIdRoute
 }
 
 const FunnelsIdRouteChildren: FunnelsIdRouteChildren = {
   FunnelsIdSetupRoute: FunnelsIdSetupRoute,
   FunnelsIdIndexRoute: FunnelsIdIndexRoute,
+  FunnelsIdStepsStepIdRoute: FunnelsIdStepsStepIdRoute,
 }
 
 const FunnelsIdRouteWithChildren = FunnelsIdRoute._addFileChildren(

@@ -9,7 +9,7 @@ defmodule PixelAudit.Api.Reporting.Report do
 
   import Ecto.Query
 
-  alias PixelAudit.Api.Funnels.Funnel
+  alias PixelAudit.Api.Funnels.{Funnel, Step}
   alias PixelAudit.Api.Repo
   alias PixelAudit.Api.Reporting.DailyCount
 
@@ -94,6 +94,48 @@ defmodule PixelAudit.Api.Reporting.Report do
       cells: cells,
       conversions: conversions(funnel, cells)
     }
+  end
+
+  @doc """
+  One step of a funnel, day by day over the range: for every data source
+  one series with a point per day of the range — its count when the day
+  counted, otherwise why not (`:error` with the resolver's message, or
+  `:missing` when it was never computed). A source that does not measure
+  the step has a series of missing days and `measured: false`, so the
+  chart can list it with the others, greyed out.
+  """
+  def step_series(%Funnel{} = funnel, %Step{} = step, %Date{} = date_from, %Date{} = date_to) do
+    days = Date.diff(date_to, date_from) + 1
+    dates = Date.range(date_from, date_to) |> Enum.to_list()
+    data_source_ids = Enum.map(funnel.data_sources, & &1.id)
+
+    counted =
+      Repo.all(
+        from c in DailyCount,
+          where:
+            c.data_source_id in ^data_source_ids and c.step_id == ^step.id and
+              c.date >= ^date_from and c.date <= ^date_to,
+          select: {c.data_source_id, c.date, c.status, c.count, c.error}
+      )
+      |> Map.new(fn {ds, date, status, count, error} -> {{ds, date}, {status, count, error}} end)
+
+    series =
+      for data_source <- funnel.data_sources do
+        measured? = Enum.any?(data_source.step_parameters, &(&1.step_id == step.id))
+
+        points =
+          for date <- dates do
+            case counted[{data_source.id, date}] do
+              {:ok, count, _} -> %{date: date, count: count, status: :ok, error: nil}
+              {:error, _, error} -> %{date: date, count: nil, status: :error, error: error}
+              nil -> %{date: date, count: nil, status: :missing, error: nil}
+            end
+          end
+
+        %{data_source_id: data_source.id, measured: measured?, points: points}
+      end
+
+    %{date_from: date_from, date_to: date_to, days: days, series: series}
   end
 
   defp cell(data_source_id, step_id, count, ok, error, missing, last_error) do

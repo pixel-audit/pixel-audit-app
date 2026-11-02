@@ -1,3 +1,4 @@
+import { linkOptions, type LinkProps } from "@tanstack/react-router";
 import { RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
@@ -17,14 +18,17 @@ import { useApi } from "@/lib/api";
 import type { DateRange } from "@/lib/date-range";
 import { copy, formatCopy } from "@/lib/i18n/copy";
 import { commonMessages } from "@/lib/i18n/common-messages";
-import { shownSources, type SourceModes } from "@/lib/source-modes";
+import { serializeModes, shownSources, type SourceModes } from "@/lib/source-modes";
 
 /**
  * The funnel over a date range: the range above, the chart with every
  * shown data source over one another, then the counts per data source and
  * step — where each source's toggle says whether it is drawn filled, as an
  * outline, or not at all. The range and the modes live in the address (the
- * route owns them); a refresh of the shown range is queued from here.
+ * route owns them); a refresh of the shown range is queued from here. A
+ * step's name — over the chart, or at the head of its column — leads to
+ * the step's own screen, its counts day by day, with the range and the
+ * modes carried along.
  */
 export function FunnelReport({
   funnel,
@@ -46,6 +50,13 @@ export function FunnelReport({
 
   const query = api.useAdminGetFunnelReport(funnel.id, range);
   const report = okData(query.data)?.data ?? null;
+
+  const stepLink = (stepId: string): LinkProps =>
+    linkOptions({
+      to: "/funnels/$id/steps/$stepId",
+      params: { id: funnel.id, stepId },
+      search: { ...range, show: serializeModes(modes) },
+    });
 
   return (
     <div className="space-y-6">
@@ -85,8 +96,17 @@ export function FunnelReport({
         // The chart and its table are one picture: one card, no heading.
         <Card className="shadow-none">
           <CardContent className="space-y-6 pt-6">
-            <FunnelSankey report={report} shown={shownSources(report.data_sources, modes)} />
-            <FunnelCountsTable report={report} modes={modes} onModesChange={onModesChange} />
+            <FunnelSankey
+              report={report}
+              shown={shownSources(report.data_sources, modes)}
+              stepLink={stepLink}
+            />
+            <FunnelCountsTable
+              report={report}
+              modes={modes}
+              onModesChange={onModesChange}
+              stepLink={stepLink}
+            />
           </CardContent>
         </Card>
       )}

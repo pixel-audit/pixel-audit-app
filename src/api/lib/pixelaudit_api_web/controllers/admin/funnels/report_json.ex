@@ -15,4 +15,18 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.ReportJSON do
       }
     }
   end
+
+  def step(%{funnel: funnel, step: step, series: series}) do
+    %{
+      data: %{
+        funnel_id: funnel.id,
+        step: StepJSON.data(step),
+        date_from: series.date_from,
+        date_to: series.date_to,
+        days: series.days,
+        data_sources: Enum.map(funnel.data_sources, &DataSourceJSON.data/1),
+        series: series.series
+      }
+    }
+  end
 end

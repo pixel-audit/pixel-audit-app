@@ -23,6 +23,7 @@ import type {
 
 import type {
   AdminGetFunnelReportParams,
+  AdminGetStepReportParams,
   AdminListConnectionCallsParams,
   AdminListRefreshRunsParams,
   ConnectionCallsResponse,
@@ -49,6 +50,7 @@ import type {
   StepParameterParams,
   StepParameterResponse,
   StepParams,
+  StepReportResponse,
   StepResponse,
   StepsResponse,
   ValidationErrors,
@@ -2114,6 +2116,201 @@ export const useAdminUpdateFunnelStep = <TError = Error | ValidationErrors, TCon
 > => {
   return useMutation(getAdminUpdateFunnelStepMutationOptions(options), queryClient);
 };
+
+export type adminGetStepReportResponse200 = {
+  data: StepReportResponse;
+  status: 200;
+};
+
+export type adminGetStepReportResponse404 = {
+  data: Error;
+  status: 404;
+};
+
+export type adminGetStepReportResponse422 = {
+  data: Error;
+  status: 422;
+};
+
+export type adminGetStepReportResponseSuccess = adminGetStepReportResponse200 & {
+  headers: Headers;
+};
+export type adminGetStepReportResponseError = (
+  adminGetStepReportResponse404 | adminGetStepReportResponse422
+) & {
+  headers: Headers;
+};
+
+export type adminGetStepReportResponse =
+  adminGetStepReportResponseSuccess | adminGetStepReportResponseError;
+
+export const getAdminGetStepReportUrl = (
+  funnelId: string,
+  stepId: string,
+  params: AdminGetStepReportParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/v1/funnels/${funnelId}/steps/${stepId}/report?${stringifiedParams}`
+    : `/api/admin/v1/funnels/${funnelId}/steps/${stepId}/report`;
+};
+
+/**
+ * Read from the daily cache: for every data source of the funnel a point per day of the range — the day's count, or why there is none (failed, or never computed).
+ * @summary One step's counts day by day over a date range, per data source
+ */
+export const adminGetStepReport = async (
+  funnelId: string,
+  stepId: string,
+  params: AdminGetStepReportParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<adminGetStepReportResponse> => {
+  return customFetch<adminGetStepReportResponse>(
+    getAdminGetStepReportUrl(funnelId, stepId, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getAdminGetStepReportQueryKey = (
+  funnelId: string,
+  stepId: string,
+  params?: AdminGetStepReportParams,
+) => {
+  return [
+    `/api/admin/v1/funnels/${funnelId}/steps/${stepId}/report`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getAdminGetStepReportQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetStepReport>>,
+  TError = Error,
+>(
+  funnelId: string,
+  stepId: string,
+  params: AdminGetStepReportParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetStepReport>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAdminGetStepReportQueryKey(funnelId, stepId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetStepReport>>> = ({ signal }) =>
+    adminGetStepReport(funnelId, stepId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: funnelId !== null && funnelId !== undefined && stepId !== null && stepId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof adminGetStepReport>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type AdminGetStepReportQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetStepReport>>
+>;
+export type AdminGetStepReportQueryError = Error;
+
+export function useAdminGetStepReport<
+  TData = Awaited<ReturnType<typeof adminGetStepReport>>,
+  TError = Error,
+>(
+  funnelId: string,
+  stepId: string,
+  params: AdminGetStepReportParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetStepReport>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetStepReport>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetStepReport>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetStepReport<
+  TData = Awaited<ReturnType<typeof adminGetStepReport>>,
+  TError = Error,
+>(
+  funnelId: string,
+  stepId: string,
+  params: AdminGetStepReportParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminGetStepReport>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminGetStepReport>>,
+          TError,
+          Awaited<ReturnType<typeof adminGetStepReport>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminGetStepReport<
+  TData = Awaited<ReturnType<typeof adminGetStepReport>>,
+  TError = Error,
+>(
+  funnelId: string,
+  stepId: string,
+  params: AdminGetStepReportParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetStepReport>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary One step's counts day by day over a date range, per data source
+ */
+
+export function useAdminGetStepReport<
+  TData = Awaited<ReturnType<typeof adminGetStepReport>>,
+  TError = Error,
+>(
+  funnelId: string,
+  stepId: string,
+  params: AdminGetStepReportParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof adminGetStepReport>>, TError, TData>>;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminGetStepReportQueryOptions(funnelId, stepId, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
 
 export type adminDeleteFunnelResponse204 = {
   data: void;

@@ -1,3 +1,4 @@
+import { Link, type LinkProps } from "@tanstack/react-router";
 import { TriangleAlert } from "lucide-react";
 import { defineMessage, defineMessages, useIntl } from "react-intl";
 
@@ -9,7 +10,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * The counts: a row per data source, a column per step, aligned with the
- * chart's columns. Each row starts with the source's three-state toggle in
+ * chart's columns; each column's head is the step's name, a link to the
+ * step's own screen. Each row starts with the source's three-state toggle in
  * its colour (filled, outlined, hidden on the chart); the header's toggle
  * puts every source in one state. Each cell carries the count — in bold
  * for the step's primary source, with the parameter's description as its
@@ -21,10 +23,13 @@ export function FunnelCountsTable({
   report,
   modes,
   onModesChange,
+  stepLink,
 }: {
   report: Report;
   modes: SourceModes;
   onModesChange: (modes: SourceModes) => void;
+  /** Where a step's name leads: the step's own screen. */
+  stepLink: (stepId: string) => LinkProps;
 }) {
   const intl = useIntl();
 
@@ -50,7 +55,12 @@ export function FunnelCountsTable({
               </th>
               {report.steps.map((step) => (
                 <th key={step.id} className="px-2 py-2 text-right font-semibold">
-                  {step.name}
+                  <Link
+                    {...stepLink(step.id)}
+                    className="underline decoration-dotted underline-offset-4 transition-colors hover:text-primary"
+                  >
+                    {step.name}
+                  </Link>
                 </th>
               ))}
             </tr>

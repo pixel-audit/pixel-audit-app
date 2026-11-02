@@ -7,6 +7,7 @@
  */
 
 export * from "./adminGetFunnelReportParams.ts";
+export * from "./adminGetStepReportParams.ts";
 export * from "./adminListConnectionCallsParams.ts";
 export * from "./adminListRefreshRunsKind.ts";
 export * from "./adminListRefreshRunsParams.ts";
@@ -74,6 +75,11 @@ export * from "./stepParameterParams.ts";
 export * from "./stepParameterParamsParameters.ts";
 export * from "./stepParameterResponse.ts";
 export * from "./stepParams.ts";
+export * from "./stepReport.ts";
+export * from "./stepReportPoint.ts";
+export * from "./stepReportPointStatus.ts";
+export * from "./stepReportResponse.ts";
+export * from "./stepReportSeries.ts";
 export * from "./stepResponse.ts";
 export * from "./stepsResponse.ts";
 export * from "./validationErrors.ts";

@@ -761,6 +761,48 @@
   "sourceMode.label": {
     "defaultMessage": "{name}: {mode, select, fill {drawn filled} outline {drawn as an outline} mixed {drawn differently} other {hidden}} — click to change"
   },
+  "stepChart.chartLabel": {
+    "defaultMessage": "{step}: each data source's count per day"
+  },
+  "stepChart.failed": {
+    "defaultMessage": "failed"
+  },
+  "stepChart.notComputed": {
+    "defaultMessage": "not computed"
+  },
+  "stepChart.nothingMeasured": {
+    "defaultMessage": "The shown data sources do not measure this step yet — set their parameters under Setup."
+  },
+  "stepChart.nothingShown": {
+    "defaultMessage": "Every data source is hidden — switch one on in the table below."
+  },
+  "stepReport.loadFailed": {
+    "defaultMessage": "The step's counts could not be loaded."
+  },
+  "stepReport.notConfigured": {
+    "defaultMessage": "Give the funnel a data source under Setup to see the step's counts."
+  },
+  "stepReport.subject": {
+    "defaultMessage": "step report"
+  },
+  "stepReport.table.allSources": {
+    "defaultMessage": "All data sources"
+  },
+  "stepReport.table.incomplete": {
+    "defaultMessage": "{ok} of {days} days counted; {error, plural, =0 {none} one {# day} other {# days}} failed, {missing, plural, =0 {none} one {# day} other {# days}} not computed yet."
+  },
+  "stepReport.table.incompleteLabel": {
+    "defaultMessage": "Incomplete"
+  },
+  "stepReport.table.noCount": {
+    "defaultMessage": "…"
+  },
+  "stepReport.table.notMeasured": {
+    "defaultMessage": "—"
+  },
+  "stepReport.table.source": {
+    "defaultMessage": "Data source"
+  },
   "steps.card.add": {
     "defaultMessage": "Add step"
   },

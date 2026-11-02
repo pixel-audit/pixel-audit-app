@@ -170,6 +170,77 @@ defmodule PixelAudit.ApiWeb.Admin.Funnels.FunnelControllerTest do
     assert conn |> get(funnel_path) |> json_response(404)
   end
 
+  test "reports one step day by day, per data source", %{conn: conn} do
+    %{funnel: funnel, steps: [visit, cart | _], data_source: data_source} =
+      measured_funnel_fixture()
+
+    other = data_source_fixture(funnel, connection_fixture(:postgres), :postgres_query)
+
+    {:ok, run} =
+      PixelAudit.Api.Reporting.refresh_data_source(
+        data_source,
+        ~D[2026-10-01],
+        ~D[2026-10-03],
+        :manual
+      )
+
+    :ok =
+      PixelAudit.Api.Reporting.put_daily_count(run, data_source, visit, ~D[2026-10-01], {:ok, 7})
+
+    :ok =
+      PixelAudit.Api.Reporting.put_daily_count(
+        run,
+        data_source,
+        visit,
+        ~D[2026-10-02],
+        {:error, "boom"}
+      )
+
+    # Another step's day is not this step's.
+    :ok =
+      PixelAudit.Api.Reporting.put_daily_count(run, data_source, cart, ~D[2026-10-03], {:ok, 1})
+
+    path = "#{@base}/#{funnel.id}/steps/#{visit.id}/report"
+
+    %{"data" => report} =
+      conn |> get("#{path}?date_from=2026-10-01&date_to=2026-10-03") |> json_response(200)
+
+    assert report["step"]["id"] == visit.id
+    assert report["days"] == 3
+    assert Enum.map(report["data_sources"], & &1["id"]) == [data_source.id, other.id]
+
+    assert [
+             %{
+               "data_source_id" => measured_id,
+               "measured" => true,
+               "points" => [
+                 %{"date" => "2026-10-01", "count" => 7, "status" => "ok", "error" => nil},
+                 %{
+                   "date" => "2026-10-02",
+                   "count" => nil,
+                   "status" => "error",
+                   "error" => "boom"
+                 },
+                 %{"date" => "2026-10-03", "count" => nil, "status" => "missing"}
+               ]
+             },
+             %{"data_source_id" => other_id, "measured" => false, "points" => other_points}
+           ] = report["series"]
+
+    assert measured_id == data_source.id
+    assert other_id == other.id
+    assert Enum.map(other_points, & &1["status"]) == ["missing", "missing", "missing"]
+
+    assert %{"errors" => %{"detail" => "missing_date"}} =
+             conn |> get("#{path}?date_from=2026-10-01") |> json_response(422)
+
+    assert conn
+           |> get(
+             "#{@base}/#{funnel.id}/steps/#{Ecto.UUID.generate()}/report?date_from=2026-10-01&date_to=2026-10-01"
+           )
+           |> json_response(404)
+  end
+
   test "lists funnels with their steps and data sources", %{conn: conn} do
     %{funnel: funnel} = measured_funnel_fixture()
 
